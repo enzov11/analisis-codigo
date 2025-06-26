@@ -1,0 +1,24 @@
+# Entorno virtual
+venv/
+.env
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# TensorFlow/Keras
+models/
+logs/
+
+# Dataset
+data/
+dataset/
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
