@@ -1,4 +1,4 @@
-# VulDeePecker for Java - Vulnerability Detection
+# Vulnerability Detection
 
 Sistema de detección de vulnerabilidades en código Java basado en deep learning.
 
@@ -10,48 +10,26 @@ Sistema de detección de vulnerabilidades en código Java basado en deep learnin
 - pandas
 
 ## Instalación
-git clone https://github.com/tu-usuario/tu-repo.git
-cd tu-repo
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
-pip install -r requirements.txt
 
-Configuración
+- Crear entorno virtual: python -m venv venv
+- Activar entorno virtual: source venv/bin/activate
+- Instalar dependencias: pip install -r requirements.txt
 
-    Copia el archivo .env.example a .env
+## Configuración
 
-    Edita .env con tus rutas locales:
-    ini
-
-    DATASET_PATH=/ruta/a/tu/dataset
+Copiar el archivo .env.example a .env y editar con rutas locales para el dataset
+DATASET_PATH=/ruta/a/tu/dataset
 
 ## Entrenamiento
-bash
-
+```
 python src/main.py train
+```
 
-Uso para detección
-bash
-
-# Analizar archivo
+## Analizar archivo
+```
 python src/main.py predict --code test/test_file.java
-
-# Analizar texto directo
+```
+## Analizar texto directo
+```
 python src/main.py predict --text "Statement stmt = conn.createStatement();"
-
-Estructura del proyecto
-text
-
-├── src/
-│   ├── config.py
-│   ├── data_loader.py
-│   ├── model.py
-│   ├── predictor.py
-│   ├── preprocessor.py
-│   └── trainer.py
-├── test/               # Archivos de prueba
-├── models/             # Modelos entrenados
-├── logs/               # Logs de entrenamiento
-└── data/               # Dataset (no incluido)
-
+```
