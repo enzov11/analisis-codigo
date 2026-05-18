@@ -1,8 +1,10 @@
 import argparse
-import os
-from trainer import ModelTrainer
+import json
+import sys
+from pathlib import Path
+
 from predictor import VulnerabilityPredictor
-from config import Config
+from trainer import ModelTrainer
 
 
 def main():
@@ -20,6 +22,11 @@ def main():
     parser.add_argument(
         "--text", type=str, help="Java code text to analyze (for predict mode)"
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print prediction or evaluation results as JSON.",
+    )
 
     args = parser.parse_args()
 
@@ -27,65 +34,86 @@ def main():
         if args.mode == "train":
             print("Training model...")
             trainer = ModelTrainer()
-            trainer.train()
+            _, evaluation = trainer.train()
             print("Training completed.")
-        elif args.mode == "predict":
+            if args.json:
+                print(json.dumps(evaluation, indent=2))
+            return 0
+        else:
             if not args.code and not args.text:
                 print(
-                    "Error: Either --code or --text must be provided for prediction mode"
+                    "Error: Either --code or --text must be provided for prediction mode."
                 )
-                return
+                return 1
 
+            code = args.text if args.text else read_code_from_path(args.code)
             predictor = VulnerabilityPredictor()
-
-            if args.code:
-                file_path = args.code
-                if not os.path.exists(file_path):
-                    test_dir = os.path.join(os.path.dirname(__file__), "test")
-                    possible_path = os.path.join(test_dir, args.code)
-                    if os.path.exists(possible_path):
-                        file_path = possible_path
-                    else:
-                        print(
-                            f"Error: File not found - {args.code} (searched in current directory and test/)"
-                        )
-                        return
-
-                try:
-                    with open(file_path, "r") as f:
-                        code = f.read()
-                except Exception as e:
-                    print(f"Error reading file: {str(e)}")
-                    return
-            else:
-                code = args.text
-
             result = predictor.analyze_code(code)
 
-            print("\nVulnerability Analysis Results:")
-            print(
-                f"Vulnerability Probability: {result['vulnerability_probability']:.2f}"
-            )
-            print(f"Is Vulnerable: {'Yes' if result['is_vulnerable'] else 'No'}")
+            if args.json:
+                print(json.dumps(result, indent=2))
+            else:
+                print_human_result(result)
+            return 0
 
-            if result["vulnerable_lines"]:
-                print("\nPotentially Vulnerable Lines:")
-                for line in result["vulnerable_lines"]:
-                    print(f"Line {line['line_number']}: {line['code']}")
-
-            if result["suggested_fixes"]:
-                print("\nSuggested Fixes:")
-                for fix in result["suggested_fixes"]:
-                    print(f"Line {fix['line_number']}:")
-                    print(f"Vulnerable Code: {fix['vulnerable_code']}")
-                    print(f"Suggested Fix: {fix['suggested_fix']}")
-                    print(f"Reference: {fix['reference']}\n")
-
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
+    except Exception as exc:
+        print(f"An error occurred: {exc}")
         if args.mode == "train":
-            print("Training failed. Check the dataset path and configuration.")
+            print(
+                "Training failed. Check DATASET_PATH, the dataset structure, and the configured artifact paths."
+            )
+        return 1
+
+
+def read_code_from_path(code_argument: str) -> str:
+    candidate_paths = [
+        Path(code_argument),
+        Path(__file__).resolve().parent / "test" / code_argument,
+    ]
+
+    for candidate in candidate_paths:
+        if candidate.exists():
+            with open(candidate, "r", encoding="utf-8") as handle:
+                return handle.read()
+
+    searched = ", ".join(str(path) for path in candidate_paths)
+    raise FileNotFoundError(
+        f"File not found: {code_argument}. Searched in: {searched}"
+    )
+
+
+def print_human_result(result: dict):
+    print("\nVulnerability Analysis Results:")
+    print(f"Final Probability: {result['vulnerability_probability']:.2f}")
+    print(f"Model Probability: {result['model_probability']:.2f}")
+    print(f"Heuristic Probability: {result['heuristic_probability']:.2f}")
+    print(f"Threshold: {result['threshold']:.2f}")
+    print(f"Is Vulnerable: {'Yes' if result['is_vulnerable'] else 'No'}")
+
+    if result["probable_cwes"]:
+        print("\nProbable CWE Categories:")
+        for candidate in result["probable_cwes"]:
+            print(
+                f"{candidate['cwe_id']} ({candidate['description']}): "
+                f"{candidate['confidence']:.2f} via {candidate['source']}"
+            )
+
+    if result["vulnerable_lines"]:
+        print("\nPotentially Vulnerable Lines:")
+        for line in result["vulnerable_lines"]:
+            print(
+                f"Line {line['line_number']}: {line['code']} "
+                f"[{line['description']}]"
+            )
+
+    if result["suggested_fixes"]:
+        print("\nSuggested Fixes:")
+        for fix in result["suggested_fixes"]:
+            print(f"Line {fix['line_number']}:")
+            print(f"Vulnerable Code: {fix['vulnerable_code']}")
+            print(f"Suggested Fix: {fix['suggested_fix']}")
+            print(f"Reference: {fix['reference']}\n")
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

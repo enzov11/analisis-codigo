@@ -10,6 +10,11 @@ __pycache__/
 # TensorFlow/Keras
 models/
 logs/
+src/logs/
+src/models/tokenizer.pkl
+src/models/cwe_encoder.pkl
+src/models/metadata.json
+src/models/evaluation.json
 
 # Dataset
 data/

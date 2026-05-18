@@ -10,7 +10,6 @@ from tensorflow.keras.layers import (
     Concatenate,
     LayerNormalization,
     MultiHeadAttention,
-    Reshape,
 )
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2

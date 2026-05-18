@@ -1,10 +1,12 @@
-from typing import List, Tuple, Dict
+import pickle
 import re
+from typing import Dict, List, Tuple
+
 import numpy as np
 import pandas as pd
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.preprocessing.text import Tokenizer
+
 from config import Config
 
 
@@ -12,81 +14,81 @@ class CodePreprocessor:
     def __init__(self):
         self.config = Config()
         self.tokenizer = None
-        self.label_encoder = LabelEncoder()
         self.special_tokens = {
             "<EXEC>": 1,
             "<PROCESS_BUILDER>": 2,
-            "<SQL_INJECTION>": 3,
-            "<COMMAND_INJECTION>": 4,
-            "<FLAW>": 5,
-            "<SAFE>": 6,
+            "<SQL_EXEC>": 3,
+            "<DYNAMIC_SQL>": 4,
+            "<UNSAFE_LOAD>": 5,
+            "<FLAW>": 6,
+            "<SAFE>": 7,
         }
 
     def preprocess_code(self, code: str) -> str:
-        """
-        Enhanced code preprocessing that preserves security-relevant patterns
-        """
-        # Keep important comments
-        code = re.sub(r"/\*.*?POTENTIAL FLAW.*?\*/", "<FLAW>", code, flags=re.DOTALL)
-        code = re.sub(r"/\*.*?FIX.*?\*/", "<SAFE>", code, flags=re.DOTALL)
-
-        # Replace dangerous patterns with special tokens
-        code = re.sub(r"Runtime\.getRuntime\(\)\.exec\(", "<EXEC> ", code)
-        code = re.sub(r"new ProcessBuilder\(", "<PROCESS_BUILDER> ", code)
         code = re.sub(
-            r"stmt\.execute\(|<SELECT>.+?\+.+",
-            "<SQL_INJECTION> ",
+            r"/\*.*?POTENTIAL FLAW.*?\*/|//\s*POTENTIAL FLAW.*",
+            "<FLAW>",
             code,
             flags=re.DOTALL,
         )
-        code = re.sub(r"System\.loadLibrary\(", "<COMMAND_INJECTION> ", code)
+        code = re.sub(
+            r"/\*.*?FIX.*?\*/|//\s*FIX.*",
+            "<SAFE>",
+            code,
+            flags=re.DOTALL,
+        )
 
-        # Preserve string literals (often contain important patterns)
-        code = re.sub(r'"(.*?)"', lambda m: f"STR_LIT_{len(m.group(1))}", code)
+        code = re.sub(r"Runtime\.getRuntime\(\)\.exec\(", "<EXEC> ", code)
+        code = re.sub(r"new\s+ProcessBuilder\(", "<PROCESS_BUILDER> ", code)
+        code = re.sub(r"\b\w+\.createStatement\s*\(", "<SQL_EXEC> ", code)
+        code = re.sub(r"\b(?:stmt|statement)\.(?:execute|executeQuery|executeUpdate)\s*\(", "<SQL_EXEC> ", code)
+        code = re.sub(
+            r"SELECT\s+.+?\s+FROM\s+.+?\s+WHERE\s+.+?[\"']\s*\+",
+            "<DYNAMIC_SQL> ",
+            code,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        code = re.sub(r"System\.loadLibrary\(", "<UNSAFE_LOAD> ", code)
 
-        # Standardize variable names but preserve types
+        code = re.sub(r'"(.*?)"', lambda match: f"STR_LIT_{len(match.group(1))}", code)
         code = re.sub(r"\bString\b\s+\w+", "VAR_STRING", code)
         code = re.sub(r"\bint\b\s+\w+", "VAR_INT", code)
-
-        # Remove package/import but keep class/method structure
         code = re.sub(r"package\s+.*?;", "", code)
         code = re.sub(r"import\s+.*?;", "", code)
 
         return " ".join(code.split())
 
     def create_tokenizer(self, texts: List[str]):
-        """Custom tokenizer with security-aware vocabulary"""
         self.tokenizer = Tokenizer(
             num_words=self.config.MAX_TOKENS,
-            oov_token="<OOV>",
-            filters="",  # Don't filter special chars
-            lower=False,  # Case sensitive
+            oov_token=self.config.TOKENIZER_OOV_TOKEN,
+            filters="",
+            lower=False,
             split=" ",
             char_level=False,
         )
-
-        # Fit on texts
         self.tokenizer.fit_on_texts(texts)
 
-        # Add special tokens
         for token, idx in self.special_tokens.items():
             self.tokenizer.word_index[token] = idx
+            self.tokenizer.index_word[idx] = token
 
-        # Ensure special tokens are at the beginning
-        self.tokenizer.word_index = {
-            k: v
-            for k, v in sorted(
-                self.tokenizer.word_index.items(),
-                key=lambda item: (
-                    item[1]
-                    if item[0] not in self.special_tokens
-                    else self.special_tokens[item[0]]
-                ),
-            )
-        }
+    def save_tokenizer(self, path=None):
+        target_path = path or self.config.get_artifact_paths()["tokenizer"]
+        if self.tokenizer is None:
+            raise ValueError("Tokenizer has not been created yet.")
+        with open(target_path, "wb") as handle:
+            pickle.dump(self.tokenizer, handle)
+
+    def load_tokenizer(self, path=None):
+        target_path = path or self.config.get_artifact_paths()["tokenizer"]
+        with open(target_path, "rb") as handle:
+            self.tokenizer = pickle.load(handle)
+        return self.tokenizer
 
     def text_to_sequence(self, texts: List[str]) -> np.ndarray:
-        """Convert code to sequences with special handling"""
+        if self.tokenizer is None:
+            raise ValueError("Tokenizer is not loaded. Train the model or load artifacts.")
         sequences = self.tokenizer.texts_to_sequences(texts)
         return pad_sequences(
             sequences,
@@ -96,23 +98,14 @@ class CodePreprocessor:
             value=0,
         )
 
-    def encode_labels(self, labels: List[int]) -> np.ndarray:
-        return self.label_encoder.fit_transform(labels)
+    def prepare_dataset(self, df: pd.DataFrame, fit_tokenizer: bool = False) -> Tuple[np.ndarray, np.ndarray, Dict[str, int]]:
+        processed_df = df.copy()
+        processed_df["processed_code"] = processed_df["code"].apply(self.preprocess_code)
 
-    def prepare_dataset(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray, Dict]:
-        """Enhanced dataset preparation with metadata"""
-        # Preprocess code
-        df["processed_code"] = df["code"].apply(self.preprocess_code)
+        if fit_tokenizer or self.tokenizer is None:
+            self.create_tokenizer(processed_df["processed_code"].tolist())
 
-        # Create tokenizer
-        if not self.tokenizer:
-            self.create_tokenizer(df["processed_code"].tolist())
-
-        # Convert to sequences
-        X = self.text_to_sequence(df["processed_code"].tolist())
-        y = self.encode_labels(df["label"].tolist())
-
-        # Get CWE types for weighted loss
-        cwe_types = df["cwe_id"].value_counts().to_dict()
-
+        X = self.text_to_sequence(processed_df["processed_code"].tolist())
+        y = processed_df["label"].astype(int).to_numpy()
+        cwe_types = processed_df["cwe_id"].value_counts().to_dict()
         return X, y, cwe_types
