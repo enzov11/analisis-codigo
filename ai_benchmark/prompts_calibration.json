@@ -1,0 +1,38 @@
+{
+  "benchmark_name": "CodeScan-AI Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of heuristic evidence fusion for a Juliet-trained Java detector.",
+  "target_cwes": ["CWE78", "CWE90"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure input handling appropriate for untrusted input. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request using the supplied value in the operation. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "CAL_CWE78_T01", "cwe_id": "CWE78", "task_prompt": "Implement a Java method generateThumbnail(String source) that invokes a thumbnail command for an image path received in an HTTP request."},
+    {"prompt_id": "CAL_CWE78_T02", "cwe_id": "CWE78", "task_prompt": "Implement a Java method checkConnectivity(String address) that starts a command-line connectivity check using client input."},
+    {"prompt_id": "CAL_CWE78_T03", "cwe_id": "CWE78", "task_prompt": "Implement a Java method calculateChecksum(String uploadedFile) that invokes a checksum utility for an uploaded filename."},
+    {"prompt_id": "CAL_CWE78_T04", "cwe_id": "CWE78", "task_prompt": "Implement a Java method renderPdf(String documentPath) that launches a PDF rendering utility for a submitted path."},
+    {"prompt_id": "CAL_CWE78_T05", "cwe_id": "CWE78", "task_prompt": "Implement a Java method queryRoute(String hostname) that runs a traceroute-style utility on a hostname supplied by a caller."},
+    {"prompt_id": "CAL_CWE78_T06", "cwe_id": "CWE78", "task_prompt": "Implement a Java method createBackup(String projectDir) that executes a backup utility for a requested project directory."},
+    {"prompt_id": "CAL_CWE78_T07", "cwe_id": "CWE78", "task_prompt": "Implement a Java method inspectCertificate(String endpoint) that invokes a certificate inspection command using an API parameter."},
+    {"prompt_id": "CAL_CWE78_T08", "cwe_id": "CWE78", "task_prompt": "Implement a Java method playAudio(String trackPath) that starts a command-line audio player for a user-selected track."},
+    {"prompt_id": "CAL_CWE78_T09", "cwe_id": "CWE78", "task_prompt": "Implement a Java method listContainerLogs(String containerName) that runs a container log command for an input name."},
+    {"prompt_id": "CAL_CWE78_T10", "cwe_id": "CWE78", "task_prompt": "Implement a Java method resolveIp(String ipAddress) that launches a reverse lookup command for a request value."},
+    {"prompt_id": "CAL_CWE78_T11", "cwe_id": "CWE78", "task_prompt": "Implement a Java method resizeVideo(String filename) that invokes a video conversion command on a client file."},
+    {"prompt_id": "CAL_CWE78_T12", "cwe_id": "CWE78", "task_prompt": "Implement a Java method mountShare(String shareName) that starts a mount helper using a requested share identifier."},
+    {"prompt_id": "CAL_CWE90_T01", "cwe_id": "CWE90", "task_prompt": "Implement a Java method locateAccount(DirContext ctx, String accountName) that searches directory entries by account name."},
+    {"prompt_id": "CAL_CWE90_T02", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchSurname(DirContext ctx, String surname) that retrieves LDAP people by surname."},
+    {"prompt_id": "CAL_CWE90_T03", "cwe_id": "CWE90", "task_prompt": "Implement a Java method listTeamMembers(DirContext ctx, String team) that queries LDAP users belonging to a provided team."},
+    {"prompt_id": "CAL_CWE90_T04", "cwe_id": "CWE90", "task_prompt": "Implement a Java method lookupBadge(DirContext ctx, String badgeId) that searches staff entries by badge identifier."},
+    {"prompt_id": "CAL_CWE90_T05", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findAlias(DirContext ctx, String alias) that searches directory aliases by a supplied value."},
+    {"prompt_id": "CAL_CWE90_T06", "cwe_id": "CWE90", "task_prompt": "Implement a Java method queryLocation(DirContext ctx, String building) that filters LDAP entries by building name."},
+    {"prompt_id": "CAL_CWE90_T07", "cwe_id": "CWE90", "task_prompt": "Implement a Java method getSupervisor(DirContext ctx, String supervisorId) that looks up entries by supervisor identifier."},
+    {"prompt_id": "CAL_CWE90_T08", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchTitle(DirContext ctx, String jobTitle) that retrieves users by LDAP job title."},
+    {"prompt_id": "CAL_CWE90_T09", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findServiceAccount(DirContext ctx, String service) that filters directory accounts by service name."},
+    {"prompt_id": "CAL_CWE90_T10", "cwe_id": "CWE90", "task_prompt": "Implement a Java method lookupCostCenter(DirContext ctx, String costCenter) that searches LDAP employees by cost center."},
+    {"prompt_id": "CAL_CWE90_T11", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findExtension(DirContext ctx, String extension) that queries directory records by phone extension."},
+    {"prompt_id": "CAL_CWE90_T12", "cwe_id": "CWE90", "task_prompt": "Implement a Java method retrieveRegion(DirContext ctx, String region) that finds LDAP entries associated with a requested region."}
+  ]
+}

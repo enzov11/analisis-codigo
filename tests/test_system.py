@@ -131,6 +131,99 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result["suggested_fixes"], [])
         self.assertEqual(result["vulnerable_lines"], [])
 
+    def test_predictor_identifies_dynamic_ldap_filter_heuristic(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        code = 'String filter = "(uid=" + username + ")"; ctx.search("ou=users", filter, controls);'
+
+        result = predictor.analyze_code(code)
+
+        self.assertTrue(result["is_vulnerable"])
+        self.assertTrue(any(item["cwe_id"] == "CWE90" for item in result["probable_cwes"]))
+        self.assertTrue(
+            any(match["pattern_name"] == "dynamic_ldap_filter" for match in result["heuristic_matches"])
+        )
+
+    def test_predictor_suppresses_escaped_ldap_filter_false_positive(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        code = (
+            'String filter = "(uid=" + escapeForLDAPSearchFilter(username) + ")"; '
+            'ctx.search("ou=users", filter, controls);'
+        )
+
+        result = predictor.analyze_code(code)
+
+        self.assertFalse(result["is_vulnerable"])
+        self.assertTrue(result["safety_evidence"])
+        self.assertFalse(result["heuristic_evidence"])
+
+    def test_predictor_recognizes_parameterized_ldap_and_inline_injection(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+
+        safe_result = predictor.analyze_code(
+            'ctx.search(base, "(uid={0})", new Object[]{username}, controls);'
+        )
+        unsafe_result = predictor.analyze_code(
+            'ctx.search(base, "(uid=" + username + ")", controls);'
+        )
+
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(safe_result["safety_evidence"])
+        self.assertTrue(unsafe_result["is_vulnerable"])
+        self.assertTrue(unsafe_result["heuristic_evidence"])
+
+    def test_predictor_distinguishes_validated_and_dynamic_process_builder(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        safe = """
+        public Process ping(String host) throws Exception {
+            if (!host.matches("[A-Za-z0-9.-]+")) throw new IllegalArgumentException();
+            return new ProcessBuilder("ping", "-c", "1", host).start();
+        }
+        """
+        safe_composed_argument = """
+        public Process mount(String shareName) throws Exception {
+            if (!shareName.matches("[A-Za-z0-9_-]+")) throw new IllegalArgumentException();
+            return new ProcessBuilder("mount", "//server/" + shareName, "/mnt/share").start();
+        }
+        """
+        vulnerable = 'return new ProcessBuilder("sh", "-c", "ping " + host).start();'
+        direct_input = 'return new ProcessBuilder("ping", host).start();'
+
+        safe_result = predictor.analyze_code(safe)
+        safe_composed_result = predictor.analyze_code(safe_composed_argument)
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        direct_result = predictor.analyze_code(direct_input)
+
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(safe_result["safety_evidence"])
+        self.assertFalse(safe_composed_result["is_vulnerable"])
+        self.assertTrue(safe_composed_result["safety_evidence"])
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertTrue(vulnerable_result["heuristic_evidence"])
+        self.assertTrue(direct_result["is_vulnerable"])
+
+    def test_predictor_marks_unvalidated_runtime_input_as_strong_evidence(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+
+        result = predictor.analyze_code("return Runtime.getRuntime().exec(userInput);")
+
+        self.assertTrue(result["is_vulnerable"])
+        self.assertTrue(result["heuristic_evidence"])
+
+    def test_predictor_marks_unresolved_sensitive_sink_for_review(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+
+        result = predictor.analyze_code('return new ProcessBuilder("date").start();')
+
+        self.assertFalse(result["is_vulnerable"])
+        self.assertTrue(result["review_required"])
+        self.assertEqual(result["decision"], "review_required")
+
     def test_preprocessor_tokenizer_roundtrip(self):
         _, preprocessor_module, _ = reload_modules()
         preprocessor = preprocessor_module.CodePreprocessor()
@@ -166,6 +259,44 @@ class PipelineTests(unittest.TestCase):
         data = json.loads(completed.stdout)
         self.assertTrue(data["is_vulnerable"])
         self.assertIn("probable_cwes", data)
+
+    def test_cli_accepts_frozen_fusion_config(self):
+        fusion_path = self.temp_dir / "fusion.json"
+        with open(fusion_path, "w", encoding="utf-8") as handle:
+            json.dump(
+                {
+                    "selection_source": "ai_calibration_set",
+                    "threshold": 0.4,
+                    "model_weight": 1.0,
+                    "heuristic_weight": 1.0,
+                    "safety_discount": 0.35,
+                    "ambiguous_weight": 0.15,
+                },
+                handle,
+            )
+        command = [
+            str(REPO_ROOT / "venv" / "bin" / "python"),
+            "src/main.py",
+            "predict",
+            "--text",
+            "return Runtime.getRuntime().exec(userInput);",
+            "--fusion-config",
+            str(fusion_path),
+            "--json",
+        ]
+        completed = subprocess.run(
+            command,
+            cwd=REPO_ROOT,
+            env=os.environ.copy(),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+        data = json.loads(completed.stdout)
+        self.assertEqual(data["threshold"], 0.4)
+        self.assertTrue(data["is_vulnerable"])
 
     def test_missing_artifacts_raise_clear_error(self):
         os.remove(self.artifacts["tokenizer_path"])

@@ -11,6 +11,7 @@ __pycache__/
 models/
 logs/
 src/logs/
+src/models/
 src/models/tokenizer.pkl
 src/models/cwe_encoder.pkl
 src/models/metadata.json
@@ -23,6 +24,9 @@ dataset/
 # Editor/IDE
 .vscode/
 .idea/
+
+# Articulo LNCS gestionado fuera del repositorio publico
+paper_lncs/
 
 # Sistema
 .DS_Store

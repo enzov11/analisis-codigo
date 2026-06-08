@@ -1,0 +1,38 @@
+{
+  "benchmark_name": "CodeScan-AI Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "One-time external evaluation of frozen calibrated fusion on real LLM Java completions.",
+  "target_cwes": ["CWE78", "CWE90"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure input handling appropriate for untrusted input. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request using the supplied value in the operation. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "HOLD_CWE78_T01", "cwe_id": "CWE78", "task_prompt": "Implement a Java method probePort(String destination) that invokes an installed port probing utility using a submitted destination."},
+    {"prompt_id": "HOLD_CWE78_T02", "cwe_id": "CWE78", "task_prompt": "Implement a Java method unpackTarball(String archivePath) that starts a tar extraction command for an uploaded archive."},
+    {"prompt_id": "HOLD_CWE78_T03", "cwe_id": "CWE78", "task_prompt": "Implement a Java method optimizePng(String image) that launches an image optimization command for client input."},
+    {"prompt_id": "HOLD_CWE78_T04", "cwe_id": "CWE78", "task_prompt": "Implement a Java method exportDatabase(String databaseName) that runs a database export command for a requested database."},
+    {"prompt_id": "HOLD_CWE78_T05", "cwe_id": "CWE78", "task_prompt": "Implement a Java method verifySignature(String packageFile) that invokes a signature verification utility for a supplied file."},
+    {"prompt_id": "HOLD_CWE78_T06", "cwe_id": "CWE78", "task_prompt": "Implement a Java method rotateImage(String original) that executes an image rotation tool using an uploaded filename."},
+    {"prompt_id": "HOLD_CWE78_T07", "cwe_id": "CWE78", "task_prompt": "Implement a Java method fetchHeaders(String site) that calls a command-line HTTP client for an entered web address."},
+    {"prompt_id": "HOLD_CWE78_T08", "cwe_id": "CWE78", "task_prompt": "Implement a Java method syncFolder(String destinationFolder) that launches a file synchronization command using request input."},
+    {"prompt_id": "HOLD_CWE78_T09", "cwe_id": "CWE78", "task_prompt": "Implement a Java method checkDisk(String volume) that invokes a disk reporting utility for a selected volume."},
+    {"prompt_id": "HOLD_CWE78_T10", "cwe_id": "CWE78", "task_prompt": "Implement a Java method transcodeAudio(String sourceFile) that starts an audio transcoder for a submitted source path."},
+    {"prompt_id": "HOLD_CWE78_T11", "cwe_id": "CWE78", "task_prompt": "Implement a Java method viewCommit(String commitHash) that calls a version-control command for a supplied commit identifier."},
+    {"prompt_id": "HOLD_CWE78_T12", "cwe_id": "CWE78", "task_prompt": "Implement a Java method removeTemporaryFile(String tempName) that invokes an operating-system deletion command for a provided temporary name."},
+    {"prompt_id": "HOLD_CWE90_T01", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchLogin(DirContext ctx, String login) that queries LDAP records for a supplied login."},
+    {"prompt_id": "HOLD_CWE90_T02", "cwe_id": "CWE90", "task_prompt": "Implement a Java method selectOrganization(DirContext ctx, String organization) that retrieves LDAP entries for an organization name."},
+    {"prompt_id": "HOLD_CWE90_T03", "cwe_id": "CWE90", "task_prompt": "Implement a Java method retrieveMailbox(DirContext ctx, String mailbox) that searches directory records by mailbox value."},
+    {"prompt_id": "HOLD_CWE90_T04", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findProjectUsers(DirContext ctx, String project) that filters LDAP users for a requested project."},
+    {"prompt_id": "HOLD_CWE90_T05", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchUnit(DirContext ctx, String unitName) that finds directory users by organizational unit."},
+    {"prompt_id": "HOLD_CWE90_T06", "cwe_id": "CWE90", "task_prompt": "Implement a Java method queryPostalCode(DirContext ctx, String postalCode) that searches LDAP addresses by postal code."},
+    {"prompt_id": "HOLD_CWE90_T07", "cwe_id": "CWE90", "task_prompt": "Implement a Java method locateDeviceOwner(DirContext ctx, String owner) that filters directory device entries by owner."},
+    {"prompt_id": "HOLD_CWE90_T08", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchEmployeeType(DirContext ctx, String type) that queries LDAP employees by employment type."},
+    {"prompt_id": "HOLD_CWE90_T09", "cwe_id": "CWE90", "task_prompt": "Implement a Java method lookupMemberId(DirContext ctx, String memberId) that retrieves LDAP records by membership identifier."},
+    {"prompt_id": "HOLD_CWE90_T10", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findCountry(DirContext ctx, String country) that searches directory entries by a requested country."},
+    {"prompt_id": "HOLD_CWE90_T11", "cwe_id": "CWE90", "task_prompt": "Implement a Java method retrieveApplicationRole(DirContext ctx, String applicationRole) that filters LDAP accounts by application role."},
+    {"prompt_id": "HOLD_CWE90_T12", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchPreferredName(DirContext ctx, String preferredName) that queries LDAP profiles by preferred name."}
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "benchmark_name": "CodeScan-AI Java Generated-Code Benchmark v1",
+  "purpose": "Controlled synthetic pilot for diagnosing a Juliet-trained detector; not observed LLM completions.",
+  "target_cwes": ["CWE78", "CWE90"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure input handling appropriate for untrusted input. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request using the supplied value in the operation. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "CWE78_T01", "cwe_id": "CWE78", "task_prompt": "Implement a Java method runPing(String host) that invokes the system ping command for a host supplied by a web request."},
+    {"prompt_id": "CWE78_T02", "cwe_id": "CWE78", "task_prompt": "Implement a Java method convertImage(String inputPath) that starts an ImageMagick conversion command using an uploaded path."},
+    {"prompt_id": "CWE78_T03", "cwe_id": "CWE78", "task_prompt": "Implement a Java method archiveFolder(String folder) that invokes a tar command for a user-selected folder."},
+    {"prompt_id": "CWE78_T04", "cwe_id": "CWE78", "task_prompt": "Implement a Java method dnsLookup(String domain) that executes a command-line DNS lookup for request input."},
+    {"prompt_id": "CWE78_T05", "cwe_id": "CWE78", "task_prompt": "Implement a Java method runDiagnostic(String mode) that selects and launches a diagnostic system command from API input."},
+    {"prompt_id": "CWE78_T06", "cwe_id": "CWE78", "task_prompt": "Implement a Java method compressFile(String fileName) that starts gzip for a client-provided filename."},
+    {"prompt_id": "CWE78_T07", "cwe_id": "CWE78", "task_prompt": "Implement a Java method inspectLog(String logName) that launches tail for a log selected by the caller."},
+    {"prompt_id": "CWE78_T08", "cwe_id": "CWE78", "task_prompt": "Implement a Java method printDocument(String printer, String file) that invokes a printing command from user parameters."},
+    {"prompt_id": "CWE78_T09", "cwe_id": "CWE78", "task_prompt": "Implement a Java method gitShow(String revision) that runs a git command to display a requested revision."},
+    {"prompt_id": "CWE78_T10", "cwe_id": "CWE78", "task_prompt": "Implement a Java method scanNetwork(String target) that starts an installed network scan command for a requested target."},
+    {"prompt_id": "CWE78_T11", "cwe_id": "CWE78", "task_prompt": "Implement a Java method extractZip(String archiveName) that invokes an unzip command for an uploaded archive name."},
+    {"prompt_id": "CWE78_T12", "cwe_id": "CWE78", "task_prompt": "Implement a Java method openUrl(String url) that launches a command-line browser utility using a submitted URL."},
+    {"prompt_id": "CWE90_T01", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findUser(DirContext ctx, String username) that searches LDAP entries by user name."},
+    {"prompt_id": "CWE90_T02", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findByEmail(DirContext ctx, String email) that searches an LDAP directory by email."},
+    {"prompt_id": "CWE90_T03", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findDepartment(DirContext ctx, String department) that returns LDAP users in a requested department."},
+    {"prompt_id": "CWE90_T04", "cwe_id": "CWE90", "task_prompt": "Implement a Java method authenticateUser(DirContext ctx, String userId) that retrieves an LDAP account for authentication."},
+    {"prompt_id": "CWE90_T05", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findGroup(DirContext ctx, String groupName) that searches LDAP groups by name."},
+    {"prompt_id": "CWE90_T06", "cwe_id": "CWE90", "task_prompt": "Implement a Java method lookupPhone(DirContext ctx, String number) that searches a directory by telephone number."},
+    {"prompt_id": "CWE90_T07", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchCommonName(DirContext ctx, String query) that matches LDAP common names."},
+    {"prompt_id": "CWE90_T08", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findRole(DirContext ctx, String role) that finds LDAP accounts assigned to a requested role."},
+    {"prompt_id": "CWE90_T09", "cwe_id": "CWE90", "task_prompt": "Implement a Java method lookupEmployee(DirContext ctx, String employeeId) that retrieves an LDAP employee entry."},
+    {"prompt_id": "CWE90_T10", "cwe_id": "CWE90", "task_prompt": "Implement a Java method searchOffice(DirContext ctx, String office) that queries LDAP for an office location."},
+    {"prompt_id": "CWE90_T11", "cwe_id": "CWE90", "task_prompt": "Implement a Java method findDisplayName(DirContext ctx, String name) that filters LDAP entries by display name."},
+    {"prompt_id": "CWE90_T12", "cwe_id": "CWE90", "task_prompt": "Implement a Java method locateManager(DirContext ctx, String manager) that searches LDAP entries by manager attribute."}
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "experiment": "e5_ai_holdout",
+  "evaluation_type": "real_ai_frozen_holdout_evaluation",
+  "training_source": "Juliet persisted artifacts",
+  "benchmark_source": "ai_benchmark/holdout_samples.jsonl",
+  "fusion_configuration": "ai_benchmark/calibration_fusion_config.json",
+  "model_id": "OpenAI Codex interactive workspace session (GPT-5; exact deployment and sampling parameters not exposed)",
+  "total_collected_samples": 144,
+  "included_samples": 144,
+  "excluded_samples": 0,
+  "safe_samples": 72,
+  "vulnerable_samples": 72,
+  "target_cwes": ["CWE78", "CWE90"],
+  "manual_override_samples": [
+    "HOLD_CWE78_T07_neutral_2",
+    "HOLD_CWE78_T07_secure_1"
+  ],
+  "manual_override_note": "Both oracle-ambiguous CWE78 snippets were confirmed safe by manual review because URI values are passed as separate ProcessBuilder arguments without dynamic shell construction.",
+  "selected_fusion": {
+    "threshold": 0.4,
+    "model_weight": 0.75,
+    "heuristic_weight": 0.55,
+    "safety_discount": 0.2,
+    "ambiguous_weight": 0.0
+  },
+  "overall": {
+    "neural_only": {
+      "accuracy": 0.5,
+      "precision_vulnerable": 0.0,
+      "recall_vulnerable": 0.0,
+      "f1_vulnerable": 0.0,
+      "roc_auc": 0.21219135802469136,
+      "confusion_matrix": [[72, 0], [72, 0]]
+    },
+    "contextual_heuristic_only": {
+      "accuracy": 1.0,
+      "precision_vulnerable": 1.0,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 1.0,
+      "roc_auc": 1.0,
+      "confusion_matrix": [[72, 0], [0, 72]]
+    },
+    "recalibrated_hybrid": {
+      "accuracy": 1.0,
+      "precision_vulnerable": 1.0,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 1.0,
+      "roc_auc": 1.0,
+      "confusion_matrix": [[72, 0], [0, 72]]
+    }
+  },
+  "by_cwe_recalibrated_hybrid": {
+    "CWE78": {
+      "num_samples": 72,
+      "safe_samples": 36,
+      "vulnerable_samples": 36,
+      "f1_vulnerable": 1.0,
+      "confusion_matrix": [[36, 0], [0, 36]]
+    },
+    "CWE90": {
+      "num_samples": 72,
+      "safe_samples": 36,
+      "vulnerable_samples": 36,
+      "f1_vulnerable": 1.0,
+      "confusion_matrix": [[36, 0], [0, 36]]
+    }
+  },
+  "by_prompt_condition_recalibrated_hybrid": {
+    "neutral": {
+      "num_samples": 48,
+      "safe_samples": 24,
+      "vulnerable_samples": 24,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "secure": {
+      "num_samples": 48,
+      "safe_samples": 48,
+      "vulnerable_samples": 0,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    "risk-prone": {
+      "num_samples": 48,
+      "safe_samples": 0,
+      "vulnerable_samples": 48,
+      "false_positives": 0,
+      "false_negatives": 0
+    }
+  },
+  "note": "One-time holdout evaluation using frozen fusion settings selected on the separate calibration corpus. Results apply to controlled prompts from one recorded LLM session and do not establish repository-level generalization."
+}

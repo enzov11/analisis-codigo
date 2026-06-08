@@ -27,6 +27,11 @@ def main():
         action="store_true",
         help="Print prediction or evaluation results as JSON.",
     )
+    parser.add_argument(
+        "--fusion-config",
+        type=str,
+        help="Frozen evidence-fusion JSON to apply in predict mode.",
+    )
 
     args = parser.parse_args()
 
@@ -47,7 +52,9 @@ def main():
                 return 1
 
             code = args.text if args.text else read_code_from_path(args.code)
-            predictor = VulnerabilityPredictor()
+            predictor = VulnerabilityPredictor(
+                fusion_config_path=Path(args.fusion_config) if args.fusion_config else None
+            )
             result = predictor.analyze_code(code)
 
             if args.json:
@@ -87,8 +94,12 @@ def print_human_result(result: dict):
     print(f"Final Probability: {result['vulnerability_probability']:.2f}")
     print(f"Model Probability: {result['model_probability']:.2f}")
     print(f"Heuristic Probability: {result['heuristic_probability']:.2f}")
+    print(f"Safety Evidence Probability: {result['safety_probability']:.2f}")
     print(f"Threshold: {result['threshold']:.2f}")
     print(f"Is Vulnerable: {'Yes' if result['is_vulnerable'] else 'No'}")
+    print(f"Decision: {result['decision']}")
+    print(f"Review Required: {'Yes' if result['review_required'] else 'No'}")
+    print(f"Reason: {result['decision_reason']}")
 
     if result["probable_cwes"]:
         print("\nProbable CWE Categories:")
