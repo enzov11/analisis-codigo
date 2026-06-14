@@ -14,6 +14,10 @@ El repositorio contiene el codigo, el protocolo experimental y los corpus necesa
 - Analiza codigo desde archivo o texto directo.
 - Devuelve probabilidad neuronal, evidencia heuristica, decision final, CWE probables, lineas sospechosas y sugerencias de correccion.
 - Permite aplicar una configuracion de fusion congelada para reproducir la evaluacion de codigo generado por IA.
+- Define las CWE oficiales y sus oraculos no destructivos en un registro central extensible.
+
+Las categorias oficiales actuales son `CWE78`, `CWE89` y `CWE90`. Los artefactos
+persistidos actuales corresponden al modelo entrenado con las tres categorias.
 
 ## Estructura Del Proyecto
 
@@ -22,6 +26,7 @@ src/
   main.py              CLI para entrenar y predecir
   trainer.py           entrenamiento principal sobre Juliet
   predictor.py         inferencia neuronal + heuristicas explicables
+  cwe_registry.py      registro oficial y oraculos estructurales CWE
   experiments.py       runner de experimentos del articulo
   ai_benchmark.py      utilidades para corpus de codigo generado por IA
   data_loader.py       carga y etiquetado de muestras Juliet
@@ -41,6 +46,13 @@ tests/
 ```
 
 Los modelos entrenados y salidas experimentales generadas en `src/models/` no se versionan. Se regeneran con los comandos de entrenamiento y experimentacion.
+
+El procedimiento uniforme para incorporar nuevas categorias esta documentado en
+[`docs/AGREGAR_CWE.md`](docs/AGREGAR_CWE.md). El estado actual, la hoja de ruta de
+15 categorias y el inventario auditado de Juliet estan en
+[`docs/ESTADO_CWE.md`](docs/ESTADO_CWE.md). Las decisiones de arquitectura, el historial
+de evolucion por etapas y el trabajo futuro se explican en
+[`docs/ARQUITECTURA_Y_EVOLUCION.md`](docs/ARQUITECTURA_Y_EVOLUCION.md).
 
 ## Requisitos
 
@@ -82,10 +94,24 @@ EMBEDDING_DIM=256
 LSTM_UNITS=128
 BATCH_SIZE=32
 EPOCHS=15
+TRAIN_SPLIT=0.7
+VALIDATION_SPLIT=0.15
+TEST_SPLIT=0.15
 RANDOM_SEED=42
 BALANCE_DATASET=True
+MAX_OVERSAMPLE_MULTIPLIER=2.0
 PREDICTION_THRESHOLD=0.5
 ```
+
+Para crear artefactos nuevos sin sobrescribir modelos anteriores, definir una version y no reemplazar manualmente los paths:
+
+```env
+ARTIFACT_VERSION=cwe78-cwe89-cwe90-v1
+TARGET_CWE_IDS=CWE78,CWE89,CWE90
+REQUIRE_ALL_TARGET_CWES=True
+```
+
+Con `REQUIRE_ALL_TARGET_CWES=True`, el entrenamiento falla si el dataset no contiene alguna categoria oficial.
 
 ## Entrenar El Modelo Principal
 
@@ -99,14 +125,23 @@ Para imprimir el resumen de evaluacion:
 python src/main.py train --json
 ```
 
+La version de tres categorias requiere casos Java para `CWE78`, `CWE89` y `CWE90`. El Juliet local auditado contiene las tres categorias, incluida CWE89 dentro de subdirectorios `s01` a `s04`.
+
+Para reproducir estrictamente el modelo original del articulo antes de ampliar el dataset:
+
+```env
+TARGET_CWE_IDS=CWE78,CWE90
+ARTIFACT_VERSION=paper-cwe78-cwe90-v1
+```
+
 El entrenamiento realiza:
 
 1. Carga de archivos Java de Juliet.
 2. Extraccion de metodos cuando es posible.
 3. Etiquetado seguro/vulnerable y asignacion CWE.
-4. Split por grupos para reducir leakage.
+4. Split por CWE y grupos en entrenamiento, validacion y prueba para reducir leakage.
 5. Tokenizacion y padding.
-6. Oversampling opcional.
+6. Oversampling opcional con multiplicador maximo por combinacion CWE-etiqueta.
 7. Entrenamiento BLSTM con attention y salida auxiliar CWE.
 8. Persistencia de artefactos en `src/models/`.
 
@@ -170,7 +205,7 @@ Las pruebas cubren:
 
 - inferencia CLI;
 - carga de artefactos;
-- heuristicas CWE78 y CWE90;
+- heuristicas y oraculos CWE78, CWE89 y CWE90;
 - casos seguros, vulnerables y ambiguos;
 - validacion de corpus IA;
 - overrides manuales auditables;
@@ -187,6 +222,13 @@ python src/experiments.py --experiment e1 --seeds 42 7 13 21 100
 ```
 
 Evalua estabilidad del modelo repitiendo entrenamiento con varias semillas. Esto permite reportar promedio y variacion, no solo una corrida favorable.
+
+Para guardar los resultados de la version de tres CWE por separado:
+
+```bash
+python src/experiments.py --experiment e1 --seeds 42 7 13 21 100 \
+  --output-dir src/models/experiments/cwe78-cwe89-cwe90-v1
+```
 
 ### E2: Ablation Study
 
@@ -230,6 +272,9 @@ python src/experiments.py --experiment e5 --ai-mode holdout \
 
 La calibracion selecciona la fusion sin reentrenar el modelo Juliet. El holdout debe evaluarse con la configuracion congelada.
 
+Los manifiestos, configuraciones congeladas, comandos de reproduccion y resultados de
+cada etapa se documentan en [`ai_benchmark/README.md`](ai_benchmark/README.md).
+
 ### Otros Experimentos
 
 ```bash
@@ -242,78 +287,19 @@ python src/experiments.py --experiment e7
 - `e6`: localizacion de lineas sospechosas.
 - `e7`: analisis de umbrales entre `0.1` y `0.9`.
 
-## Resultados Registrados
+## Evolucion Y Resultados
 
-### Juliet
+| Etapa | Alcance | Documentacion |
+|---|---|---|
+| 1 | Evaluador inicial y primer protocolo externo | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-1-evaluador-inicial-para-cwe78-y-cwe90); [Benchmark](ai_benchmark/README.md#etapa-1-cwe78-y-cwe90) |
+| 2 | Ampliacion del evaluador y del protocolo externo | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-2-ampliacion-a-cwe89); [Benchmark](ai_benchmark/README.md#etapa-2-cwe89) |
 
-Artefactos persistidos actuales:
+Cada etapa conserva sus metricas, cambios, hallazgos y limitaciones. El estado vigente
+de soporte y la hoja de ruta se mantienen en
+[`docs/ESTADO_CWE.md`](docs/ESTADO_CWE.md).
 
-- `4,296` muestras.
-- `1,440` archivos Java.
-- `72` grupos.
-- `3,226` muestras de entrenamiento.
-- `1,070` muestras de prueba.
-- CWE persistidos: `CWE78` y `CWE90`.
+## Reproducir Evaluaciones Externas
 
-Metricas:
-
-- Accuracy: `99.44%`.
-- ROC-AUC: `0.9999`.
-- Precision vulnerable: `1.0000`.
-- Recall vulnerable: `0.9840`.
-- F1 vulnerable: `0.9920`.
-- Matriz de confusion: `[[694, 0], [6, 370]]`.
-
-### Calibracion IA
-
-- `144` completions recolectadas.
-- `133` muestras incluidas.
-- `11` muestras excluidas por ambiguedad.
-- F1 del hibrido recalibrado: `1.000`.
-
-### Holdout IA
-
-- `144` muestras incluidas.
-- `72` seguras.
-- `72` vulnerables.
-- F1 neural-only: `0.000`.
-- F1 hibrido congelado: `1.000`.
-- Matriz del hibrido congelado: `[[72, 0], [0, 72]]`.
-
-Estos resultados corresponden a prompts controlados, una sesion/modelo registrado y dos CWE (`CWE78`, `CWE90`). No deben interpretarse como rendimiento general en repositorios reales.
-
-## Reproducir El Experimento IA Del Articulo
-
-Validar manifiestos:
-
-```bash
-python src/ai_benchmark.py check-manifests \
-  --manifests ai_benchmark/prompts.json \
-              ai_benchmark/prompts_calibration.json \
-              ai_benchmark/prompts_holdout.json
-```
-
-Validar corpus aprobados:
-
-```bash
-python src/ai_benchmark.py validate --input ai_benchmark/calibration_samples.jsonl
-python src/ai_benchmark.py validate --input ai_benchmark/holdout_samples.jsonl
-```
-
-Ejecutar la calibracion y el holdout:
-
-```bash
-python src/experiments.py --experiment e5 --ai-mode calibration \
-  --ai-benchmark ai_benchmark/calibration_samples.jsonl
-
-python src/experiments.py --experiment e5 --ai-mode holdout \
-  --ai-benchmark ai_benchmark/holdout_samples.jsonl \
-  --fusion-config ai_benchmark/calibration_fusion_config.json
-```
-
-Resumen versionable:
-
-```text
-ai_benchmark/calibration_evaluation_summary.json
-ai_benchmark/holdout_evaluation_summary.json
-```
+El flujo general para crear, revisar, validar y evaluar nuevos corpus esta documentado
+en [`ai_benchmark/README.md`](ai_benchmark/README.md). Ese documento conserva tambien
+los artefactos y comandos exactos de cada etapa historica.
