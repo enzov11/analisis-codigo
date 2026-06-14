@@ -3,8 +3,19 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from cwe_registry import supported_cwe_ids, training_cwe_descriptions
+
 
 load_dotenv()
+
+
+def _selected_training_cwes():
+    raw = os.getenv("TARGET_CWE_IDS", ",".join(sorted(supported_cwe_ids())))
+    selected = [value.strip() for value in raw.split(",") if value.strip()]
+    unknown = sorted(set(selected) - supported_cwe_ids())
+    if unknown:
+        raise ValueError(f"TARGET_CWE_IDS contains unregistered CWE values: {unknown}")
+    return selected
 
 
 class Config:
@@ -12,37 +23,32 @@ class Config:
     SRC_DIR = BASE_DIR / "src"
 
     DATASET_PATH = os.getenv("DATASET_PATH")
+    ARTIFACT_VERSION = os.getenv("ARTIFACT_VERSION", "").strip()
+    DEFAULT_ARTIFACT_DIR = (
+        SRC_DIR / "models" / ARTIFACT_VERSION
+        if ARTIFACT_VERSION
+        else SRC_DIR / "models"
+    )
 
     MODEL_SAVE_PATH = os.getenv(
-        "MODEL_SAVE_PATH", str(SRC_DIR / "models" / "vuldeepecker.keras")
+        "MODEL_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "vuldeepecker.keras")
     )
     TOKENIZER_SAVE_PATH = os.getenv(
-        "TOKENIZER_SAVE_PATH", str(SRC_DIR / "models" / "tokenizer.pkl")
+        "TOKENIZER_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "tokenizer.pkl")
     )
     CWE_ENCODER_SAVE_PATH = os.getenv(
-        "CWE_ENCODER_SAVE_PATH", str(SRC_DIR / "models" / "cwe_encoder.pkl")
+        "CWE_ENCODER_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "cwe_encoder.pkl")
     )
     METADATA_SAVE_PATH = os.getenv(
-        "METADATA_SAVE_PATH", str(SRC_DIR / "models" / "metadata.json")
+        "METADATA_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "metadata.json")
     )
     EVALUATION_SAVE_PATH = os.getenv(
-        "EVALUATION_SAVE_PATH", str(SRC_DIR / "models" / "evaluation.json")
+        "EVALUATION_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "evaluation.json")
     )
     LOG_DIR = os.getenv("LOG_DIR", str(SRC_DIR / "logs" / "training"))
 
-    TARGET_CWES = {
-        "CWE78": "OS Command Injection",
-        "CWE79": "Cross-site Scripting",
-        "CWE89": "SQL Injection",
-        "CWE119": "Buffer Overflow",
-        "CWE125": "Out-of-bounds Read",
-        "CWE20": "Improper Input Validation",
-        "CWE352": "Cross-Site Request Forgery",
-        "CWE434": "Unrestricted Upload",
-        "CWE502": "Deserialization of Untrusted Data",
-        "CWE80": "XSS",
-        "CWE90": "LDAP Injection",
-    }
+    TARGET_CWE_IDS = _selected_training_cwes()
+    TARGET_CWES = training_cwe_descriptions(TARGET_CWE_IDS)
 
     MAX_CODE_LENGTH = int(os.getenv("MAX_CODE_LENGTH", "500"))
     MAX_TOKENS = int(os.getenv("MAX_TOKENS", "20000"))
@@ -56,9 +62,17 @@ class Config:
 
     BATCH_SIZE = int(os.getenv("BATCH_SIZE", "32"))
     EPOCHS = int(os.getenv("EPOCHS", "15"))
-    TRAIN_TEST_SPLIT = float(os.getenv("TRAIN_TEST_SPLIT", "0.8"))
+    TRAIN_SPLIT = float(os.getenv("TRAIN_SPLIT", "0.7"))
+    VALIDATION_SPLIT = float(os.getenv("VALIDATION_SPLIT", "0.15"))
+    TEST_SPLIT = float(os.getenv("TEST_SPLIT", "0.15"))
     RANDOM_SEED = int(os.getenv("RANDOM_SEED", "42"))
     BALANCE_DATASET = os.getenv("BALANCE_DATASET", "True").lower() in (
+        "true",
+        "1",
+        "t",
+    )
+    MAX_OVERSAMPLE_MULTIPLIER = float(os.getenv("MAX_OVERSAMPLE_MULTIPLIER", "2.0"))
+    REQUIRE_ALL_TARGET_CWES = os.getenv("REQUIRE_ALL_TARGET_CWES", "True").lower() in (
         "true",
         "1",
         "t",

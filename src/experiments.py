@@ -12,7 +12,6 @@ from typing import Dict, Iterable, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from imblearn.over_sampling import RandomOverSampler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -344,11 +343,20 @@ class ExperimentRunner:
     ):
         validation = validate_samples(load_samples(benchmark_path))
         included = validation["included"]
-        target_dir = self.output_dir / f"e5_ai_{mode}"
         if not included:
             raise ValueError("The AI benchmark contains no included, validated samples.")
+        target_cwes = sorted({str(sample["cwe_id"]) for sample in included})
+        legacy_cwes = {"CWE78", "CWE90"}
+        cwe_suffix = (
+            ""
+            if set(target_cwes) == legacy_cwes
+            else "_" + "-".join(cwe.lower() for cwe in target_cwes)
+        )
+        target_dir = self.output_dir / f"e5_ai_{mode}{cwe_suffix}"
         if mode in {"calibration", "holdout"}:
             self._assert_ai_corpus_role(included, mode)
+        if mode == "calibration":
+            self._assert_calibration_has_both_classes(included)
         if mode == "holdout" and not fusion_config_path:
             raise ValueError("AI holdout evaluation requires --fusion-config from calibration.")
 
@@ -424,7 +432,7 @@ class ExperimentRunner:
             "included_samples": validation["included_samples"],
             "excluded_samples": validation["excluded_samples"],
             "model_id_values": sorted({str(row["model_id"]) for row in predictions}),
-            "target_cwes": sorted({str(row["cwe_id"]) for row in predictions}),
+            "target_cwes": target_cwes,
             "note": {
                 "pilot": "Controlled template-produced snippets are diagnostic only and are not evidence of observed LLM completions.",
                 "calibration": "Real LLM completions in this development corpus may select fusion settings, but never train the Juliet model.",
@@ -443,6 +451,15 @@ class ExperimentRunner:
         )
         self._write_csv(target_dir / "predictions.csv", predictions)
         self._write_csv(target_dir / "errors_for_review.csv", errors)
+
+    @staticmethod
+    def _assert_calibration_has_both_classes(included):
+        labels = {int(sample["label"]) for sample in included}
+        if labels != {0, 1}:
+            raise ValueError(
+                "AI calibration requires included safe and vulnerable samples before "
+                "fusion settings can be selected."
+            )
 
     @staticmethod
     def _collect_ai_predictions(predictor, included):
@@ -566,13 +583,14 @@ class ExperimentRunner:
                 f"AI {expected_role} mode requires corpus_role={expected_role} for every "
                 f"included sample; invalid sample IDs: {invalid[:5]}"
             )
-        manifest_path = (
-            self.config.BASE_DIR / "ai_benchmark" / f"prompts_{expected_role}.json"
-        )
-        with open(manifest_path, "r", encoding="utf-8") as handle:
-            expected_prompts = {
-                str(task["prompt_id"]) for task in json.load(handle)["tasks"]
-            }
+        benchmark_dir = self.config.BASE_DIR / "ai_benchmark"
+        manifest_paths = sorted(benchmark_dir.glob(f"prompts*{expected_role}.json"))
+        expected_prompts = set()
+        for manifest_path in manifest_paths:
+            with open(manifest_path, "r", encoding="utf-8") as handle:
+                expected_prompts.update(
+                    str(task["prompt_id"]) for task in json.load(handle)["tasks"]
+                )
         unexpected_prompts = sorted(
             {
                 str(sample["prompt_id"])
@@ -582,7 +600,8 @@ class ExperimentRunner:
         )
         if unexpected_prompts:
             raise ValueError(
-                f"AI {expected_role} samples must originate from {manifest_path}; "
+                f"AI {expected_role} samples must originate from a registered "
+                f"{expected_role} manifest; "
                 f"unexpected prompt IDs: {unexpected_prompts[:5]}"
             )
 
@@ -733,17 +752,20 @@ class ExperimentRunner:
         )
 
     def _run_neural_experiment(self, df: pd.DataFrame, cfg: ExperimentConfig):
-        train_df, test_df = self._split(df, seed=cfg.seed)
-        return self._run_neural_train_test(train_df, test_df, cfg)
+        train_df, validation_df, test_df = self._split_three_way(df, seed=cfg.seed)
+        return self._run_neural_train_test(train_df, test_df, cfg, validation_df)
 
     def _run_neural_train_test(
         self,
         train_df: pd.DataFrame,
         test_df: pd.DataFrame,
         cfg: ExperimentConfig,
+        validation_df: Optional[pd.DataFrame] = None,
     ):
+        if validation_df is None:
+            train_df, validation_df = self.data_loader.split_train_validation(train_df)
         started = time.perf_counter()
-        raw = self._fit_predict_neural(train_df, test_df, cfg)
+        raw = self._fit_predict_neural(train_df, validation_df, test_df, cfg)
         training_seconds = time.perf_counter() - started
 
         scores = raw["scores"]
@@ -773,18 +795,25 @@ class ExperimentRunner:
     def _fit_predict_neural(
         self,
         train_df: pd.DataFrame,
+        validation_df: pd.DataFrame,
         test_df: pd.DataFrame,
         cfg: ExperimentConfig,
     ):
         set_seed(cfg.seed)
         preprocessor = CodePreprocessor()
         X_train, y_train, _ = preprocessor.prepare_dataset(train_df, fit_tokenizer=True)
+        X_validation, y_validation, _ = preprocessor.prepare_dataset(
+            validation_df, fit_tokenizer=False
+        )
         X_test, y_test, _ = preprocessor.prepare_dataset(test_df, fit_tokenizer=False)
 
         cwe_encoder = LabelEncoder()
-        all_cwes = pd.concat([train_df["cwe_id"], test_df["cwe_id"]]).astype(str)
+        all_cwes = pd.concat(
+            [train_df["cwe_id"], validation_df["cwe_id"], test_df["cwe_id"]]
+        ).astype(str)
         cwe_encoder.fit(all_cwes)
         cwe_train = cwe_encoder.transform(train_df["cwe_id"].astype(str))
+        cwe_validation = cwe_encoder.transform(validation_df["cwe_id"].astype(str))
         cwe_test = cwe_encoder.transform(test_df["cwe_id"].astype(str))
         num_cwes = len(cwe_encoder.classes_)
         use_aux = cfg.use_auxiliary_cwe and num_cwes > 1
@@ -797,7 +826,11 @@ class ExperimentRunner:
             cfg.seed,
             self.config.MAX_CODE_LENGTH,
             use_aux,
+            self.config.MAX_OVERSAMPLE_MULTIPLIER,
         )
+        X_validation = np.array(X_validation).reshape(-1, self.config.MAX_CODE_LENGTH)
+        y_validation = np.array(y_validation)
+        cwe_validation = np.array(cwe_validation)
         X_test = np.array(X_test).reshape(-1, self.config.MAX_CODE_LENGTH)
         y_test = np.array(y_test)
         cwe_test = np.array(cwe_test)
@@ -815,7 +848,10 @@ class ExperimentRunner:
             model.fit(
                 x=X_train,
                 y={"main": y_train, "cwe_type": cwe_train},
-                validation_data=(X_test, {"main": y_test, "cwe_type": cwe_test}),
+                validation_data=(
+                    X_validation,
+                    {"main": y_validation, "cwe_type": cwe_validation},
+                ),
                 batch_size=self.config.BATCH_SIZE,
                 epochs=self.config.EPOCHS,
                 callbacks=callbacks,
@@ -825,7 +861,7 @@ class ExperimentRunner:
             model.fit(
                 X_train,
                 y_train,
-                validation_data=(X_test, y_test),
+                validation_data=(X_validation, y_validation),
                 batch_size=self.config.BATCH_SIZE,
                 epochs=self.config.EPOCHS,
                 callbacks=callbacks,
@@ -937,6 +973,17 @@ class ExperimentRunner:
             self.config.RANDOM_SEED = original_seed
             self.data_loader.config.RANDOM_SEED = original_loader_seed
 
+    def _split_three_way(self, df: pd.DataFrame, seed: int):
+        original_seed = self.config.RANDOM_SEED
+        original_loader_seed = self.data_loader.config.RANDOM_SEED
+        self.config.RANDOM_SEED = seed
+        self.data_loader.config.RANDOM_SEED = seed
+        try:
+            return self.data_loader.split_train_validation_test(df)
+        finally:
+            self.config.RANDOM_SEED = original_seed
+            self.data_loader.config.RANDOM_SEED = original_loader_seed
+
     def _write_summary(self, experiment: str, records: List[Dict[str, object]]):
         target_dir = self.output_dir / experiment
         self._write_json(target_dir / "summary.json", aggregate_records(records))
@@ -1025,28 +1072,44 @@ def build_sequence_model(
     return model
 
 
-def balance_if_needed(X_train, y_train, cwe_train, enabled, seed, max_length, use_aux):
+def balance_if_needed(
+    X_train,
+    y_train,
+    cwe_train,
+    enabled,
+    seed,
+    max_length,
+    use_aux,
+    max_multiplier,
+):
     X_train = np.array(X_train)
     y_train = np.array(y_train)
     cwe_train = np.array(cwe_train)
     if not enabled:
         return X_train.reshape(-1, max_length), y_train, cwe_train
 
-    if use_aux:
-        groups = np.array([f"{label}_{cwe}" for label, cwe in zip(y_train, cwe_train)])
-        indices = np.arange(len(X_train))
-        ros = RandomOverSampler(random_state=seed)
-        resampled_indices, _ = ros.fit_resample(indices.reshape(-1, 1), groups)
-        resampled_indices = resampled_indices.flatten()
-        return (
-            X_train[resampled_indices].reshape(-1, max_length),
-            y_train[resampled_indices],
-            cwe_train[resampled_indices],
-        )
-
-    ros = RandomOverSampler(random_state=seed)
-    X_resampled, y_resampled = ros.fit_resample(X_train.reshape(X_train.shape[0], -1), y_train)
-    return X_resampled.reshape(-1, max_length), y_resampled, cwe_train
+    groups = (
+        np.array([f"{label}_{cwe}" for label, cwe in zip(y_train, cwe_train)])
+        if use_aux
+        else y_train.astype(str)
+    )
+    rng = np.random.default_rng(seed)
+    counts = {group: int(np.sum(groups == group)) for group in np.unique(groups)}
+    largest_group = max(counts.values())
+    selected = []
+    for group in sorted(counts, key=str):
+        indices = np.flatnonzero(groups == group)
+        target = min(largest_group, int(np.ceil(len(indices) * max_multiplier)))
+        selected.extend(indices.tolist())
+        if target > len(indices):
+            selected.extend(rng.choice(indices, target - len(indices), replace=True).tolist())
+    rng.shuffle(selected)
+    selected = np.array(selected, dtype=int)
+    return (
+        X_train[selected].reshape(-1, max_length),
+        y_train[selected],
+        cwe_train[selected],
+    )
 
 
 def binary_metrics(y_true, scores, threshold, y_pred=None):

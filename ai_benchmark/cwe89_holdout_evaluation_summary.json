@@ -1,0 +1,24 @@
+{
+  "evaluation_role": "frozen_holdout",
+  "benchmark": "ai_benchmark/cwe89_holdout_samples.jsonl",
+  "fusion_source": "ai_benchmark/cwe89_calibration_fusion_config.json",
+  "total_samples": 72,
+  "safe_samples": 72,
+  "vulnerable_samples": 0,
+  "neural_only": {
+    "accuracy": 0.013888888888888888,
+    "false_positives": 71,
+    "confusion_matrix": [[1, 71], [0, 0]]
+  },
+  "heuristic_only": {
+    "accuracy": 1.0,
+    "false_positives": 0,
+    "confusion_matrix": [[72, 0], [0, 0]]
+  },
+  "frozen_hybrid": {
+    "accuracy": 0.9305555555555556,
+    "false_positives": 5,
+    "confusion_matrix": [[67, 5], [0, 0]]
+  },
+  "limitation": "No vulnerable completion was observed in this holdout, so recall, vulnerable-class F1, and ROC-AUC cannot be estimated."
+}

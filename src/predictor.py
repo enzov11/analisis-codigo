@@ -8,6 +8,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 
 from config import Config
+from cwe_registry import CWE_REGISTRY
 from preprocessor import CodePreprocessor
 
 
@@ -36,38 +37,6 @@ class VulnerabilityPredictor:
         self.fusion_config = self._load_fusion_config(fusion_config_path, fusion_config)
 
         self.dangerous_patterns = [
-            {
-                "name": "create_statement",
-                "pattern": r"\b\w+\.createStatement\s*\(",
-                "cwe_id": "CWE89",
-                "confidence": 0.8,
-                "description": "Statement creation detected; this often precedes non-parameterized SQL execution.",
-                "suggested_fix": "Prefer PreparedStatement with parameterized queries.",
-            },
-            {
-                "name": "dynamic_sql",
-                "pattern": r"SELECT\s+.+?\s+FROM\s+.+?\s+WHERE\s+.+?[\"']\s*\+",
-                "cwe_id": "CWE89",
-                "confidence": 0.92,
-                "description": "SQL query appears to concatenate user-controlled data.",
-                "suggested_fix": "Replace string concatenation with parameter placeholders.",
-            },
-            {
-                "name": "unsafe_load_library",
-                "pattern": r"System\.loadLibrary\(",
-                "cwe_id": "CWE114",
-                "confidence": 0.8,
-                "description": "Dynamic library loading can be dangerous when influenced by untrusted input.",
-                "suggested_fix": "Restrict library names to a trusted allowlist.",
-            },
-            {
-                "name": "unsafe_eval",
-                "pattern": r"\.eval\(",
-                "cwe_id": "CWE95",
-                "confidence": 0.9,
-                "description": "Dynamic evaluation detected.",
-                "suggested_fix": "Avoid eval-like execution on untrusted content.",
-            },
             {
                 "name": "flaw_comment",
                 "pattern": r"POTENTIAL FLAW",
@@ -255,6 +224,7 @@ class VulnerabilityPredictor:
     def _scan_evidence(self, code: str) -> Dict[str, List[Dict[str, object]]]:
         evidence = {"vulnerable": [], "safety": [], "ambiguous": []}
         self._scan_command_evidence(code, evidence)
+        self._scan_sql_evidence(code, evidence)
         self._scan_ldap_evidence(code, evidence)
         evidence["vulnerable"].extend(self._scan_generic_patterns(code))
         return evidence
@@ -262,12 +232,6 @@ class VulnerabilityPredictor:
     def _scan_generic_patterns(self, code: str) -> List[Dict[str, object]]:
         matches: List[Dict[str, object]] = []
         for pattern_info in self.dangerous_patterns:
-            if (
-                pattern_info["name"] == "create_statement"
-                and "PreparedStatement" in code
-                and "createStatement(" not in code
-            ):
-                continue
             for match in re.finditer(pattern_info["pattern"], code, re.IGNORECASE):
                 line_number = code[: match.start()].count("\n") + 1
                 matches.append(
@@ -378,9 +342,112 @@ class VulnerabilityPredictor:
                     )
                 )
 
+    def _scan_sql_evidence(
+        self, code: str, evidence: Dict[str, List[Dict[str, object]]]
+    ):
+        registration = CWE_REGISTRY["CWE89"]
+        prepared = re.search(r"\.prepareStatement\s*\(\s*([^;\n]+?)\s*\)", code, re.I)
+        parameter_binding = re.search(
+            r"\.\s*set(?:String|Int|Long|Boolean|Object|Date)\s*\(", code, re.I
+        )
+        placeholder = re.search(r"[\"'][^\"'\n]*\?[^\"'\n]*[\"']", code)
+        if prepared and placeholder and parameter_binding:
+            evidence["safety"].append(
+                self._evidence_match(
+                    code,
+                    prepared,
+                    "parameterized_prepared_statement",
+                    "CWE89",
+                    0.95,
+                    "PreparedStatement uses placeholders with bound values.",
+                    "",
+                    "safety",
+                )
+            )
+            return
+
+        dynamic_inline = re.search(
+            r"\.(?:execute|executeQuery|executeUpdate|addBatch)\s*\(\s*[^;\n]*\+[^;\n]*\)",
+            code,
+            re.I,
+        )
+        dynamic_assignment = re.search(
+            r"\b(?:String\s+)?(?P<name>query|sql|statement)\w*\s*=\s*[^;\n]*\+[^;\n]*;",
+            code,
+            re.I,
+        )
+        executed_dynamic = None
+        if dynamic_assignment:
+            variable = dynamic_assignment.group("name")
+            executed_dynamic = re.search(
+                rf"\.(?:execute|executeQuery|executeUpdate|addBatch)\s*\(\s*{re.escape(variable)}\w*\s*\)",
+                code,
+                re.I,
+            )
+        vulnerable_match = dynamic_inline or (
+            dynamic_assignment
+            if executed_dynamic
+            else None
+        )
+        if vulnerable_match:
+            evidence["vulnerable"].append(
+                self._evidence_match(
+                    code,
+                    vulnerable_match,
+                    "dynamic_sql_execution",
+                    "CWE89",
+                    0.95,
+                    "A dynamically concatenated SQL command reaches a non-parameterized sink.",
+                    registration.mitigation,
+                    "vulnerable",
+                )
+            )
+            return
+
+        fixed_statement = re.search(
+            r"\.(?:execute|executeQuery|executeUpdate)\s*\(\s*[\"'][^\"'\n]*[\"']\s*\)",
+            code,
+            re.I,
+        )
+        if fixed_statement:
+            evidence["safety"].append(
+                self._evidence_match(
+                    code,
+                    fixed_statement,
+                    "fixed_sql_statement",
+                    "CWE89",
+                    0.8,
+                    "The SQL sink receives a fixed command without external values.",
+                    "",
+                    "safety",
+                )
+            )
+            return
+
+        unresolved_sink = prepared or re.search(
+            r"\.(?:createStatement|execute|executeQuery|executeUpdate|addBatch)\s*\(",
+            code,
+            re.I,
+        )
+        if unresolved_sink:
+            evidence["ambiguous"].append(
+                self._evidence_match(
+                    code,
+                    unresolved_sink,
+                    "sql_data_flow_review",
+                    "CWE89",
+                    0.4,
+                    "SQL operation detected without locally resolvable parameterization or data flow.",
+                    registration.mitigation,
+                    "ambiguous",
+                )
+            )
+
     def _scan_ldap_evidence(
         self, code: str, evidence: Dict[str, List[Dict[str, object]]]
     ):
+        if not re.search(r"\.search\s*\(", code, re.I):
+            return
         ldap_patterns = [
             r"\b(?:filter|query)\w*\s*=\s*[^;\n]*\+[^;\n]*;",
             r"\.search\s*\(\s*[^,\n]+,\s*[^,\n]*\+[^,\n]*,",

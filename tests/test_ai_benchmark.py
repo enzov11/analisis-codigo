@@ -69,6 +69,35 @@ class AIBenchmarkTests(unittest.TestCase):
 
         self.assertEqual(summary["task_count"], 72)
 
+    def test_cwe89_calibration_and_holdout_manifests_are_complete_and_disjoint(self):
+        manifest_paths = [
+            REPO_ROOT / "ai_benchmark" / "prompts.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_holdout.json",
+        ]
+
+        summary = ai_benchmark.validate_disjoint_manifests(manifest_paths)
+        for path in manifest_paths[-2:]:
+            with open(path, "r", encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            self.assertEqual(manifest["target_cwes"], ["CWE89"])
+            self.assertEqual(len(manifest["tasks"]), 12)
+            self.assertEqual(
+                len(manifest["tasks"])
+                * len(manifest["conditions"])
+                * manifest["completions_per_prompt"],
+                72,
+            )
+
+        self.assertEqual(summary["task_count"], 96)
+        for name in ("cwe89_calibration_scaffold.jsonl", "cwe89_holdout_scaffold.jsonl"):
+            scaffold = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / name)
+            self.assertEqual(len(scaffold), 72)
+            self.assertTrue(all(row["review_status"] == "pending" for row in scaffold))
+            self.assertTrue(all(not row["generated_code"] for row in scaffold))
+
     def test_validation_accepts_included_and_recorded_excluded_samples(self):
         excluded = included_sample(
             sample_id="CWE78_T01_neutral_2",
@@ -235,6 +264,52 @@ class AIBenchmarkTests(unittest.TestCase):
                 runner._assert_ai_corpus_role([relabelled_pilot], "calibration")
             runner._assert_ai_corpus_role([valid_calibration], "calibration")
 
+    def test_calibration_mode_accepts_registered_cwe89_manifest(self):
+        with tempfile.TemporaryDirectory(prefix="ai-runner-") as temp_dir:
+            runner = experiments.ExperimentRunner(Path(temp_dir), seeds=[42])
+            cwe89_calibration = included_sample(
+                sample_id="CAL_CWE89_T01_neutral_1",
+                cwe_id="CWE89",
+                prompt_id="CAL_CWE89_T01",
+                corpus_role="calibration",
+            )
+
+            runner._assert_ai_corpus_role([cwe89_calibration], "calibration")
+
+    def test_calibration_requires_safe_and_vulnerable_samples(self):
+        safe = included_sample(sample_id="CAL_CWE89_T01_secure_1", label=0)
+        vulnerable = included_sample(sample_id="CAL_CWE89_T01_risk-prone_1", label=1)
+
+        experiments.ExperimentRunner._assert_calibration_has_both_classes(
+            [safe, vulnerable]
+        )
+        with self.assertRaisesRegex(ValueError, "safe and vulnerable"):
+            experiments.ExperimentRunner._assert_calibration_has_both_classes([safe])
+
+    def test_cwe89_calibration_v2_and_holdout_are_approved_and_disjoint(self):
+        calibration = ai_benchmark.load_samples(
+            REPO_ROOT / "ai_benchmark" / "cwe89_calibration_samples_v2.jsonl"
+        )
+        holdout = ai_benchmark.load_samples(
+            REPO_ROOT / "ai_benchmark" / "cwe89_holdout_samples.jsonl"
+        )
+
+        calibration_summary = ai_benchmark.validate_samples(calibration)
+        holdout_summary = ai_benchmark.validate_samples(holdout)
+
+        self.assertEqual(calibration_summary["included_samples"], 72)
+        self.assertEqual(sum(int(sample["label"]) for sample in calibration), 15)
+        self.assertEqual(holdout_summary["included_samples"], 72)
+        self.assertEqual(sum(int(sample["label"]) for sample in holdout), 0)
+        self.assertFalse(
+            {sample["sample_id"] for sample in calibration}
+            & {sample["sample_id"] for sample in holdout}
+        )
+        self.assertFalse(
+            {sample["prompt_id"] for sample in calibration}
+            & {sample["prompt_id"] for sample in holdout}
+        )
+
     def test_generated_codex_corpus_is_complete_and_approved_for_evaluation(self):
         samples = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / "samples.jsonl")
         summary = ai_benchmark.validate_samples(samples)
@@ -303,6 +378,29 @@ class AIBenchmarkTests(unittest.TestCase):
         self.assertEqual(parameterized.verdict, "safe")
         self.assertEqual(inline_vulnerable.verdict, "vulnerable")
         self.assertEqual(ambiguous.verdict, "ambiguous")
+
+    def test_cwe89_structural_oracle_distinguishes_dynamic_parameterized_and_ambiguous(self):
+        vulnerable = ai_benchmark.assess_code(
+            'String query = "SELECT * FROM users WHERE name = \'" + username + "\'"; '
+            "Statement stmt = connection.createStatement(); stmt.executeQuery(query);",
+            "CWE89",
+        )
+        safe = ai_benchmark.assess_code(
+            'PreparedStatement stmt = connection.prepareStatement('
+            '"SELECT * FROM users WHERE name = ?"); stmt.setString(1, username);',
+            "CWE89",
+        )
+        ambiguous = ai_benchmark.assess_code(
+            "PreparedStatement stmt = connection.prepareStatement(existingQuery);",
+            "CWE89",
+        )
+
+        self.assertEqual(vulnerable.verdict, "vulnerable")
+        self.assertEqual(safe.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+
+    def test_supported_cwes_are_defined_by_the_central_registry(self):
+        self.assertEqual(ai_benchmark.SUPPORTED_CWES, {"CWE78", "CWE89", "CWE90"})
 
 
 if __name__ == "__main__":

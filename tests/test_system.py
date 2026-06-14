@@ -158,6 +158,34 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(result["safety_evidence"])
         self.assertFalse(result["heuristic_evidence"])
 
+    def test_predictor_distinguishes_dynamic_parameterized_and_ambiguous_sql(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = (
+            'String query = "SELECT * FROM users WHERE name = \'" + username + "\'"; '
+            "Statement stmt = connection.createStatement(); stmt.executeQuery(query);"
+        )
+        safe = (
+            'PreparedStatement stmt = connection.prepareStatement('
+            '"SELECT * FROM users WHERE name = ?"); stmt.setString(1, username);'
+        )
+        ambiguous = "Statement stmt = connection.createStatement(); stmt.executeQuery(existingQuery);"
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE89" for item in vulnerable_result["probable_cwes"])
+        )
+        self.assertFalse(
+            any(item["cwe_id"] == "CWE90" for item in vulnerable_result["probable_cwes"])
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(safe_result["safety_evidence"])
+        self.assertTrue(ambiguous_result["review_required"])
+
     def test_predictor_recognizes_parameterized_ldap_and_inline_injection(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor()
@@ -306,6 +334,20 @@ class PipelineTests(unittest.TestCase):
             predictor_module.VulnerabilityPredictor()
 
         self.assertIn("Missing prediction artifacts", str(context.exception))
+
+    def test_limited_oversampling_caps_each_group_multiplier(self):
+        trainer_module = importlib.import_module("trainer")
+        trainer = trainer_module.ModelTrainer()
+        trainer.config.MAX_OVERSAMPLE_MULTIPLIER = 2.0
+        trainer.config.RANDOM_SEED = 42
+        groups = np.array(["small"] * 2 + ["medium"] * 4 + ["large"] * 10)
+
+        selected = trainer._limited_oversample_indices(groups)
+        selected_counts = {
+            group: int(np.sum(groups[selected] == group)) for group in set(groups)
+        }
+
+        self.assertEqual(selected_counts, {"small": 4, "medium": 8, "large": 10})
 
 
 if __name__ == "__main__":

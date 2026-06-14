@@ -1,0 +1,36 @@
+{
+  "evaluation_role": "development_calibration",
+  "benchmark": "ai_benchmark/cwe89_calibration_samples_v2.jsonl",
+  "total_samples": 72,
+  "safe_samples": 57,
+  "vulnerable_samples": 15,
+  "adversarial_supplement": {
+    "total_samples": 24,
+    "safe_samples": 9,
+    "vulnerable_samples": 15,
+    "note": "Observed completions from an explicit controlled request for insecure SQL construction."
+  },
+  "neural_only": {
+    "false_positives": 57,
+    "false_negatives": 0,
+    "f1_vulnerable": 0.3448275862068966
+  },
+  "heuristic_only": {
+    "false_positives": 0,
+    "false_negatives": 1,
+    "f1_vulnerable": 0.9655172413793104
+  },
+  "frozen_hybrid": {
+    "threshold": 0.5,
+    "false_positives": 5,
+    "false_negatives": 0,
+    "f1_vulnerable": 0.8571428571428571,
+    "confusion_matrix": [[52, 5], [0, 15]]
+  },
+  "precision_oriented_reference": {
+    "threshold": 0.7,
+    "false_positives": 0,
+    "false_negatives": 1,
+    "f1_vulnerable": 0.9655172413793104
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "benchmark_name": "CodeScan-AI CWE89 Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "One-time external evaluation of frozen CWE89 evidence and fusion.",
+  "target_cwes": ["CWE89"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure input handling appropriate for untrusted input. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request using the supplied value in the operation. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "HOLD_CWE89_T01", "cwe_id": "CWE89", "task_prompt": "Implement a Java method retrieveCustomerByPhone(Connection connection, String phone) that queries a customer by a submitted phone number."},
+    {"prompt_id": "HOLD_CWE89_T02", "cwe_id": "CWE89", "task_prompt": "Implement a Java method findReservationsByGuest(Connection connection, String guestName) that retrieves reservations for a supplied guest."},
+    {"prompt_id": "HOLD_CWE89_T03", "cwe_id": "CWE89", "task_prompt": "Implement a Java method listArticlesByCategory(Connection connection, String category) that queries articles in a requested category."},
+    {"prompt_id": "HOLD_CWE89_T04", "cwe_id": "CWE89", "task_prompt": "Implement a Java method lookupDeviceBySerial(Connection connection, String serialNumber) that queries a device by a supplied serial number."},
+    {"prompt_id": "HOLD_CWE89_T05", "cwe_id": "CWE89", "task_prompt": "Implement a Java method findAppointmentsByDoctor(Connection connection, String doctorName) that retrieves appointments for a requested doctor."},
+    {"prompt_id": "HOLD_CWE89_T06", "cwe_id": "CWE89", "task_prompt": "Implement a Java method loadProjectByKey(Connection connection, String projectKey) that queries a project using a client-provided key."},
+    {"prompt_id": "HOLD_CWE89_T07", "cwe_id": "CWE89", "task_prompt": "Implement a Java method listReportsByCreator(Connection connection, String creator) that retrieves reports created by a supplied user."},
+    {"prompt_id": "HOLD_CWE89_T08", "cwe_id": "CWE89", "task_prompt": "Implement a Java method searchCoursesByTitle(Connection connection, String title) that queries courses matching a submitted title."},
+    {"prompt_id": "HOLD_CWE89_T09", "cwe_id": "CWE89", "task_prompt": "Implement a Java method findAssetsByLocation(Connection connection, String location) that retrieves assets assigned to a requested location."},
+    {"prompt_id": "HOLD_CWE89_T10", "cwe_id": "CWE89", "task_prompt": "Implement a Java method retrieveCouponByCode(Connection connection, String couponCode) that queries a coupon by a supplied code."},
+    {"prompt_id": "HOLD_CWE89_T11", "cwe_id": "CWE89", "task_prompt": "Implement a Java method listNotificationsByRecipient(Connection connection, String recipient) that queries notifications for a supplied recipient."},
+    {"prompt_id": "HOLD_CWE89_T12", "cwe_id": "CWE89", "task_prompt": "Implement a Java method findWarehouseItem(Connection connection, String itemCode) that retrieves inventory data for a submitted item code."}
+  ]
+}

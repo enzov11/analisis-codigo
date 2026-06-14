@@ -27,10 +27,9 @@ class DataLoader:
 
         for root, _, files in os.walk(dataset_root):
             root_path = Path(root)
-            if "CWE" not in root:
+            cwe_id = self._resolve_cwe_id(root_path, dataset_root)
+            if cwe_id is None:
                 continue
-
-            cwe_id = root_path.name.split("_")[0]
             if cwe_id not in cwe_descriptions:
                 continue
 
@@ -51,20 +50,131 @@ class DataLoader:
                 "No training samples were extracted from the dataset. "
                 "Check DATASET_PATH and the selected TARGET_CWES."
             )
+        missing_cwes = sorted(set(cwe_descriptions) - set(df["cwe_id"].unique()))
+        if missing_cwes and self.config.REQUIRE_ALL_TARGET_CWES:
+            raise ValueError(
+                "The dataset does not contain samples for every official target CWE. "
+                f"Missing: {missing_cwes}. Add the required Juliet/SARD cases or set "
+                "REQUIRE_ALL_TARGET_CWES=False only for an explicitly partial experiment."
+            )
         return df, cwe_descriptions
 
     def split_dataset(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        splitter = GroupShuffleSplit(
-            n_splits=1,
-            train_size=self.config.TRAIN_TEST_SPLIT,
-            random_state=self.config.RANDOM_SEED,
-        )
-        groups = df["sample_group"]
-        train_idx, test_idx = next(splitter.split(df, df["label"], groups))
+        train_df, validation_df, test_df = self.split_train_validation_test(df)
+        development_df = pd.concat([train_df, validation_df], ignore_index=True)
+        return development_df, test_df
 
-        train_df = df.iloc[train_idx].reset_index(drop=True)
-        test_df = df.iloc[test_idx].reset_index(drop=True)
-        return train_df, test_df
+    def split_train_validation_test(
+        self, df: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        self._validate_split_fractions()
+        train_parts = []
+        validation_parts = []
+        test_parts = []
+
+        for offset, (_, cwe_df) in enumerate(sorted(df.groupby("cwe_id"))):
+            train_part, remainder = self._group_split(
+                cwe_df,
+                train_size=self.config.TRAIN_SPLIT,
+                random_state=self.config.RANDOM_SEED + offset,
+            )
+            validation_share = self.config.VALIDATION_SPLIT / (
+                self.config.VALIDATION_SPLIT + self.config.TEST_SPLIT
+            )
+            validation_part, test_part = self._group_split(
+                remainder,
+                train_size=validation_share,
+                random_state=self.config.RANDOM_SEED + 1000 + offset,
+            )
+            train_parts.append(train_part)
+            validation_parts.append(validation_part)
+            test_parts.append(test_part)
+
+        return (
+            pd.concat(train_parts, ignore_index=True).sample(
+                frac=1, random_state=self.config.RANDOM_SEED
+            ).reset_index(drop=True),
+            pd.concat(validation_parts, ignore_index=True).sample(
+                frac=1, random_state=self.config.RANDOM_SEED
+            ).reset_index(drop=True),
+            pd.concat(test_parts, ignore_index=True).sample(
+                frac=1, random_state=self.config.RANDOM_SEED
+            ).reset_index(drop=True),
+        )
+
+    def split_train_validation(
+        self, df: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        self._validate_split_fractions()
+        train_parts = []
+        validation_parts = []
+        train_share = self.config.TRAIN_SPLIT / (
+            self.config.TRAIN_SPLIT + self.config.VALIDATION_SPLIT
+        )
+        for offset, (_, cwe_df) in enumerate(sorted(df.groupby("cwe_id"))):
+            train_part, validation_part = self._group_split(
+                cwe_df,
+                train_size=train_share,
+                random_state=self.config.RANDOM_SEED + offset,
+            )
+            train_parts.append(train_part)
+            validation_parts.append(validation_part)
+        return (
+            pd.concat(train_parts, ignore_index=True).sample(
+                frac=1, random_state=self.config.RANDOM_SEED
+            ).reset_index(drop=True),
+            pd.concat(validation_parts, ignore_index=True).sample(
+                frac=1, random_state=self.config.RANDOM_SEED
+            ).reset_index(drop=True),
+        )
+
+    @staticmethod
+    def _group_split(df: pd.DataFrame, train_size: float, random_state: int):
+        if df["sample_group"].nunique() < 2:
+            raise ValueError(
+                f"At least two sample groups are required to split {df['cwe_id'].iloc[0]}."
+            )
+        splitter = GroupShuffleSplit(
+            n_splits=64,
+            train_size=train_size,
+            random_state=random_state,
+        )
+        candidates = splitter.split(df, df["label"], groups=df["sample_group"])
+        train_idx, test_idx = min(
+            candidates,
+            key=lambda indices: DataLoader._split_score(
+                df, indices[0], indices[1], train_size
+            ),
+        )
+        return (
+            df.iloc[train_idx].reset_index(drop=True),
+            df.iloc[test_idx].reset_index(drop=True),
+        )
+
+    @staticmethod
+    def _split_score(df, train_idx, test_idx, target_train_size):
+        labels = sorted(df["label"].unique())
+        full_distribution = df["label"].value_counts(normalize=True)
+        train_distribution = df.iloc[train_idx]["label"].value_counts(normalize=True)
+        test_distribution = df.iloc[test_idx]["label"].value_counts(normalize=True)
+        size_error = abs((len(train_idx) / len(df)) - target_train_size)
+        label_error = sum(
+            abs(train_distribution.get(label, 0.0) - full_distribution.get(label, 0.0))
+            + abs(test_distribution.get(label, 0.0) - full_distribution.get(label, 0.0))
+            for label in labels
+        )
+        return size_error + label_error
+
+    def _validate_split_fractions(self):
+        fractions = (
+            self.config.TRAIN_SPLIT,
+            self.config.VALIDATION_SPLIT,
+            self.config.TEST_SPLIT,
+        )
+        if any(value <= 0 or value >= 1 for value in fractions):
+            raise ValueError("TRAIN_SPLIT, VALIDATION_SPLIT, and TEST_SPLIT must be between 0 and 1.")
+        if abs(sum(fractions) - 1.0) > 1e-9:
+            raise ValueError("TRAIN_SPLIT, VALIDATION_SPLIT, and TEST_SPLIT must sum to 1.0.")
 
     def summarize_dataset(self, df: pd.DataFrame) -> Dict[str, object]:
         return {
@@ -149,6 +259,18 @@ class DataLoader:
                 family_id=family_id,
             )
         ]
+
+    @staticmethod
+    def _resolve_cwe_id(root_path: Path, dataset_root: Path):
+        dataset_root = dataset_root.resolve()
+        current = root_path.resolve()
+        while True:
+            match = re.match(r"^(CWE\d+)(?:_|$)", current.name)
+            if match:
+                return match.group(1)
+            if current == dataset_root or current.parent == current:
+                return None
+            current = current.parent
 
     def _build_sample(
         self,

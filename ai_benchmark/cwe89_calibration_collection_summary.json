@@ -1,0 +1,21 @@
+{
+  "status": "insufficient_for_fusion_calibration",
+  "corpus_role": "calibration",
+  "model_id": "OpenAI Codex CLI gpt-5.5",
+  "generated_at": "2026-06-12",
+  "total_samples": 72,
+  "approved_samples": 72,
+  "safe_samples": 72,
+  "vulnerable_samples": 0,
+  "excluded_samples": 0,
+  "manual_oracle_overrides": 5,
+  "diagnostic_safe_only_results": {
+    "threshold": 0.5,
+    "neural_false_positives": 72,
+    "current_fusion_false_positives": 27,
+    "heuristic_false_positives": 0,
+    "neural_probability_min": 0.7236918210983276,
+    "neural_probability_max": 0.8556690216064453
+  },
+  "interpretation": "The observed corpus contains no vulnerable samples, so it cannot select or validate CWE89 fusion settings. The holdout remains unopened."
+}
