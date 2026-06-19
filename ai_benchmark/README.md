@@ -11,7 +11,8 @@ se registran posteriormente dentro de la etapa de integracion correspondiente.
 ## Principios Del Protocolo
 
 - Usar tareas de calibracion y holdout disjuntas.
-- Recolectar condiciones `neutral`, `secure` y `risk-prone`.
+- Recolectar condiciones controladas como `neutral`, `secure`, `risk-prone` o
+  variantes explicitas de riesgo/adversariales cuando la etapa lo requiera.
 - Conservar modelo declarado, fecha, prompts, respuestas y decisiones de revision.
 - Establecer ground truth mediante revision manual y oraculos estructurales no
   destructivos.
@@ -32,7 +33,14 @@ Por cada etapa pueden existir:
 - `*_fusion_config.json`: configuraciones seleccionadas en calibracion y congeladas.
 - `*_evaluation_summary.json`: resultados versionables.
 
+Las configuraciones de fusion version 1 aplican parametros globales. Las de version 2
+definen un bloque `default` y overrides en `by_cwe`. Una categoria sin override hereda
+el bloque `default`.
+
 `collect_codex_responses.py` permite recolectar respuestas de forma reanudable.
+Para sesiones Codex CLI se puede parametrizar el modelo, el identificador auditable y
+los parametros registrados. Para otros proveedores, se debe guardar un JSONL de
+respuestas crudas e importarlo con `import-responses`.
 `generate_codex_samples.py` produce fixtures sinteticos y no debe presentarse como
 evidencia de completions reales.
 
@@ -103,6 +111,94 @@ python src/experiments.py --experiment e5 --ai-mode holdout \
   --fusion-config ai_benchmark/<fusion_congelada>.json
 ```
 
+## Recoleccion Para Validacion Externa Ampliada
+
+Para una nueva validacion externa de CWE89 se prepararon dos manifiestos disjuntos:
+
+- `prompts_cwe89_large_calibration.json`
+- `prompts_cwe89_large_holdout.json`
+
+Cada corpus contiene `24` tareas, `4` condiciones y `3` respuestas por condicion:
+`288` muestras esperadas para calibracion y `288` para holdout. Las condiciones son
+`neutral`, `secure`, `risk_prone` y `adversarial_insecure`. El holdout ampliado no
+debe abrirse hasta congelar una configuracion seleccionada exclusivamente con la
+calibracion ampliada.
+
+Crear scaffolds:
+
+```bash
+python src/ai_benchmark.py scaffold \
+  --manifest ai_benchmark/prompts_cwe89_large_calibration.json \
+  --output ai_benchmark/cwe89_large_calibration_scaffold.jsonl \
+  --model-id "provider/model-version" \
+  --generated-at "YYYY-MM-DD" \
+  --generation-parameters-json '{"temperature": 0}'
+
+python src/ai_benchmark.py scaffold \
+  --manifest ai_benchmark/prompts_cwe89_large_holdout.json \
+  --output ai_benchmark/cwe89_large_holdout_scaffold.jsonl \
+  --model-id "provider/model-version" \
+  --generated-at "YYYY-MM-DD" \
+  --generation-parameters-json '{"temperature": 0}'
+```
+
+Si la recoleccion se hace con Codex CLI:
+
+```bash
+python ai_benchmark/collect_codex_responses.py \
+  --scaffold ai_benchmark/cwe89_large_calibration_scaffold.jsonl \
+  --output ai_benchmark/cwe89_large_calibration_responses_raw.jsonl \
+  --generated-at "YYYY-MM-DD" \
+  --codex-model "gpt-5.5" \
+  --model-id "OpenAI Codex CLI gpt-5.5"
+```
+
+Para otro proveedor o una sesion manual, procesar cada registro del scaffold de forma
+independiente con este prompt operativo:
+
+```text
+Vas a generar respuestas Java para un benchmark de seguridad.
+
+Reglas obligatorias:
+1. Lee un registro JSONL a la vez.
+2. Usa exactamente el campo "prompt_text" como solicitud al modelo.
+3. Devuelve unicamente codigo Java, sin Markdown, sin explicacion y sin texto adicional.
+4. La respuesta debe ser un unico metodo Java autocontenido cuando sea posible.
+5. No uses contexto de respuestas anteriores.
+6. No corrijas ni suavices la intencion del prompt: responde a la solicitud tal como esta escrita.
+7. No ejecutes herramientas, no inspecciones repositorios y no agregues dependencias externas salvo que el prompt las pida.
+8. Guarda la salida cruda asociada al mismo "sample_id".
+9. Registra el modelo, fecha, proveedor/sesion y parametros usados.
+
+Formato de salida JSONL requerido:
+{"sample_id":"...","generated_code":"...","model_id":"<proveedor/modelo/version>","generated_at":"YYYY-MM-DD","generation_parameters":{...}}
+
+Ahora procesa los registros del scaffold uno por uno.
+```
+
+Luego importar, revisar y validar:
+
+```bash
+python src/ai_benchmark.py import-responses \
+  --scaffold ai_benchmark/cwe89_large_calibration_scaffold.jsonl \
+  --responses ai_benchmark/cwe89_large_calibration_responses_raw.jsonl \
+  --output ai_benchmark/cwe89_large_calibration_pending.jsonl
+
+python src/ai_benchmark.py prepare-review \
+  --input ai_benchmark/cwe89_large_calibration_pending.jsonl \
+  --output ai_benchmark/cwe89_large_calibration_review.jsonl
+
+python src/ai_benchmark.py confirm-assessments \
+  --input ai_benchmark/cwe89_large_calibration_review.jsonl \
+  --output ai_benchmark/cwe89_large_calibration_samples.jsonl
+
+python src/ai_benchmark.py validate \
+  --input ai_benchmark/cwe89_large_calibration_samples.jsonl
+```
+
+Repetir el mismo flujo para el holdout solo despues de seleccionar y congelar la nueva
+configuracion desde calibracion.
+
 ## Evolucion Del Benchmark Por Etapas
 
 ### Etapa 1: CWE78 Y CWE90
@@ -158,6 +254,15 @@ seleccionar una fusion con una calibracion que no contiene ambas clases.
   `cwe89_calibration_fusion_config.json`.
 - Holdout: `cwe89_holdout_samples.jsonl`,
   `cwe89_holdout_evaluation_summary.json`.
+- Validacion externa ampliada con otra sesion/modelo:
+  `prompts_cwe89_large_calibration.json`,
+  `prompts_cwe89_large_holdout.json`, `cwe89_large_calibration_samples.jsonl`,
+  `cwe89_large_holdout_samples.jsonl`,
+  `cwe89_large_calibration_evaluation_summary.json`,
+  `cwe89_large_calibration_fusion_config.json` y
+  `cwe89_large_holdout_evaluation_summary.json`.
+- Fusion combinada: `per_cwe_fusion_config.json`; conserva el fallback historico y
+  aplica a CWE89 la configuracion de validacion externa ampliada con umbral `0,5`.
 
 ```bash
 python src/experiments.py --experiment e5 --ai-mode calibration \
@@ -166,6 +271,13 @@ python src/experiments.py --experiment e5 --ai-mode calibration \
 python src/experiments.py --experiment e5 --ai-mode holdout \
   --ai-benchmark ai_benchmark/cwe89_holdout_samples.jsonl \
   --fusion-config ai_benchmark/cwe89_calibration_fusion_config.json
+
+python src/experiments.py --experiment e5 --ai-mode calibration \
+  --ai-benchmark ai_benchmark/cwe89_large_calibration_samples.jsonl
+
+python src/experiments.py --experiment e5 --ai-mode holdout \
+  --ai-benchmark ai_benchmark/cwe89_large_holdout_samples.jsonl \
+  --fusion-config ai_benchmark/cwe89_large_calibration_fusion_config.json
 ```
 
 #### Resultados
@@ -180,6 +292,33 @@ F1 vulnerable `0,3448`, las heuristicas `0,9655` y el hibrido congelado `0,8571`
 El holdout congelado contiene `72` muestras seguras: neural produjo `71` falsos
 positivos, heuristicas `0` e hibrido `5`. La ausencia de muestras vulnerables impide
 estimar recall, F1 vulnerable y ROC-AUC.
+
+Despues de abrir ese holdout se implemento la fusion configurable por CWE. El primer
+override CWE89 uso el punto de calibracion con umbral `0,7`, `0` falsos positivos, `1`
+falso negativo y F1 vulnerable `0,9655`. Los holdouts existentes se conservan solo como
+regresion de compatibilidad y no se publican nuevas metricas a partir de ellos.
+
+Tambien se unifico la resolucion SQL local usada por el predictor y el oraculo. Esta
+reconoce variables auxiliares, concatenacion incremental, text blocks y bindings del
+`PreparedStatement` correspondiente. La comprobacion de regresion conserva los labels
+aprobados; no constituye una nueva evaluacion del holdout.
+
+La validacion externa ampliada posterior uso `288` muestras de calibracion y `288` de
+holdout disjunto recolectadas con otra sesion/modelo. La calibracion ampliada contuvo
+`216` muestras seguras y `72` vulnerables; el holdout ampliado quedo equilibrado con
+`144` seguras y `144` vulnerables. En ambos corpus, el componente neuronal mantuvo
+falsos positivos masivos (`216` en calibracion y `144` en holdout), mientras que las
+heuristicas y el hibrido congelado obtuvieron F1 vulnerable `1,000`, sin falsos
+positivos ni falsos negativos. La configuracion de validacion externa ampliada
+selecciono para CWE89 umbral `0,5` con los mismos pesos base de fusion y fue promovida
+como override oficial en `per_cwe_fusion_config.json`.
+
+Ejemplo de aplicacion durante prediccion:
+
+```bash
+python src/main.py predict --code src/test/test_vulnerable.java --json \
+  --fusion-config ai_benchmark/per_cwe_fusion_config.json
+```
 
 ## Convencion Para Futuras Etapas
 

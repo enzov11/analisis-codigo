@@ -377,19 +377,22 @@ class ExperimentRunner:
         else:
             fusion_config = predictor.fusion_config
 
-        threshold = (
-            baseline_threshold
-            if fusion_config.get("threshold") is None
-            else float(fusion_config["threshold"])
-        )
         predictions = []
         for row in raw_predictions:
+            effective_config = VulnerabilityPredictor.fusion_config_for_cwe(
+                fusion_config, row["cwe_id"]
+            )
+            threshold = (
+                baseline_threshold
+                if effective_config.get("threshold") is None
+                else float(effective_config["threshold"])
+            )
             hybrid_score = VulnerabilityPredictor.fuse_scores(
                 row["neural_score"],
                 row["heuristic_score"],
                 row["safety_score"],
                 row["ambiguous_score"],
-                fusion_config,
+                effective_config,
             )
             contextual_max_score = max(row["neural_score"], row["heuristic_score"])
             predictions.append(
@@ -397,6 +400,8 @@ class ExperimentRunner:
                     **row,
                     "contextual_max_score": contextual_max_score,
                     "hybrid_score": hybrid_score,
+                    "hybrid_threshold": threshold,
+                    "effective_fusion_config": json.dumps(effective_config),
                     "neural_prediction": int(row["neural_score"] >= baseline_threshold),
                     "heuristic_prediction": int(row["heuristic_score"] >= baseline_threshold),
                     "contextual_max_prediction": int(contextual_max_score >= baseline_threshold),
@@ -404,14 +409,12 @@ class ExperimentRunner:
                 }
             )
 
-        overall = self._benchmark_variant_metrics(
-            predictions, threshold, baseline_threshold
-        )
+        overall = self._benchmark_variant_metrics(predictions, baseline_threshold)
         by_cwe = self._grouped_benchmark_metrics(
-            predictions, "cwe_id", threshold, baseline_threshold
+            predictions, "cwe_id", baseline_threshold
         )
         by_condition = self._grouped_benchmark_metrics(
-            predictions, "prompt_condition", threshold, baseline_threshold
+            predictions, "prompt_condition", baseline_threshold
         )
         errors = [
             row for row in predictions if row["label"] != row["hybrid_prediction"]
@@ -425,7 +428,11 @@ class ExperimentRunner:
             }[mode],
             "training_source": "Juliet persisted artifacts",
             "benchmark_source": str(benchmark_path),
-            "threshold": threshold,
+            "threshold": (
+                fusion_config.get("threshold")
+                if int(fusion_config.get("version", 1)) == 1
+                else None
+            ),
             "baseline_threshold": baseline_threshold,
             "fusion_config": fusion_config,
             "total_annotated_samples": validation["total_samples"],
@@ -454,11 +461,20 @@ class ExperimentRunner:
 
     @staticmethod
     def _assert_calibration_has_both_classes(included):
-        labels = {int(sample["label"]) for sample in included}
-        if labels != {0, 1}:
+        missing = [
+            cwe_id
+            for cwe_id in sorted({str(sample["cwe_id"]) for sample in included})
+            if {
+                int(sample["label"])
+                for sample in included
+                if str(sample["cwe_id"]) == cwe_id
+            }
+            != {0, 1}
+        ]
+        if missing:
             raise ValueError(
-                "AI calibration requires included safe and vulnerable samples before "
-                "fusion settings can be selected."
+                "AI calibration requires included safe and vulnerable samples for "
+                f"every CWE before fusion settings can be selected. Missing: {missing}"
             )
 
     @staticmethod
@@ -466,6 +482,13 @@ class ExperimentRunner:
         rows = []
         for sample in included:
             result = predictor.predict(str(sample["generated_code"]))
+            cwe_evaluation = predictor.evaluate_cwe(
+                str(sample["cwe_id"]),
+                result["neural_probability"],
+                result["heuristic_evidence"],
+                result["safety_evidence"],
+                result["ambiguous_evidence"],
+            )
             rows.append(
                 {
                     "sample_id": sample["sample_id"],
@@ -474,10 +497,10 @@ class ExperimentRunner:
                     "prompt_condition": sample["prompt_condition"],
                     "model_id": sample["model_id"],
                     "label": int(sample["label"]),
-                    "neural_score": result["neural_probability"],
-                    "heuristic_score": result["heuristic_probability"],
-                    "safety_score": result["safety_probability"],
-                    "ambiguous_score": result["ambiguous_probability"],
+                    "neural_score": cwe_evaluation["neural_probability"],
+                    "heuristic_score": cwe_evaluation["heuristic_probability"],
+                    "safety_score": cwe_evaluation["safety_probability"],
+                    "ambiguous_score": cwe_evaluation["ambiguous_probability"],
                     "heuristic_evidence": json.dumps(result["heuristic_evidence"]),
                     "safety_evidence": json.dumps(result["safety_evidence"]),
                     "ambiguous_evidence": json.dumps(result["ambiguous_evidence"]),
@@ -487,6 +510,33 @@ class ExperimentRunner:
         return rows
 
     def _select_fusion_config(self, rows, benchmark_path, baseline_threshold):
+        default = self._select_fusion_parameters(rows, baseline_threshold)
+        by_cwe = {}
+        for cwe_id in sorted({str(row["cwe_id"]) for row in rows}):
+            cwe_rows = [row for row in rows if str(row["cwe_id"]) == cwe_id]
+            selected = self._select_fusion_parameters(cwe_rows, baseline_threshold)
+            selected["calibration_metrics"] = selected.pop("_calibration_metrics")
+            selected["calibration_sample_ids"] = sorted(
+                str(row["sample_id"]) for row in cwe_rows
+            )
+            selected["calibration_prompt_ids"] = sorted(
+                {str(row["prompt_id"]) for row in cwe_rows}
+            )
+            by_cwe[cwe_id] = selected
+        default["calibration_metrics"] = default.pop("_calibration_metrics")
+        return {
+            "version": 2,
+            "selection_source": "ai_calibration_set",
+            "objective": "maximize_f1_vulnerable_then_precision_then_recall",
+            "calibration_benchmark": str(benchmark_path),
+            "calibration_sample_ids": sorted(str(row["sample_id"]) for row in rows),
+            "calibration_prompt_ids": sorted({str(row["prompt_id"]) for row in rows}),
+            "baseline_neural_threshold": baseline_threshold,
+            "default": default,
+            "by_cwe": by_cwe,
+        }
+
+    def _select_fusion_parameters(self, rows, baseline_threshold):
         y_true = np.array([row["label"] for row in rows])
         candidates = []
         for model_weight, heuristic_weight, safety_discount, ambiguous_weight, threshold in itertools.product(
@@ -494,11 +544,9 @@ class ExperimentRunner:
             [0.55, 0.75, 1.0],
             [0.20, 0.35, 0.50],
             [0.0, 0.15],
-            [0.4, 0.5, 0.6],
+            [0.4, 0.5, 0.6, 0.7],
         ):
             config = {
-                "version": 1,
-                "selection_source": "ai_calibration_set",
                 "threshold": threshold,
                 "model_weight": model_weight,
                 "heuristic_weight": heuristic_weight,
@@ -528,17 +576,10 @@ class ExperimentRunner:
                 -item[1]["false_positives"],
             ),
         )
-        selected.update(
-            {
-                "objective": "maximize_f1_vulnerable_then_precision_then_recall",
-                "calibration_benchmark": str(benchmark_path),
-                "calibration_sample_ids": sorted(str(row["sample_id"]) for row in rows),
-                "calibration_prompt_ids": sorted({str(row["prompt_id"]) for row in rows}),
-                "baseline_neural_threshold": baseline_threshold,
-                "calibration_metrics": metrics,
-                "informative_operating_points": self._operating_points(rows, selected),
-            }
-        )
+        selected["_calibration_metrics"] = metrics
+        selected["selection_source"] = "ai_calibration_set"
+        selected["baseline_neural_threshold"] = baseline_threshold
+        selected["informative_operating_points"] = self._operating_points(rows, selected)
         return selected
 
     @staticmethod
@@ -627,7 +668,6 @@ class ExperimentRunner:
     def _benchmark_variant_metrics(
         self,
         rows: List[Dict[str, object]],
-        hybrid_threshold: float,
         baseline_threshold: float,
     ):
         y_true = np.array([row["label"] for row in rows])
@@ -636,12 +676,24 @@ class ExperimentRunner:
             ("neural_only", "neural_score", baseline_threshold),
             ("heuristic_only", "heuristic_score", baseline_threshold),
             ("contextual_max_score", "contextual_max_score", baseline_threshold),
-            ("recalibrated_hybrid", "hybrid_score", hybrid_threshold),
-            ("hybrid", "hybrid_score", hybrid_threshold),
+            ("recalibrated_hybrid", "hybrid_score", None),
+            ("hybrid", "hybrid_score", None),
         ):
             scores = np.array([row[score_field] for row in rows])
-            result = binary_metrics(y_true, scores, threshold)
-            result["threshold"] = threshold
+            y_pred = (
+                [row["hybrid_prediction"] for row in rows]
+                if threshold is None
+                else None
+            )
+            result = binary_metrics(
+                y_true,
+                scores,
+                baseline_threshold if threshold is None else threshold,
+                y_pred=y_pred,
+            )
+            result["threshold"] = (
+                "per_cwe" if threshold is None else threshold
+            )
             result["roc_auc"] = safe_roc_auc(y_true, scores)
             metrics[variant] = result
         return metrics
@@ -650,7 +702,6 @@ class ExperimentRunner:
         self,
         rows: List[Dict[str, object]],
         group_field: str,
-        hybrid_threshold: float,
         baseline_threshold: float,
     ):
         groups = {}
@@ -659,7 +710,7 @@ class ExperimentRunner:
             groups[group_value] = {
                 **self._benchmark_prevalence(group_rows),
                 "metrics": self._benchmark_variant_metrics(
-                    group_rows, hybrid_threshold, baseline_threshold
+                    group_rows, baseline_threshold
                 ),
             }
         return groups

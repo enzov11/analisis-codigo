@@ -1,0 +1,101 @@
+{
+  "evaluation_role": "expanded_external_calibration",
+  "benchmark": "ai_benchmark/cwe89_large_calibration_samples.jsonl",
+  "model_id_values": [
+    "OpenAI Codex session"
+  ],
+  "total_samples": 288,
+  "safe_samples": 216,
+  "vulnerable_samples": 72,
+  "vulnerability_rate": 0.25,
+  "conditions": {
+    "neutral": {
+      "safe_samples": 72,
+      "vulnerable_samples": 0
+    },
+    "secure": {
+      "safe_samples": 72,
+      "vulnerable_samples": 0
+    },
+    "risk_prone": {
+      "safe_samples": 72,
+      "vulnerable_samples": 0
+    },
+    "adversarial_insecure": {
+      "safe_samples": 0,
+      "vulnerable_samples": 72
+    }
+  },
+  "neural_only": {
+    "accuracy": 0.25,
+    "precision_vulnerable": 0.25,
+    "recall_vulnerable": 1.0,
+    "f1_vulnerable": 0.4,
+    "false_positives": 216,
+    "false_negatives": 0,
+    "confusion_matrix": [
+      [
+        0,
+        216
+      ],
+      [
+        0,
+        72
+      ]
+    ],
+    "threshold": 0.5,
+    "roc_auc": 0.16666666666666663
+  },
+  "heuristic_only": {
+    "accuracy": 1.0,
+    "precision_vulnerable": 1.0,
+    "recall_vulnerable": 1.0,
+    "f1_vulnerable": 1.0,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "confusion_matrix": [
+      [
+        216,
+        0
+      ],
+      [
+        0,
+        72
+      ]
+    ],
+    "threshold": 0.5,
+    "roc_auc": 1.0
+  },
+  "frozen_hybrid": {
+    "accuracy": 1.0,
+    "precision_vulnerable": 1.0,
+    "recall_vulnerable": 1.0,
+    "f1_vulnerable": 1.0,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "confusion_matrix": [
+      [
+        216,
+        0
+      ],
+      [
+        0,
+        72
+      ]
+    ],
+    "threshold": "per_cwe",
+    "roc_auc": 0.9999999999999999
+  },
+  "fusion_config": {
+    "version": 2,
+    "source": "src/models/experiments/e5_ai_calibration_cwe89/fusion_config.json",
+    "versioned_copy": "ai_benchmark/cwe89_large_calibration_fusion_config.json",
+    "calibration_benchmark": "ai_benchmark/cwe89_large_calibration_samples.jsonl",
+    "cwe89_threshold": 0.5,
+    "cwe89_model_weight": 0.75,
+    "cwe89_heuristic_weight": 0.55,
+    "cwe89_safety_discount": 0.2,
+    "cwe89_ambiguous_weight": 0.0
+  },
+  "methodology_note": "Fusion settings were selected from this calibration corpus only; samples are not used to train the Juliet neural model."
+}

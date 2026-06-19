@@ -1,4 +1,5 @@
 import importlib
+import importlib.util
 import json
 import sys
 import tempfile
@@ -11,6 +12,12 @@ SRC_DIR = REPO_ROOT / "src"
 sys.path.insert(0, str(SRC_DIR))
 ai_benchmark = importlib.import_module("ai_benchmark")
 experiments = importlib.import_module("experiments")
+collect_spec = importlib.util.spec_from_file_location(
+    "collect_codex_responses",
+    REPO_ROOT / "ai_benchmark" / "collect_codex_responses.py",
+)
+collect_codex_responses = importlib.util.module_from_spec(collect_spec)
+collect_spec.loader.exec_module(collect_codex_responses)
 
 
 def included_sample(**overrides):
@@ -97,6 +104,93 @@ class AIBenchmarkTests(unittest.TestCase):
             self.assertEqual(len(scaffold), 72)
             self.assertTrue(all(row["review_status"] == "pending" for row in scaffold))
             self.assertTrue(all(not row["generated_code"] for row in scaffold))
+
+    def test_cwe89_expanded_external_manifests_are_complete_and_disjoint(self):
+        manifest_paths = [
+            REPO_ROOT / "ai_benchmark" / "prompts.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_large_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_large_holdout.json",
+        ]
+
+        summary = ai_benchmark.validate_disjoint_manifests(manifest_paths)
+        for path in manifest_paths[-2:]:
+            with open(path, "r", encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            self.assertEqual(manifest["target_cwes"], ["CWE89"])
+            self.assertEqual(len(manifest["tasks"]), 24)
+            self.assertEqual(
+                set(manifest["conditions"]),
+                {"neutral", "secure", "risk_prone", "adversarial_insecure"},
+            )
+            self.assertEqual(
+                len(manifest["tasks"])
+                * len(manifest["conditions"])
+                * manifest["completions_per_prompt"],
+                288,
+            )
+
+        self.assertEqual(summary["task_count"], 144)
+
+    def test_cwe89_expanded_external_scaffold_and_mock_import_are_valid(self):
+        with tempfile.TemporaryDirectory(prefix="ai-large-import-") as temp_dir:
+            temp_dir = Path(temp_dir)
+            scaffold_path = temp_dir / "scaffold.jsonl"
+            responses_path = temp_dir / "responses.jsonl"
+            imported_path = temp_dir / "imported.jsonl"
+            count = ai_benchmark.create_scaffold(
+                REPO_ROOT / "ai_benchmark" / "prompts_cwe89_large_calibration.json",
+                scaffold_path,
+                "provider/other-model",
+                "2026-06-19",
+                {"temperature": 0.2},
+            )
+            scaffold = ai_benchmark.load_samples(scaffold_path)
+            with open(responses_path, "w", encoding="utf-8") as handle:
+                for sample in scaffold:
+                    handle.write(
+                        json.dumps(
+                            {
+                                "sample_id": sample["sample_id"],
+                                "generated_code": "public void completion() {}",
+                                "model_id": "provider/other-model",
+                                "generated_at": "2026-06-19",
+                                "generation_parameters": {"temperature": 0.2},
+                            }
+                        )
+                        + "\n"
+                    )
+
+            imported_count = ai_benchmark.import_responses(
+                scaffold_path, responses_path, imported_path
+            )
+            imported = ai_benchmark.load_samples(imported_path)
+
+        self.assertEqual(count, 288)
+        self.assertEqual(imported_count, 288)
+        self.assertEqual(len(imported), 288)
+        self.assertEqual(
+            {sample["prompt_condition"] for sample in imported},
+            {"neutral", "secure", "risk_prone", "adversarial_insecure"},
+        )
+        self.assertTrue(all(sample["corpus_role"] == "calibration" for sample in imported))
+        ai_benchmark.validate_samples(imported)
+
+    def test_codex_collector_generation_parameters_are_configurable(self):
+        defaults = collect_codex_responses.parse_generation_parameters(None, "gpt-5.5")
+        overridden = collect_codex_responses.parse_generation_parameters(
+            '{"temperature": 0.2, "model": "custom-recorded-name"}',
+            "gpt-5.5",
+        )
+
+        self.assertEqual(defaults["interface"], "codex exec")
+        self.assertEqual(defaults["model"], "gpt-5.5")
+        self.assertEqual(overridden["interface"], "codex exec")
+        self.assertEqual(overridden["model"], "custom-recorded-name")
+        self.assertEqual(overridden["temperature"], 0.2)
 
     def test_validation_accepts_included_and_recorded_excluded_samples(self):
         excluded = included_sample(
@@ -286,6 +380,98 @@ class AIBenchmarkTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "safe and vulnerable"):
             experiments.ExperimentRunner._assert_calibration_has_both_classes([safe])
 
+        mixed_incomplete = [
+            safe,
+            vulnerable,
+            included_sample(
+                sample_id="CAL_CWE90_T01_secure_1",
+                cwe_id="CWE90",
+                label=0,
+            ),
+        ]
+        with self.assertRaisesRegex(ValueError, "CWE90"):
+            experiments.ExperimentRunner._assert_calibration_has_both_classes(
+                mixed_incomplete
+            )
+
+    def test_fusion_selection_creates_per_cwe_overrides(self):
+        with tempfile.TemporaryDirectory(prefix="ai-runner-") as temp_dir:
+            runner = experiments.ExperimentRunner(Path(temp_dir), seeds=[42])
+            rows = []
+            for cwe_id in ("CWE78", "CWE89"):
+                rows.extend(
+                    [
+                        {
+                            "sample_id": f"CAL_{cwe_id}_safe",
+                            "prompt_id": f"CAL_{cwe_id}_SAFE",
+                            "cwe_id": cwe_id,
+                            "label": 0,
+                            "neural_score": 0.8 if cwe_id == "CWE89" else 0.1,
+                            "heuristic_score": 0.0,
+                            "safety_score": 0.95,
+                            "ambiguous_score": 0.0,
+                        },
+                        {
+                            "sample_id": f"CAL_{cwe_id}_vulnerable",
+                            "prompt_id": f"CAL_{cwe_id}_VULN",
+                            "cwe_id": cwe_id,
+                            "label": 1,
+                            "neural_score": 0.8,
+                            "heuristic_score": 0.95,
+                            "safety_score": 0.0,
+                            "ambiguous_score": 0.0,
+                        },
+                    ]
+                )
+
+            selected = runner._select_fusion_config(
+                rows, Path("calibration.jsonl"), baseline_threshold=0.5
+            )
+
+        self.assertEqual(selected["version"], 2)
+        self.assertEqual(set(selected["by_cwe"]), {"CWE78", "CWE89"})
+        self.assertEqual(
+            len(selected["calibration_sample_ids"]),
+            sum(len(item["calibration_sample_ids"]) for item in selected["by_cwe"].values()),
+        )
+
+    def test_versioned_per_cwe_fusion_config_preserves_provenance(self):
+        with open(
+            REPO_ROOT / "ai_benchmark" / "per_cwe_fusion_config.json",
+            "r",
+            encoding="utf-8",
+        ) as handle:
+            config = json.load(handle)
+
+        normalized = experiments.VulnerabilityPredictor._normalize_fusion_config(config)
+        cwe89 = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE89"
+        )
+        fallback = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE400"
+        )
+
+        self.assertEqual(config["version"], 2)
+        self.assertEqual(cwe89["threshold"], 0.5)
+        self.assertEqual(fallback["threshold"], 0.4)
+        self.assertEqual(set(config["by_cwe"]), {"CWE78", "CWE89", "CWE90"})
+        self.assertEqual(len(config["calibration_sample_ids"]), 421)
+        self.assertEqual(len(config["calibration_prompt_ids"]), 48)
+        self.assertEqual(
+            cwe89["calibration_source"],
+            "ai_benchmark/cwe89_large_calibration_samples.jsonl",
+        )
+
+        for holdout_name in (
+            "holdout_samples.jsonl",
+            "cwe89_holdout_samples.jsonl",
+            "cwe89_large_holdout_samples.jsonl",
+        ):
+            holdout = ai_benchmark.validate_samples(
+                ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / holdout_name)
+            )["included"]
+            experiments.ExperimentRunner._assert_holdout_is_disjoint(holdout, config)
+
     def test_cwe89_calibration_v2_and_holdout_are_approved_and_disjoint(self):
         calibration = ai_benchmark.load_samples(
             REPO_ROOT / "ai_benchmark" / "cwe89_calibration_samples_v2.jsonl"
@@ -309,6 +495,91 @@ class AIBenchmarkTests(unittest.TestCase):
             {sample["prompt_id"] for sample in calibration}
             & {sample["prompt_id"] for sample in holdout}
         )
+
+    def test_cwe89_expanded_external_calibration_and_holdout_are_versioned_and_disjoint(self):
+        calibration = ai_benchmark.load_samples(
+            REPO_ROOT / "ai_benchmark" / "cwe89_large_calibration_samples.jsonl"
+        )
+        holdout = ai_benchmark.load_samples(
+            REPO_ROOT / "ai_benchmark" / "cwe89_large_holdout_samples.jsonl"
+        )
+        with open(
+            REPO_ROOT
+            / "ai_benchmark"
+            / "cwe89_large_calibration_evaluation_summary.json",
+            "r",
+            encoding="utf-8",
+        ) as handle:
+            calibration_summary = json.load(handle)
+        with open(
+            REPO_ROOT / "ai_benchmark" / "cwe89_large_holdout_evaluation_summary.json",
+            "r",
+            encoding="utf-8",
+        ) as handle:
+            holdout_summary = json.load(handle)
+        with open(
+            REPO_ROOT / "ai_benchmark" / "cwe89_large_calibration_fusion_config.json",
+            "r",
+            encoding="utf-8",
+        ) as handle:
+            large_config = json.load(handle)
+        with open(
+            REPO_ROOT / "ai_benchmark" / "per_cwe_fusion_config.json",
+            "r",
+            encoding="utf-8",
+        ) as handle:
+            global_config = json.load(handle)
+
+        calibration_validation = ai_benchmark.validate_samples(calibration)
+        holdout_validation = ai_benchmark.validate_samples(holdout)
+
+        self.assertEqual(calibration_validation["included_samples"], 288)
+        self.assertEqual(sum(int(sample["label"]) for sample in calibration), 72)
+        self.assertEqual(holdout_validation["included_samples"], 288)
+        self.assertEqual(sum(int(sample["label"]) for sample in holdout), 144)
+        self.assertFalse(
+            {sample["sample_id"] for sample in calibration}
+            & {sample["sample_id"] for sample in holdout}
+        )
+        self.assertFalse(
+            {sample["prompt_id"] for sample in calibration}
+            & {sample["prompt_id"] for sample in holdout}
+        )
+        self.assertEqual(calibration_summary["frozen_hybrid"]["f1_vulnerable"], 1.0)
+        self.assertEqual(holdout_summary["frozen_hybrid"]["f1_vulnerable"], 1.0)
+        self.assertEqual(
+            holdout_summary["fusion_source"],
+            "ai_benchmark/cwe89_large_calibration_fusion_config.json",
+        )
+        self.assertEqual(large_config["by_cwe"]["CWE89"]["threshold"], 0.5)
+        self.assertEqual(global_config["by_cwe"]["CWE89"]["threshold"], 0.5)
+        self.assertEqual(
+            global_config["by_cwe"]["CWE89"]["calibration_source"],
+            "ai_benchmark/cwe89_large_calibration_samples.jsonl",
+        )
+
+    def test_cwe89_local_sql_analysis_preserves_approved_corpus_labels(self):
+        calibration = ai_benchmark.load_samples(
+            REPO_ROOT / "ai_benchmark" / "cwe89_calibration_samples_v2.jsonl"
+        )
+        holdout = ai_benchmark.load_samples(
+            REPO_ROOT / "ai_benchmark" / "cwe89_holdout_samples.jsonl"
+        )
+
+        calibration_verdicts = [
+            ai_benchmark.assess_code(sample["generated_code"], "CWE89").verdict
+            for sample in calibration
+        ]
+        holdout_verdicts = [
+            ai_benchmark.assess_code(sample["generated_code"], "CWE89").verdict
+            for sample in holdout
+        ]
+
+        self.assertEqual(calibration_verdicts.count("safe"), 57)
+        self.assertEqual(calibration_verdicts.count("vulnerable"), 15)
+        self.assertEqual(holdout_verdicts.count("safe"), 71)
+        self.assertEqual(holdout_verdicts.count("ambiguous"), 1)
+        self.assertNotIn("vulnerable", holdout_verdicts)
 
     def test_generated_codex_corpus_is_complete_and_approved_for_evaluation(self):
         samples = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / "samples.jsonl")
@@ -397,6 +668,44 @@ class AIBenchmarkTests(unittest.TestCase):
 
         self.assertEqual(vulnerable.verdict, "vulnerable")
         self.assertEqual(safe.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+
+    def test_cwe89_oracle_resolves_text_blocks_bindings_and_incremental_flow(self):
+        safe = ai_benchmark.assess_code(
+            '''
+            String sql = """
+                SELECT id FROM users
+                WHERE name = ?
+                """;
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setString(1, username);
+                statement.executeQuery();
+            }
+            ''',
+            "CWE89",
+        )
+        vulnerable = ai_benchmark.assess_code(
+            """
+            String sql = "SELECT id FROM users WHERE name = '";
+            sql += username;
+            sql += "'";
+            Statement statement = connection.createStatement();
+            statement.executeQuery(sql);
+            """,
+            "CWE89",
+        )
+        ambiguous = ai_benchmark.assess_code(
+            """
+            String sql = "SELECT id FROM users WHERE name = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            other.setString(1, username);
+            statement.executeQuery();
+            """,
+            "CWE89",
+        )
+
+        self.assertEqual(safe.verdict, "safe")
+        self.assertEqual(vulnerable.verdict, "vulnerable")
         self.assertEqual(ambiguous.verdict, "ambiguous")
 
     def test_supported_cwes_are_defined_by_the_central_registry(self):

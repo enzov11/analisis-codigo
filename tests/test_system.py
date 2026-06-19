@@ -186,6 +186,61 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(safe_result["safety_evidence"])
         self.assertTrue(ambiguous_result["review_required"])
 
+    def test_predictor_resolves_sql_text_blocks_and_matching_bindings(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        safe = '''
+        String sql = """
+            SELECT id, name
+            FROM users
+            WHERE name = ?
+            """;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, username);
+            statement.executeQuery();
+        }
+        '''
+        wrong_binding = '''
+        String sql = "SELECT id FROM users WHERE name = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        otherStatement.setString(1, username);
+        statement.executeQuery();
+        '''
+
+        safe_result = predictor.analyze_code(safe)
+        wrong_binding_result = predictor.analyze_code(wrong_binding)
+
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(safe_result["safety_evidence"])
+        self.assertTrue(wrong_binding_result["review_required"])
+        self.assertFalse(wrong_binding_result["safety_evidence"])
+
+    def test_predictor_resolves_sql_auxiliary_variables_and_incremental_concat(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        safe = """
+        String base = "SELECT id FROM users";
+        String sql = base;
+        Statement statement = connection.createStatement();
+        statement.executeQuery(sql);
+        """
+        vulnerable = """
+        String base = "SELECT id FROM users WHERE name = '";
+        String sql = base;
+        sql += username;
+        sql += "'";
+        Statement statement = connection.createStatement();
+        statement.executeQuery(sql);
+        """
+
+        safe_result = predictor.analyze_code(safe)
+        vulnerable_result = predictor.analyze_code(vulnerable)
+
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(safe_result["safety_evidence"])
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertTrue(vulnerable_result["heuristic_evidence"])
+
     def test_predictor_recognizes_parameterized_ldap_and_inline_injection(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor()
@@ -325,6 +380,104 @@ class PipelineTests(unittest.TestCase):
         data = json.loads(completed.stdout)
         self.assertEqual(data["threshold"], 0.4)
         self.assertTrue(data["is_vulnerable"])
+
+    def test_predictor_normalizes_v1_and_resolves_v2_cwe_overrides(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "selection_source": "ai_calibration_set",
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+                "by_cwe": {"CWE89": {"threshold": 0.7}},
+            }
+        )
+
+        self.assertEqual(predictor.resolve_fusion_config("CWE78")["threshold"], 0.4)
+        self.assertEqual(predictor.resolve_fusion_config("CWE89")["threshold"], 0.7)
+
+        legacy = predictor_module.VulnerabilityPredictor._normalize_fusion_config(
+            {"version": 1, "threshold": 0.6}
+        )
+        self.assertEqual(legacy["threshold"], 0.6)
+        self.assertEqual(legacy["model_weight"], 1.0)
+
+    def test_predictor_rejects_unknown_cwe_fusion_override(self):
+        _, _, predictor_module = reload_modules()
+
+        with self.assertRaisesRegex(ValueError, "unknown CWE"):
+            predictor_module.VulnerabilityPredictor(
+                fusion_config={
+                    "version": 2,
+                    "default": {
+                        "threshold": 0.5,
+                        "model_weight": 1.0,
+                        "heuristic_weight": 1.0,
+                        "safety_discount": 0.35,
+                        "ambiguous_weight": 0.15,
+                    },
+                    "by_cwe": {"CWE999": {"threshold": 0.7}},
+                }
+            )
+
+    def test_per_cwe_fusion_keeps_other_vulnerability_despite_sql_safety(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "selection_source": "ai_calibration_set",
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+                "by_cwe": {"CWE89": {"threshold": 0.7}},
+            }
+        )
+        code = """
+        Runtime.getRuntime().exec(userInput);
+        PreparedStatement stmt = connection.prepareStatement(
+            "SELECT * FROM users WHERE name = ?");
+        stmt.setString(1, username);
+        """
+
+        result = predictor.analyze_code(code)
+        evaluations = {item["cwe_id"]: item for item in result["cwe_evaluations"]}
+
+        self.assertTrue(result["is_vulnerable"])
+        self.assertEqual(result["selected_cwe"], "CWE78")
+        self.assertTrue(evaluations["CWE78"]["is_vulnerable"])
+        self.assertFalse(evaluations["CWE89"]["is_vulnerable"])
+        self.assertEqual(evaluations["CWE89"]["threshold"], 0.7)
+
+    def test_per_cwe_fusion_uses_top_neural_candidate_without_evidence(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+                "by_cwe": {"CWE89": {"threshold": 0.7}},
+            }
+        )
+
+        result = predictor.analyze_code("public void noop() {}")
+
+        self.assertEqual(result["selected_cwe"], "CWE89")
+        self.assertEqual(len(result["cwe_evaluations"]), 1)
+        self.assertEqual(result["effective_fusion_config"]["threshold"], 0.7)
 
     def test_missing_artifacts_raise_clear_error(self):
         os.remove(self.artifacts["tokenizer_path"])

@@ -1,0 +1,91 @@
+{
+  "evaluation_role": "expanded_external_frozen_holdout",
+  "benchmark": "ai_benchmark/cwe89_large_holdout_samples.jsonl",
+  "fusion_source": "ai_benchmark/cwe89_large_calibration_fusion_config.json",
+  "model_id_values": [
+    "OpenAI Codex session"
+  ],
+  "total_samples": 288,
+  "safe_samples": 144,
+  "vulnerable_samples": 144,
+  "vulnerability_rate": 0.5,
+  "conditions": {
+    "neutral": {
+      "safe_samples": 72,
+      "vulnerable_samples": 0
+    },
+    "secure": {
+      "safe_samples": 72,
+      "vulnerable_samples": 0
+    },
+    "risk_prone": {
+      "safe_samples": 0,
+      "vulnerable_samples": 72
+    },
+    "adversarial_insecure": {
+      "safe_samples": 0,
+      "vulnerable_samples": 72
+    }
+  },
+  "neural_only": {
+    "accuracy": 0.5,
+    "precision_vulnerable": 0.5,
+    "recall_vulnerable": 1.0,
+    "f1_vulnerable": 0.6666666666666666,
+    "false_positives": 144,
+    "false_negatives": 0,
+    "confusion_matrix": [
+      [
+        0,
+        144
+      ],
+      [
+        0,
+        144
+      ]
+    ],
+    "threshold": 0.5,
+    "roc_auc": 0.08333333333333337
+  },
+  "heuristic_only": {
+    "accuracy": 1.0,
+    "precision_vulnerable": 1.0,
+    "recall_vulnerable": 1.0,
+    "f1_vulnerable": 1.0,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "confusion_matrix": [
+      [
+        144,
+        0
+      ],
+      [
+        0,
+        144
+      ]
+    ],
+    "threshold": 0.5,
+    "roc_auc": 1.0
+  },
+  "frozen_hybrid": {
+    "accuracy": 1.0,
+    "precision_vulnerable": 1.0,
+    "recall_vulnerable": 1.0,
+    "f1_vulnerable": 1.0,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "confusion_matrix": [
+      [
+        144,
+        0
+      ],
+      [
+        0,
+        144
+      ]
+    ],
+    "threshold": "per_cwe",
+    "roc_auc": 1.0
+  },
+  "methodology_note": "Holdout was evaluated once using the fusion configuration selected from the disjoint expanded external calibration corpus."
+}

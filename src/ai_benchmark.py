@@ -15,7 +15,13 @@ from cwe_registry import (
 )
 
 SUPPORTED_CWES = supported_cwe_ids()
-PROMPT_CONDITIONS = {"neutral", "secure", "risk-prone"}
+PROMPT_CONDITIONS = {
+    "neutral",
+    "secure",
+    "risk-prone",
+    "risk_prone",
+    "adversarial_insecure",
+}
 INCLUDED_REVIEW_STATUS = "approved"
 INCLUDED_TEST_STATUS = "passed"
 REQUIRED_FIELDS = {

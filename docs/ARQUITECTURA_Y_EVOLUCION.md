@@ -115,10 +115,14 @@ complementarios:
 - la separacion entre evidencia vulnerable, segura y ambigua permite solicitar revision
   cuando no existe informacion concluyente.
 
-La fusion actual combina probabilidad neuronal, evidencia vulnerable, evidencia segura
-y evidencia ambigua mediante pesos y un umbral configurables globalmente. Los
-parametros se seleccionan solamente con un corpus de calibracion y se congelan antes
-del holdout. Esta separacion evita ajustar decisiones despues de observar la evaluacion
+La fusion combina probabilidad neuronal, evidencia vulnerable, evidencia segura y
+evidencia ambigua mediante pesos y umbrales configurables. Las configuraciones version
+1 aplican parametros globales. La version 2 permite un fallback `default` y overrides
+en `by_cwe`; cada CWE relevante se evalua de forma independiente para evitar que una
+mitigacion de una categoria suprima evidencia vulnerable de otra.
+
+Los parametros se seleccionan solamente con calibracion y se congelan antes del
+holdout. Esta separacion evita ajustar decisiones despues de observar la evaluacion
 final.
 
 ## Evolucion Por Etapas
@@ -183,6 +187,9 @@ hacer sostenible esta ampliacion se incorporaron:
 - sobremuestreo limitado por combinacion CWE-etiqueta;
 - metricas globales y desglosadas por CWE;
 - un oraculo contextual para construccion, parametrizacion y ejecucion SQL;
+- un analizador SQL local compartido por predictor y oraculo, con soporte para
+  variables auxiliares, construccion incremental, text blocks y asociacion entre
+  `PreparedStatement` y sus bindings;
 - recoleccion reanudable, trazabilidad de respuestas y validaciones metodologicas;
 - rechazo de calibraciones que no contienen ambas clases.
 
@@ -226,8 +233,47 @@ sinteticas y codigo generado, la presencia frecuente de mitigaciones fuera de Ju
 la sensibilidad neuronal a sinks y la perdida de relaciones de flujo durante el
 preprocesamiento. Estas explicaciones no demuestran una causa unica.
 
-La etapa motivo priorizar una fusion configurable por CWE y mejorar la resolucion
-heuristica de flujo local, construcciones multilinea y mitigaciones relacionadas.
+Como resultado de esta etapa se implemento la fusion configurable por CWE. El primer
+override de CWE89 adopto el punto orientado a precision con umbral `0,7`, obtenido
+exclusivamente desde calibracion: produjo `0` falsos positivos y `1` falso negativo,
+con F1 vulnerable `0,9655`. Esta eleccion no reemplazo ni reinterpreto el holdout
+historico.
+
+Las configuraciones globales version 1 permanecen reproducibles. La configuracion
+combinada version 2 usa la configuracion historica como fallback y conserva sus
+parametros para CWE78 y CWE90. CWE89 se actualizo posteriormente con la configuracion
+de validacion externa ampliada.
+
+#### Validacion Externa Ampliada
+
+Como trabajo posterior a la fusion configurable se ejecutaron manifiestos disjuntos de
+mayor escala con otra sesion o modelo. Esta recoleccion no reemplaza los resultados
+historicos ni reutiliza el holdout ya abierto; agrega una nueva evaluacion congelada
+con ambas clases observadas.
+
+Los nuevos manifiestos definen calibracion y holdout separados, con condiciones
+neutrales, seguras, propensas al riesgo y adversariales inseguras. La calibracion
+ampliada contiene `288` muestras, con `216` seguras y `72` vulnerables. El holdout
+ampliado contiene `288` muestras, equilibradas en `144` seguras y `144` vulnerables.
+
+En esta validacion el componente neuronal mantuvo el patron de falsos positivos
+masivos observado en CWE89: `216` falsos positivos en calibracion y `144` en holdout.
+Las heuristicas y el hibrido congelado obtuvieron F1 vulnerable `1,000` en calibracion
+y holdout, sin falsos positivos ni falsos negativos. La configuracion seleccionada
+desde la calibracion ampliada usa para CWE89 umbral `0,5`, con los mismos pesos base
+de fusion. Esta configuracion fue promovida como override oficial en
+`per_cwe_fusion_config.json`.
+
+Artefactos registrados:
+
+- [`prompts_cwe89_large_calibration.json`](../ai_benchmark/prompts_cwe89_large_calibration.json)
+- [`prompts_cwe89_large_holdout.json`](../ai_benchmark/prompts_cwe89_large_holdout.json)
+- [`cwe89_large_calibration_evaluation_summary.json`](../ai_benchmark/cwe89_large_calibration_evaluation_summary.json)
+- [`cwe89_large_calibration_fusion_config.json`](../ai_benchmark/cwe89_large_calibration_fusion_config.json)
+- [`cwe89_large_holdout_evaluation_summary.json`](../ai_benchmark/cwe89_large_holdout_evaluation_summary.json)
+
+El protocolo operativo y el prompt usado para otra sesion o modelo estan documentados en
+[`ai_benchmark/README.md`](../ai_benchmark/README.md).
 
 ### Plantilla Para Futuras Etapas
 
@@ -242,31 +288,26 @@ Cada nueva etapa debera registrar:
 
 ## Trabajo Futuro Priorizado
 
-### 1. Fusion Configurable Por CWE
+### 1. Mejor Resolucion Heuristica Local
 
-El siguiente paso priorizado es permitir pesos y umbrales diferentes por CWE. Esta
-funcionalidad todavia no esta implementada ni validada. La seleccion futura debera
-realizarse exclusivamente con calibracion y mantener los holdouts existentes sin nuevos
-ajustes.
+Extender la resolucion actual hacia helpers locales y construcciones que requieran
+seguir objetos o flujo entre metodos. El analizador vigente resuelve variables SQL
+locales, asignaciones incrementales, concatenaciones inline, text blocks y bindings
+asociados dentro del fragmento, pero no realiza analisis interprocedural.
 
-### 2. Mejor Resolucion Heuristica Local
-
-Ampliar el reconocimiento de variables locales, asignaciones y construcciones
-multilinea, mitigaciones asociadas, concatenaciones inline y flujo hacia sinks.
-
-### 3. Evaluacion Externa Mas Diversa
+### 2. Evaluacion Externa Mas Diversa
 
 Recolectar corpus disjuntos usando otras sesiones o modelos y diseñar nuevos holdouts
 que contengan ambas clases observadas. Esto permitira estimar precision, recall y F1 sin
 reutilizar los holdouts ya abiertos.
 
-### 4. Extension Progresiva De CWE
+### 3. Extension Progresiva De CWE
 
 Incorporar las categorias planificadas mediante el procedimiento definido en
 [`AGREGAR_CWE.md`](AGREGAR_CWE.md), manteniendo soporte neuronal, heuristico y
 evaluacion externa separados.
 
-### 5. Representaciones Y Evaluacion De Mayor Alcance
+### 4. Representaciones Y Evaluacion De Mayor Alcance
 
 A largo plazo, evaluar extraccion mediante *code gadgets* y *program slicing*, y ampliar
 la validacion desde fragmentos aislados hacia repositorios reales. Estos cambios

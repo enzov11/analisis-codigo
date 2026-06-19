@@ -27,6 +27,7 @@ src/
   trainer.py           entrenamiento principal sobre Juliet
   predictor.py         inferencia neuronal + heuristicas explicables
   cwe_registry.py      registro oficial y oraculos estructurales CWE
+  sql_analysis.py      resolucion local compartida de construcciones SQL
   experiments.py       runner de experimentos del articulo
   ai_benchmark.py      utilidades para corpus de codigo generado por IA
   data_loader.py       carga y etiquetado de muestras Juliet
@@ -182,6 +183,13 @@ python src/main.py predict --code src/test/test_vulnerable.java --json \
   --fusion-config ai_benchmark/calibration_fusion_config.json
 ```
 
+Aplicar la configuracion version 2 con overrides por CWE:
+
+```bash
+python src/main.py predict --code src/test/test_vulnerable.java --json \
+  --fusion-config ai_benchmark/per_cwe_fusion_config.json
+```
+
 La salida incluye:
 
 - `neural_probability`
@@ -189,6 +197,9 @@ La salida incluye:
 - `safety_evidence`
 - `ambiguous_evidence`
 - `fusion_probability`
+- `cwe_evaluations`
+- `selected_cwe`
+- `effective_fusion_config`
 - `decision`
 - `review_required`
 - CWE probables

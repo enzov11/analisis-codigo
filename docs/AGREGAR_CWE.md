@@ -25,8 +25,9 @@ Una CWE solo se presenta como completamente soportada cuando ambas capacidades f
 7. **Preparar entrenamiento:** comprobar distribucion por CWE y ejecutar split por grupos con semillas `42`, `7`, `13`, `21` y `100`.
 8. **Crear benchmark IA:** definir 12 tareas de calibracion y 12 de holdout, disjuntas, con tres condiciones y dos completions.
 9. **Revisar y congelar:** usar revision manual y oraculo estructural; calibrar solamente con calibracion y ejecutar holdout una vez.
-10. **Versionar resultados:** conservar modelos, configuraciones y resumenes anteriores; publicar metricas globales y por CWE aunque sean bajas.
-11. **Actualizar la evolucion:** agregar la categoria a una nueva etapa o a la etapa de integracion correspondiente en [`ARQUITECTURA_Y_EVOLUCION.md`](ARQUITECTURA_Y_EVOLUCION.md), sin reemplazar resultados historicos.
+10. **Configurar la fusion:** agregar un override `by_cwe` solamente si la calibracion de la categoria contiene ambas clases; en caso contrario heredar `default`.
+11. **Versionar resultados:** conservar modelos, configuraciones y resumenes anteriores; publicar metricas globales y por CWE aunque sean bajas.
+12. **Actualizar la evolucion:** agregar la categoria a una nueva etapa o a la etapa de integracion correspondiente en [`ARQUITECTURA_Y_EVOLUCION.md`](ARQUITECTURA_Y_EVOLUCION.md), sin reemplazar resultados historicos.
 
 ## Criterios De Aceptacion
 
@@ -37,6 +38,7 @@ Una CWE solo se presenta como completamente soportada cuando ambas capacidades f
 - No existe solapamiento entre tareas de calibracion y holdout.
 - Ninguna muestra IA entra al entrenamiento Juliet.
 - La configuracion se congela antes del holdout.
+- El override por CWE, si existe, fue seleccionado exclusivamente con su calibracion.
 - Los resultados distinguen soporte neuronal, heuristico e hibrido.
 - El historial registra alcance, cambios, evaluacion, resultados, hallazgos y trabajo pendiente de la etapa.
 
@@ -49,7 +51,9 @@ Por cada nueva CWE:
 12 tareas de holdout     x 3 condiciones x 2 completions = 72 muestras
 ```
 
-Las condiciones son `neutral`, `secure` y `risk-prone`. Los casos ambiguos deben excluirse o resolverse mediante una decision manual documentada.
+Las condiciones base son `neutral`, `secure` y `risk-prone`. Una etapa puede agregar
+condiciones explicitas adicionales si lo documenta en su protocolo. Los casos ambiguos
+deben excluirse o resolverse mediante una decision manual documentada.
 
 ## Hoja De Ruta Hacia 15 CWE
 

@@ -48,6 +48,10 @@ historial de etapas de
 de sus evaluaciones externas estan en
 [`../ai_benchmark/README.md`](../ai_benchmark/README.md).
 
+La etapa CWE89 quedo cerrada con validacion externa ampliada y su override vigente se
+registra en `ai_benchmark/per_cwe_fusion_config.json`. Los artefactos previos de
+calibracion y holdout se conservan para reproducibilidad historica.
+
 ## Criterio De Seleccion
 
 La hoja de ruta equilibra cuatro factores:

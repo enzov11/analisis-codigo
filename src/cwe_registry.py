@@ -2,6 +2,8 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Dict, List
 
+from sql_analysis import analyze_sql
+
 
 @dataclass
 class OracleAssessment:
@@ -78,73 +80,9 @@ def assess_cwe78(code: str) -> OracleAssessment:
 
 
 def assess_cwe89(code: str) -> OracleAssessment:
-    prepared = re.search(r"\.prepareStatement\s*\(\s*([^;\n]+?)\s*\)", code, re.I)
-    parameter_binding = re.search(r"\.\s*set(?:String|Int|Long|Boolean|Object|Date)\s*\(", code, re.I)
-    placeholder = re.search(r"[\"'][^\"'\n]*\?[^\"'\n]*[\"']", code)
-    if prepared and placeholder and parameter_binding:
-        return OracleAssessment(
-            "CWE89",
-            "safe",
-            [prepared.group(0), parameter_binding.group(0)],
-            "The SQL command uses a parameterized PreparedStatement with bound values.",
-        )
-
-    dynamic_assignment = re.search(
-        r"\b(?:String\s+)?(?P<name>query|sql|statement)\w*\s*=\s*[^;\n]*\+[^;\n]*;",
-        code,
-        re.I,
-    )
-    dynamic_inline = re.search(
-        r"\.(?:execute|executeQuery|executeUpdate|addBatch)\s*\(\s*[^;\n]*\+[^;\n]*\)",
-        code,
-        re.I,
-    )
-    if dynamic_inline:
-        return OracleAssessment(
-            "CWE89",
-            "vulnerable",
-            [dynamic_inline.group(0)],
-            "A SQL execution method directly receives a dynamically concatenated command.",
-        )
-    if dynamic_assignment:
-        variable = dynamic_assignment.group("name")
-        executed = re.search(
-            rf"\.(?:execute|executeQuery|executeUpdate|addBatch)\s*\(\s*{re.escape(variable)}\w*\s*\)",
-            code,
-            re.I,
-        )
-        if executed:
-            evidence = [dynamic_assignment.group(0)]
-            evidence.append(executed.group(0))
-            return OracleAssessment(
-                "CWE89",
-                "vulnerable",
-                evidence,
-                "A dynamically concatenated SQL command reaches a non-parameterized execution sink.",
-            )
-
-    fixed_statement = re.search(
-        r"\.(?:execute|executeQuery|executeUpdate)\s*\(\s*[\"'][^\"'\n]*[\"']\s*\)",
-        code,
-        re.I,
-    )
-    if fixed_statement and not re.search(r"\+", fixed_statement.group(0)):
-        return OracleAssessment(
-            "CWE89",
-            "safe",
-            [fixed_statement.group(0)],
-            "The SQL sink receives a fixed command without externally supplied values.",
-        )
-
-    if prepared or re.search(
-        r"\.(?:createStatement|execute|executeQuery|executeUpdate|addBatch)\s*\(", code, re.I
-    ):
-        return OracleAssessment(
-            "CWE89",
-            "ambiguous",
-            [prepared.group(0)] if prepared else [],
-            "A SQL-sensitive operation was found, but parameterization or data provenance is unresolved.",
-        )
+    finding = analyze_sql(code)
+    if finding:
+        return OracleAssessment("CWE89", finding.verdict, [finding.code], finding.rationale)
     return OracleAssessment(
         "CWE89",
         "ambiguous",

@@ -10,6 +10,7 @@ from tensorflow.keras.models import load_model
 from config import Config
 from cwe_registry import CWE_REGISTRY
 from preprocessor import CodePreprocessor
+from sql_analysis import analyze_sql
 
 
 class VulnerabilityPredictor:
@@ -21,6 +22,13 @@ class VulnerabilityPredictor:
         "heuristic_weight": 1.0,
         "safety_discount": 0.35,
         "ambiguous_weight": 0.15,
+    }
+    FUSION_FIELDS = {
+        "threshold",
+        "model_weight",
+        "heuristic_weight",
+        "safety_discount",
+        "ambiguous_weight",
     }
 
     def __init__(
@@ -52,12 +60,82 @@ class VulnerabilityPredictor:
         fusion_config_path: Optional[Path],
         fusion_config: Optional[Dict[str, object]],
     ) -> Dict[str, object]:
-        selected = dict(self.DEFAULT_FUSION_CONFIG)
+        selected: Dict[str, object] = {}
         if fusion_config_path:
             with open(fusion_config_path, "r", encoding="utf-8") as handle:
                 selected.update(json.load(handle))
         if fusion_config:
             selected.update(fusion_config)
+        return self._normalize_fusion_config(selected or self.DEFAULT_FUSION_CONFIG)
+
+    @classmethod
+    def _normalize_fusion_config(cls, config: Dict[str, object]) -> Dict[str, object]:
+        if not isinstance(config, dict):
+            raise ValueError("Fusion configuration must be a JSON object.")
+        version = int(config.get("version", 1))
+        if version == 1:
+            selected = dict(cls.DEFAULT_FUSION_CONFIG)
+            selected.update(config)
+            cls._validate_fusion_parameters(selected, "global fusion configuration")
+            return selected
+        if version != 2:
+            raise ValueError(f"Unsupported fusion configuration version: {version}")
+
+        default_override = config.get("default", {})
+        by_cwe_override = config.get("by_cwe", {})
+        if not isinstance(default_override, dict):
+            raise ValueError("Fusion configuration default must be a JSON object.")
+        if not isinstance(by_cwe_override, dict):
+            raise ValueError("Fusion configuration by_cwe must be a JSON object.")
+        default = dict(cls.DEFAULT_FUSION_CONFIG)
+        default.update(default_override)
+        cls._validate_fusion_parameters(default, "default fusion configuration")
+        by_cwe = {}
+        for cwe_id, override in by_cwe_override.items():
+            if cwe_id not in CWE_REGISTRY:
+                raise ValueError(f"Fusion configuration contains unknown CWE: {cwe_id}")
+            if not isinstance(override, dict):
+                raise ValueError(f"Fusion override for {cwe_id} must be a JSON object.")
+            effective = dict(default)
+            effective.update(override)
+            cls._validate_fusion_parameters(effective, f"fusion override for {cwe_id}")
+            by_cwe[cwe_id] = dict(override)
+
+        selected = dict(config)
+        selected["version"] = 2
+        selected["default"] = default
+        selected["by_cwe"] = by_cwe
+        return selected
+
+    @classmethod
+    def _validate_fusion_parameters(cls, config: Dict[str, object], label: str):
+        missing = cls.FUSION_FIELDS - set(config)
+        if missing:
+            raise ValueError(f"{label} is missing fields: {sorted(missing)}")
+        for field in cls.FUSION_FIELDS:
+            value = config[field]
+            if field == "threshold" and value is None:
+                continue
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"{label} has a non-numeric {field}.") from exc
+            if numeric < 0:
+                raise ValueError(f"{label} requires non-negative {field}.")
+
+    def resolve_fusion_config(self, cwe_id: Optional[str] = None) -> Dict[str, object]:
+        return self.fusion_config_for_cwe(self.fusion_config, cwe_id)
+
+    @staticmethod
+    def fusion_config_for_cwe(
+        fusion_config: Dict[str, object], cwe_id: Optional[str] = None
+    ) -> Dict[str, object]:
+        if int(fusion_config.get("version", 1)) == 1:
+            return fusion_config
+        selected = dict(fusion_config["default"])
+        if cwe_id:
+            selected.update(fusion_config["by_cwe"].get(cwe_id, {}))
+        selected["version"] = 2
         return selected
 
     def load_artifacts(self):
@@ -110,24 +188,57 @@ class VulnerabilityPredictor:
             if ambiguous_evidence
             else 0.0
         )
-        final_probability = self.fuse_scores(
-            model_probability,
-            heuristic_probability,
-            safety_probability,
-            ambiguous_probability,
-            self.fusion_config,
-        )
-        threshold = self._decision_threshold()
-        review_required = bool(
-            ambiguous_evidence
-            and not heuristic_matches
-            and final_probability < threshold
-        )
-        decision = (
-            "vulnerable"
-            if final_probability >= threshold
-            else ("review_required" if review_required else "safe")
-        )
+        cwe_evaluations = []
+        if int(self.fusion_config.get("version", 1)) == 2:
+            relevant_cwes = self._relevant_cwes(evidence, cwe_candidates)
+            cwe_evaluations = [
+                self.evaluate_cwe(
+                    cwe_id,
+                    model_probability,
+                    heuristic_matches,
+                    safety_evidence,
+                    ambiguous_evidence,
+                )
+                for cwe_id in relevant_cwes
+            ]
+            selected_evaluation = max(
+                cwe_evaluations,
+                key=lambda item: (item["is_vulnerable"], item["margin"]),
+            )
+            final_probability = selected_evaluation["fusion_probability"]
+            threshold = selected_evaluation["threshold"]
+            review_required = bool(
+                not any(item["is_vulnerable"] for item in cwe_evaluations)
+                and any(item["review_required"] for item in cwe_evaluations)
+            )
+            decision = (
+                "vulnerable"
+                if any(item["is_vulnerable"] for item in cwe_evaluations)
+                else ("review_required" if review_required else "safe")
+            )
+            effective_fusion_config = selected_evaluation["fusion_config"]
+            selected_cwe = selected_evaluation["cwe_id"]
+        else:
+            final_probability = self.fuse_scores(
+                model_probability,
+                heuristic_probability,
+                safety_probability,
+                ambiguous_probability,
+                self.fusion_config,
+            )
+            threshold = self._decision_threshold()
+            review_required = bool(
+                ambiguous_evidence
+                and not heuristic_matches
+                and final_probability < threshold
+            )
+            decision = (
+                "vulnerable"
+                if final_probability >= threshold
+                else ("review_required" if review_required else "safe")
+            )
+            effective_fusion_config = self.fusion_config
+            selected_cwe = cwe_candidates[0]["cwe_id"] if cwe_candidates else None
         return {
             "neural_probability": model_probability,
             "model_probability": model_probability,
@@ -148,11 +259,15 @@ class VulnerabilityPredictor:
                 heuristic_matches, safety_evidence, ambiguous_evidence
             ),
             "fusion_config": self.fusion_config,
+            "effective_fusion_config": effective_fusion_config,
+            "cwe_evaluations": cwe_evaluations,
+            "selected_cwe": selected_cwe,
+            "threshold": threshold,
         }
 
     def analyze_code(self, code: str) -> dict:
         prediction = self.predict(code)
-        threshold = self._decision_threshold()
+        threshold = prediction["threshold"]
         vulnerabilities = self._build_vulnerable_lines(prediction["heuristic_matches"])
         suggested_fixes = self._build_suggested_fixes(prediction["heuristic_matches"])
         probable_cwes = self._merge_cwe_candidates(
@@ -180,8 +295,70 @@ class VulnerabilityPredictor:
             "ambiguous_evidence": prediction["ambiguous_evidence"],
             "heuristic_matches": prediction["heuristic_matches"],
             "probable_cwes": probable_cwes,
+            "cwe_evaluations": prediction["cwe_evaluations"],
+            "selected_cwe": prediction["selected_cwe"],
+            "effective_fusion_config": prediction["effective_fusion_config"],
         }
         return result
+
+    def evaluate_cwe(
+        self,
+        cwe_id: str,
+        neural_probability: float,
+        heuristic_matches: List[Dict[str, object]],
+        safety_evidence: List[Dict[str, object]],
+        ambiguous_evidence: List[Dict[str, object]],
+    ) -> Dict[str, object]:
+        config = self.resolve_fusion_config(cwe_id)
+        vulnerable = self._evidence_for_cwe(heuristic_matches, cwe_id)
+        safety = self._evidence_for_cwe(safety_evidence, cwe_id)
+        ambiguous = self._evidence_for_cwe(ambiguous_evidence, cwe_id)
+        heuristic_probability = self._max_confidence(vulnerable)
+        safety_probability = self._max_confidence(safety)
+        ambiguous_probability = self._max_confidence(ambiguous)
+        score = self.fuse_scores(
+            neural_probability,
+            heuristic_probability,
+            safety_probability,
+            ambiguous_probability,
+            config,
+        )
+        threshold = self._decision_threshold(config)
+        return {
+            "cwe_id": cwe_id,
+            "neural_probability": neural_probability,
+            "heuristic_probability": heuristic_probability,
+            "safety_probability": safety_probability,
+            "ambiguous_probability": ambiguous_probability,
+            "fusion_probability": score,
+            "threshold": threshold,
+            "margin": score - threshold,
+            "is_vulnerable": score >= threshold,
+            "review_required": bool(ambiguous and not vulnerable and score < threshold),
+            "fusion_config": config,
+        }
+
+    @staticmethod
+    def _evidence_for_cwe(evidence: List[Dict[str, object]], cwe_id: str):
+        return [item for item in evidence if item.get("cwe_id") == cwe_id]
+
+    @staticmethod
+    def _max_confidence(evidence: List[Dict[str, object]]) -> float:
+        return max((float(item["confidence"]) for item in evidence), default=0.0)
+
+    @staticmethod
+    def _relevant_cwes(evidence, cwe_candidates):
+        evidence_cwes = {
+            str(item["cwe_id"])
+            for items in evidence.values()
+            for item in items
+            if item.get("cwe_id")
+        }
+        if evidence_cwes:
+            return sorted(evidence_cwes)
+        if cwe_candidates:
+            return [str(cwe_candidates[0]["cwe_id"])]
+        return [sorted(CWE_REGISTRY)[0]]
 
     @staticmethod
     def fuse_scores(
@@ -199,8 +376,9 @@ class VulnerabilityPredictor:
         )
         return float(np.clip(score, 0.0, 1.0))
 
-    def _decision_threshold(self) -> float:
-        threshold = self.fusion_config.get("threshold")
+    def _decision_threshold(self, fusion_config: Optional[Dict[str, object]] = None) -> float:
+        selected = fusion_config or self.resolve_fusion_config()
+        threshold = selected.get("threshold")
         if threshold is None:
             threshold = self.metadata.get(
                 "prediction_threshold", self.config.PREDICTION_THRESHOLD
@@ -346,102 +524,29 @@ class VulnerabilityPredictor:
         self, code: str, evidence: Dict[str, List[Dict[str, object]]]
     ):
         registration = CWE_REGISTRY["CWE89"]
-        prepared = re.search(r"\.prepareStatement\s*\(\s*([^;\n]+?)\s*\)", code, re.I)
-        parameter_binding = re.search(
-            r"\.\s*set(?:String|Int|Long|Boolean|Object|Date)\s*\(", code, re.I
-        )
-        placeholder = re.search(r"[\"'][^\"'\n]*\?[^\"'\n]*[\"']", code)
-        if prepared and placeholder and parameter_binding:
-            evidence["safety"].append(
-                self._evidence_match(
-                    code,
-                    prepared,
-                    "parameterized_prepared_statement",
-                    "CWE89",
-                    0.95,
-                    "PreparedStatement uses placeholders with bound values.",
-                    "",
-                    "safety",
-                )
-            )
+        finding = analyze_sql(code)
+        if not finding:
             return
-
-        dynamic_inline = re.search(
-            r"\.(?:execute|executeQuery|executeUpdate|addBatch)\s*\(\s*[^;\n]*\+[^;\n]*\)",
-            code,
-            re.I,
-        )
-        dynamic_assignment = re.search(
-            r"\b(?:String\s+)?(?P<name>query|sql|statement)\w*\s*=\s*[^;\n]*\+[^;\n]*;",
-            code,
-            re.I,
-        )
-        executed_dynamic = None
-        if dynamic_assignment:
-            variable = dynamic_assignment.group("name")
-            executed_dynamic = re.search(
-                rf"\.(?:execute|executeQuery|executeUpdate|addBatch)\s*\(\s*{re.escape(variable)}\w*\s*\)",
+        kind = "safety" if finding.verdict == "safe" else finding.verdict
+        confidence = {"vulnerable": 0.95, "safety": 0.95, "ambiguous": 0.4}[kind]
+        pattern_name = {
+            "vulnerable": "dynamic_sql_execution",
+            "safety": "locally_resolved_safe_sql",
+            "ambiguous": "sql_data_flow_review",
+        }[kind]
+        match = re.compile(re.escape(finding.code), re.S).search(code, finding.start)
+        evidence[kind].append(
+            self._evidence_match(
                 code,
-                re.I,
+                match,
+                pattern_name,
+                "CWE89",
+                confidence,
+                finding.rationale,
+                registration.mitigation if kind != "safety" else "",
+                kind,
             )
-        vulnerable_match = dynamic_inline or (
-            dynamic_assignment
-            if executed_dynamic
-            else None
         )
-        if vulnerable_match:
-            evidence["vulnerable"].append(
-                self._evidence_match(
-                    code,
-                    vulnerable_match,
-                    "dynamic_sql_execution",
-                    "CWE89",
-                    0.95,
-                    "A dynamically concatenated SQL command reaches a non-parameterized sink.",
-                    registration.mitigation,
-                    "vulnerable",
-                )
-            )
-            return
-
-        fixed_statement = re.search(
-            r"\.(?:execute|executeQuery|executeUpdate)\s*\(\s*[\"'][^\"'\n]*[\"']\s*\)",
-            code,
-            re.I,
-        )
-        if fixed_statement:
-            evidence["safety"].append(
-                self._evidence_match(
-                    code,
-                    fixed_statement,
-                    "fixed_sql_statement",
-                    "CWE89",
-                    0.8,
-                    "The SQL sink receives a fixed command without external values.",
-                    "",
-                    "safety",
-                )
-            )
-            return
-
-        unresolved_sink = prepared or re.search(
-            r"\.(?:createStatement|execute|executeQuery|executeUpdate|addBatch)\s*\(",
-            code,
-            re.I,
-        )
-        if unresolved_sink:
-            evidence["ambiguous"].append(
-                self._evidence_match(
-                    code,
-                    unresolved_sink,
-                    "sql_data_flow_review",
-                    "CWE89",
-                    0.4,
-                    "SQL operation detected without locally resolvable parameterization or data flow.",
-                    registration.mitigation,
-                    "ambiguous",
-                )
-            )
 
     def _scan_ldap_evidence(
         self, code: str, evidence: Dict[str, List[Dict[str, object]]]
