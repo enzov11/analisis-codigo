@@ -9,6 +9,7 @@ from tensorflow.keras.models import load_model
 
 from config import Config
 from cwe_registry import CWE_REGISTRY
+from path_traversal_analysis import analyze_path_traversal
 from preprocessor import CodePreprocessor
 from sql_analysis import analyze_sql
 
@@ -238,7 +239,9 @@ class VulnerabilityPredictor:
                 else ("review_required" if review_required else "safe")
             )
             effective_fusion_config = self.fusion_config
-            selected_cwe = cwe_candidates[0]["cwe_id"] if cwe_candidates else None
+            selected_cwe = self._selected_cwe_from_evidence(
+                heuristic_matches, cwe_candidates
+            )
         return {
             "neural_probability": model_probability,
             "model_probability": model_probability,
@@ -361,6 +364,19 @@ class VulnerabilityPredictor:
         return [sorted(CWE_REGISTRY)[0]]
 
     @staticmethod
+    def _selected_cwe_from_evidence(heuristic_matches, cwe_candidates):
+        evidence_with_cwe = [
+            item for item in heuristic_matches if item.get("cwe_id") is not None
+        ]
+        if evidence_with_cwe:
+            selected = max(
+                evidence_with_cwe,
+                key=lambda item: float(item.get("confidence", 0.0)),
+            )
+            return selected["cwe_id"]
+        return cwe_candidates[0]["cwe_id"] if cwe_candidates else None
+
+    @staticmethod
     def fuse_scores(
         neural_probability: float,
         heuristic_probability: float,
@@ -402,6 +418,7 @@ class VulnerabilityPredictor:
     def _scan_evidence(self, code: str) -> Dict[str, List[Dict[str, object]]]:
         evidence = {"vulnerable": [], "safety": [], "ambiguous": []}
         self._scan_command_evidence(code, evidence)
+        self._scan_path_traversal_evidence(code, evidence)
         self._scan_sql_evidence(code, evidence)
         self._scan_ldap_evidence(code, evidence)
         evidence["vulnerable"].extend(self._scan_generic_patterns(code))
@@ -432,7 +449,7 @@ class VulnerabilityPredictor:
         self, code: str, evidence: Dict[str, List[Dict[str, object]]]
     ):
         validation = re.search(
-            r"(?:validate\w*\s*\(|\.matches\s*\(|allowlist|allowed\w*|isAllowed\w*\s*\(|\.normalize\s*\(|InetAddress\.getByName\s*\(|IDN\.toASCII\s*\()",
+            r"(?:validate\w*\s*\(|\.matches\s*\(|allowlist|allowed\w*|isAllowed\w*\s*\(|InetAddress\.getByName\s*\(|IDN\.toASCII\s*\()",
             code,
             re.I,
         )
@@ -547,6 +564,44 @@ class VulnerabilityPredictor:
                 kind,
             )
         )
+
+    def _scan_path_traversal_evidence(
+        self, code: str, evidence: Dict[str, List[Dict[str, object]]]
+    ):
+        for cwe_id in ("CWE23", "CWE36"):
+            registration = CWE_REGISTRY[cwe_id]
+            finding = analyze_path_traversal(code, cwe_id)
+            if not finding:
+                continue
+            kind = "safety" if finding.verdict == "safe" else finding.verdict
+            confidence = {"vulnerable": 0.9, "safety": 0.9, "ambiguous": 0.4}[kind]
+            pattern_name = {
+                "CWE23": {
+                    "vulnerable": "relative_path_traversal",
+                    "safety": "safe_relative_path_resolution",
+                    "ambiguous": "relative_path_review",
+                },
+                "CWE36": {
+                    "vulnerable": "absolute_path_traversal",
+                    "safety": "safe_absolute_path_rejection",
+                    "ambiguous": "absolute_path_review",
+                },
+            }[cwe_id][kind]
+            match = re.compile(re.escape(finding.code), re.S).search(
+                code, finding.start
+            )
+            evidence[kind].append(
+                self._evidence_match(
+                    code,
+                    match,
+                    pattern_name,
+                    cwe_id,
+                    confidence,
+                    finding.rationale,
+                    registration.mitigation if kind != "safety" else "",
+                    kind,
+                )
+            )
 
     def _scan_ldap_evidence(
         self, code: str, evidence: Dict[str, List[Dict[str, object]]]

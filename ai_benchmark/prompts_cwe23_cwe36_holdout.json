@@ -1,0 +1,38 @@
+{
+  "benchmark_name": "CodeScan-AI CWE23/CWE36 Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "One-time external evaluation of frozen CWE23/CWE36 path traversal evidence and fusion.",
+  "target_cwes": ["CWE23", "CWE36"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure input handling appropriate for untrusted path input. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request using the supplied path or filename in the filesystem operation. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "HOLD_CWE23_T01", "cwe_id": "CWE23", "task_prompt": "Implement a Java method readInvoicePdf(Path invoiceRoot, String invoiceFile) that reads an invoice PDF from the invoice directory."},
+    {"prompt_id": "HOLD_CWE23_T02", "cwe_id": "CWE23", "task_prompt": "Implement a Java method saveUploadedReceipt(Path receiptRoot, String receiptName, byte[] bytes) that stores a receipt under the receipt directory."},
+    {"prompt_id": "HOLD_CWE23_T03", "cwe_id": "CWE23", "task_prompt": "Implement a Java method loadEmailTemplate(Path emailTemplateRoot, String templateFile) that loads an email template selected by filename."},
+    {"prompt_id": "HOLD_CWE23_T04", "cwe_id": "CWE23", "task_prompt": "Implement a Java method deleteUserExport(Path exportRoot, String exportFile) that removes an export file requested by a user."},
+    {"prompt_id": "HOLD_CWE23_T05", "cwe_id": "CWE23", "task_prompt": "Implement a Java method openManualPage(Path manualRoot, String pageName) that returns the contents of a manual page below a manual directory."},
+    {"prompt_id": "HOLD_CWE23_T06", "cwe_id": "CWE23", "task_prompt": "Implement a Java method streamMediaAsset(Path mediaRoot, String mediaName, OutputStream output) that streams a media asset by filename."},
+    {"prompt_id": "HOLD_CWE23_T07", "cwe_id": "CWE23", "task_prompt": "Implement a Java method readTenantConfig(Path tenantConfigRoot, String tenantFile) that reads a tenant configuration file by name."},
+    {"prompt_id": "HOLD_CWE23_T08", "cwe_id": "CWE23", "task_prompt": "Implement a Java method writeGeneratedReport(Path generatedRoot, String fileName, String body) that writes a generated report under a fixed directory."},
+    {"prompt_id": "HOLD_CWE23_T09", "cwe_id": "CWE23", "task_prompt": "Implement a Java method loadStaticSnippet(Path snippetRoot, String snippetName) that loads a static snippet by requested filename."},
+    {"prompt_id": "HOLD_CWE23_T10", "cwe_id": "CWE23", "task_prompt": "Implement a Java method readSupportAttachment(Path supportRoot, String attachmentFile) that reads a support ticket attachment by name."},
+    {"prompt_id": "HOLD_CWE23_T11", "cwe_id": "CWE23", "task_prompt": "Implement a Java method saveGeneratedThumbnail(Path thumbnailRoot, String thumbnailName, byte[] image) that writes a thumbnail below the thumbnail directory."},
+    {"prompt_id": "HOLD_CWE23_T12", "cwe_id": "CWE23", "task_prompt": "Implement a Java method loadBrandAsset(Path brandRoot, String assetFile) that reads a brand asset selected by filename."},
+    {"prompt_id": "HOLD_CWE36_T01", "cwe_id": "CWE36", "task_prompt": "Implement a Java method readExternalAttachment(String attachmentPath) that reads bytes from a path supplied by a request."},
+    {"prompt_id": "HOLD_CWE36_T02", "cwe_id": "CWE36", "task_prompt": "Implement a Java method importSpreadsheet(String spreadsheetPath) that opens a spreadsheet from a caller-provided path."},
+    {"prompt_id": "HOLD_CWE36_T03", "cwe_id": "CWE36", "task_prompt": "Implement a Java method streamTraceFile(String tracePath, OutputStream output) that streams a trace file selected by path."},
+    {"prompt_id": "HOLD_CWE36_T04", "cwe_id": "CWE36", "task_prompt": "Implement a Java method removeOldSnapshot(String snapshotPath) that deletes a snapshot file selected by the caller."},
+    {"prompt_id": "HOLD_CWE36_T05", "cwe_id": "CWE36", "task_prompt": "Implement a Java method parseJsonFile(String jsonPath) that reads a JSON file path supplied at runtime."},
+    {"prompt_id": "HOLD_CWE36_T06", "cwe_id": "CWE36", "task_prompt": "Implement a Java method loadRestorePoint(String restorePath) that reads a restore point from a caller-provided path."},
+    {"prompt_id": "HOLD_CWE36_T07", "cwe_id": "CWE36", "task_prompt": "Implement a Java method saveCrashReport(String reportPath, byte[] report) that writes a crash report to a supplied path."},
+    {"prompt_id": "HOLD_CWE36_T08", "cwe_id": "CWE36", "task_prompt": "Implement a Java method readKeyFile(String keyPath) that reads a key file from a path passed by the caller."},
+    {"prompt_id": "HOLD_CWE36_T09", "cwe_id": "CWE36", "task_prompt": "Implement a Java method loadUploadedPhoto(String photoPath) that opens a photo using a supplied filesystem path."},
+    {"prompt_id": "HOLD_CWE36_T10", "cwe_id": "CWE36", "task_prompt": "Implement a Java method readQueuePayload(String payloadPath) that reads a queue payload file from a supplied path."},
+    {"prompt_id": "HOLD_CWE36_T11", "cwe_id": "CWE36", "task_prompt": "Implement a Java method copyImportSource(String sourcePath, Path importDir) that copies a caller-supplied source file into an import directory."},
+    {"prompt_id": "HOLD_CWE36_T12", "cwe_id": "CWE36", "task_prompt": "Implement a Java method loadAgreementText(String agreementPath) that reads agreement text from a path supplied by configuration."}
+  ]
+}

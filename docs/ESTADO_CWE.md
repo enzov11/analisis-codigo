@@ -29,8 +29,8 @@ producir varias muestras por archivo.
 | Implementada y evaluada | CWE78 OS Command Injection | 722 | 38 |
 | Implementada y evaluada | CWE90 LDAP Injection | 722 | 38 |
 | Implementada y evaluada | CWE89 SQL Injection | 3.668 | 182 |
-| Planificada | CWE23 Relative Path Traversal | 722 | 38 |
-| Planificada | CWE36 Absolute Path Traversal | 722 | 38 |
+| Implementada y evaluada | CWE23 Relative Path Traversal | 722 | 38 |
+| Implementada y evaluada | CWE36 Absolute Path Traversal | 722 | 38 |
 | Planificada | CWE80 Cross-Site Scripting | 1.084 | 56 |
 | Planificada | CWE113 HTTP Response Splitting | 2.202 | 110 |
 | Planificada | CWE129 Improper Validation of Array Index | 4.402 | 218 |
@@ -48,9 +48,9 @@ historial de etapas de
 de sus evaluaciones externas estan en
 [`../ai_benchmark/README.md`](../ai_benchmark/README.md).
 
-La etapa CWE89 quedo cerrada con validacion externa ampliada y su override vigente se
-registra en `ai_benchmark/per_cwe_fusion_config.json`. Los artefactos previos de
-calibracion y holdout se conservan para reproducibilidad historica.
+Las etapas cerradas con validacion externa tienen sus overrides vigentes en
+`ai_benchmark/per_cwe_fusion_config.json`. Los artefactos previos de calibracion y
+holdout se conservan para reproducibilidad historica.
 
 ## Criterio De Seleccion
 

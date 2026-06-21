@@ -16,8 +16,9 @@ El repositorio contiene el codigo, el protocolo experimental y los corpus necesa
 - Permite aplicar una configuracion de fusion congelada para reproducir la evaluacion de codigo generado por IA.
 - Define las CWE oficiales y sus oraculos no destructivos en un registro central extensible.
 
-Las categorias oficiales actuales son `CWE78`, `CWE89` y `CWE90`. Los artefactos
-persistidos actuales corresponden al modelo entrenado con las tres categorias.
+Las categorias oficiales actuales son `CWE23`, `CWE36`, `CWE78`, `CWE89` y `CWE90`.
+Los artefactos persistidos actuales incluyen el modelo Juliet de cinco categorias y las
+configuraciones externas congeladas por etapa.
 
 ## Estructura Del Proyecto
 
@@ -216,7 +217,7 @@ Las pruebas cubren:
 
 - inferencia CLI;
 - carga de artefactos;
-- heuristicas y oraculos CWE78, CWE89 y CWE90;
+- heuristicas y oraculos CWE23, CWE36, CWE78, CWE89 y CWE90;
 - casos seguros, vulnerables y ambiguos;
 - validacion de corpus IA;
 - overrides manuales auditables;
@@ -304,6 +305,7 @@ python src/experiments.py --experiment e7
 |---|---|---|
 | 1 | Evaluador inicial y primer protocolo externo | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-1-evaluador-inicial-para-cwe78-y-cwe90); [Benchmark](ai_benchmark/README.md#etapa-1-cwe78-y-cwe90) |
 | 2 | Ampliacion del evaluador y del protocolo externo | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-2-ampliacion-a-cwe89); [Benchmark](ai_benchmark/README.md#etapa-2-cwe89) |
+| 3 | Traversal de rutas relativo y absoluto | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-3-incorporacion-de-cwe23-y-cwe36); [Benchmark](ai_benchmark/README.md#etapa-3-cwe23-y-cwe36) |
 
 Cada etapa conserva sus metricas, cambios, hallazgos y limitaciones. El estado vigente
 de soporte y la hoja de ruta se mantienen en

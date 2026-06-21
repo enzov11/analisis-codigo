@@ -275,6 +275,55 @@ Artefactos registrados:
 El protocolo operativo y el prompt usado para otra sesion o modelo estan documentados en
 [`ai_benchmark/README.md`](../ai_benchmark/README.md).
 
+### Etapa 3: Incorporacion De CWE23 Y CWE36
+
+#### Alcance Y Cambios Iniciales
+
+La tercera etapa incorpora traversal de rutas relativo y absoluto. Ambas categorias se
+integran juntas porque comparten sinks de filesystem, fuentes controladas por el
+usuario y mitigaciones basadas en resolucion contra un directorio permitido.
+
+La heuristica compartida distingue:
+
+- **CWE23:** nombres de archivo o rutas relativas combinadas con un directorio base sin
+  normalizacion ni verificacion de contencion.
+- **CWE36:** rutas completas controladas por entrada externa usadas directamente como
+  rutas del sistema de archivos.
+
+El analizador local identifica usos de `File`, `FileInputStream`, `FileReader`,
+`Paths.get`, `Path.resolve` y operaciones `Files.*`. Como evidencia segura reconoce
+normalizacion, resolucion canonica, rechazo de rutas absolutas, verificacion
+`startsWith(base)` y allowlists locales. Los helpers externos de validacion se tratan
+como evidencia ambigua hasta contar con resolucion interprocedural.
+
+#### Estado Actual
+
+La etapa quedo cerrada con soporte neuronal y heuristico, entrenamiento Juliet con cinco
+categorias, calibracion externa y holdout congelado. El modelo Juliet versionado para
+cinco categorias obtuvo accuracy `0,9906`, ROC-AUC `0,9993` y F1 vulnerable global
+`0,9839`; para CWE23 y CWE36 el F1 vulnerable Juliet fue `0,9921` en ambos casos.
+
+En la validacion externa de path traversal, tanto calibracion como holdout incluyeron
+`144` muestras cada uno: `72` de CWE23 y `72` de CWE36, con `96` vulnerables y `48`
+seguras por corpus. En ambos corpus, el modelo neuronal marco todas las muestras seguras
+como vulnerables, con F1 vulnerable `0,8` y `48` falsos positivos. Las heuristicas y el
+hibrido congelado separaron las clases sin falsos positivos ni falsos negativos, con F1
+vulnerable `1,0`.
+
+La fusion congelada promovida para esta etapa mantiene los pesos base de fusion y usa
+umbral `0,5` para CWE23 y `0,4` para CWE36, seleccionados solo desde calibracion. Como
+hipotesis, el fallo neuronal observado sugiere que el modelo aprende fuertemente la
+presencia de sinks de filesystem, mientras que la capa heuristica reconoce de forma
+explicita mitigaciones como `normalize()`, `toRealPath()` y `startsWith(base)`.
+
+Artefactos principales:
+
+- [`prompts_cwe23_cwe36_calibration.json`](../ai_benchmark/prompts_cwe23_cwe36_calibration.json)
+- [`prompts_cwe23_cwe36_holdout.json`](../ai_benchmark/prompts_cwe23_cwe36_holdout.json)
+- [`cwe23_cwe36_calibration_evaluation_summary.json`](../ai_benchmark/cwe23_cwe36_calibration_evaluation_summary.json)
+- [`cwe23_cwe36_calibration_fusion_config.json`](../ai_benchmark/cwe23_cwe36_calibration_fusion_config.json)
+- [`cwe23_cwe36_holdout_evaluation_summary.json`](../ai_benchmark/cwe23_cwe36_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

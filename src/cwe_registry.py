@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List
 
 from sql_analysis import analyze_sql
+from path_traversal_analysis import analyze_path_traversal
 
 
 @dataclass
@@ -79,6 +80,30 @@ def assess_cwe78(code: str) -> OracleAssessment:
     return assessment
 
 
+def assess_cwe23(code: str) -> OracleAssessment:
+    finding = analyze_path_traversal(code, "CWE23")
+    if finding:
+        return OracleAssessment("CWE23", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE23",
+        "ambiguous",
+        [],
+        "No conclusive relative path traversal evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe36(code: str) -> OracleAssessment:
+    finding = analyze_path_traversal(code, "CWE36")
+    if finding:
+        return OracleAssessment("CWE36", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE36",
+        "ambiguous",
+        [],
+        "No conclusive absolute path traversal evidence was found; manual review is required.",
+    )
+
+
 def assess_cwe89(code: str) -> OracleAssessment:
     finding = analyze_sql(code)
     if finding:
@@ -133,6 +158,20 @@ def assess_cwe90(code: str) -> OracleAssessment:
 
 
 CWE_REGISTRY: Dict[str, CWERegistration] = {
+    "CWE23": CWERegistration(
+        cwe_id="CWE23",
+        name="Relative Path Traversal",
+        description="Untrusted input controls a relative path or filename used below a filesystem base.",
+        mitigation="Resolve paths against a fixed base, normalize them, and require the result to remain inside the allowed directory.",
+        assessor=assess_cwe23,
+    ),
+    "CWE36": CWERegistration(
+        cwe_id="CWE36",
+        name="Absolute Path Traversal",
+        description="Untrusted input controls an absolute filesystem path.",
+        mitigation="Reject absolute paths from untrusted input and constrain resolved paths to an allowed base directory.",
+        assessor=assess_cwe36,
+    ),
     "CWE78": CWERegistration(
         cwe_id="CWE78",
         name="OS Command Injection",

@@ -257,6 +257,69 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(unsafe_result["is_vulnerable"])
         self.assertTrue(unsafe_result["heuristic_evidence"])
 
+    def test_predictor_identifies_relative_and_absolute_path_traversal(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        relative = "File file = new File(baseDir, fileName); return new FileInputStream(file);"
+        absolute = "return Files.readString(Paths.get(userPath));"
+        safe = """
+        Path requested = Paths.get(userPath);
+        if (requested.isAbsolute()) throw new SecurityException();
+        Path resolved = base.resolve(requested).normalize();
+        if (!resolved.startsWith(base)) throw new SecurityException();
+        return Files.readString(resolved);
+        """
+        ambiguous = "Path safe = validatePath(userPath); return Files.readString(safe);"
+
+        relative_result = predictor.analyze_code(relative)
+        absolute_result = predictor.analyze_code(absolute)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(relative_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE23" for item in relative_result["probable_cwes"])
+        )
+        self.assertFalse(
+            any(item["cwe_id"] == "CWE36" for item in relative_result["heuristic_evidence"])
+        )
+        self.assertTrue(absolute_result["is_vulnerable"])
+        self.assertEqual(absolute_result["selected_cwe"], "CWE36")
+        self.assertTrue(safe_result["safety_evidence"])
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(ambiguous_result["review_required"])
+
+    def test_path_traversal_safety_does_not_suppress_other_cwe_evidence(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+            }
+        )
+        code = """
+        Path requested = Paths.get(userPath);
+        if (requested.isAbsolute()) throw new SecurityException();
+        Path resolved = base.resolve(requested).normalize();
+        if (!resolved.startsWith(base)) throw new SecurityException();
+        Runtime.getRuntime().exec(command);
+        """
+
+        result = predictor.analyze_code(code)
+        evaluations = {item["cwe_id"]: item for item in result["cwe_evaluations"]}
+
+        self.assertTrue(result["is_vulnerable"])
+        self.assertEqual(result["selected_cwe"], "CWE78")
+        self.assertTrue(evaluations["CWE78"]["is_vulnerable"])
+        self.assertFalse(evaluations["CWE23"]["is_vulnerable"])
+        self.assertFalse(evaluations["CWE36"]["is_vulnerable"])
+
     def test_predictor_distinguishes_validated_and_dynamic_process_builder(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor()

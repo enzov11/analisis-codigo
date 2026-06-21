@@ -1,0 +1,38 @@
+{
+  "benchmark_name": "CodeScan-AI CWE23/CWE36 Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of path traversal evidence and fusion.",
+  "target_cwes": ["CWE23", "CWE36"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure input handling appropriate for untrusted path input. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request using the supplied path or filename in the filesystem operation. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "CAL_CWE23_T01", "cwe_id": "CWE23", "task_prompt": "Implement a Java method readUploadText(Path uploadRoot, String fileName) that reads a text file from the upload directory using a supplied filename."},
+    {"prompt_id": "CAL_CWE23_T02", "cwe_id": "CWE23", "task_prompt": "Implement a Java method saveUserAvatar(Path avatarRoot, String fileName, byte[] bytes) that writes an uploaded avatar under the avatar directory."},
+    {"prompt_id": "CAL_CWE23_T03", "cwe_id": "CWE23", "task_prompt": "Implement a Java method openTemplate(Path templateRoot, String templateName) that loads a template file selected by a user."},
+    {"prompt_id": "CAL_CWE23_T04", "cwe_id": "CWE23", "task_prompt": "Implement a Java method deleteAttachment(Path attachmentRoot, String attachmentName) that deletes a user-selected attachment."},
+    {"prompt_id": "CAL_CWE23_T05", "cwe_id": "CWE23", "task_prompt": "Implement a Java method loadReport(Path reportRoot, String reportFile) that returns the bytes of a report below the report directory."},
+    {"prompt_id": "CAL_CWE23_T06", "cwe_id": "CWE23", "task_prompt": "Implement a Java method copyPublicAsset(Path assetRoot, String assetName, OutputStream output) that streams a named asset to a client."},
+    {"prompt_id": "CAL_CWE23_T07", "cwe_id": "CWE23", "task_prompt": "Implement a Java method readLocalizedMessage(Path messagesRoot, String localeFile) that reads a locale-specific message file."},
+    {"prompt_id": "CAL_CWE23_T08", "cwe_id": "CWE23", "task_prompt": "Implement a Java method storeExport(Path exportRoot, String exportName, String content) that creates an export file under the export directory."},
+    {"prompt_id": "CAL_CWE23_T09", "cwe_id": "CWE23", "task_prompt": "Implement a Java method loadPluginConfig(Path configRoot, String configName) that loads a plugin configuration file by name."},
+    {"prompt_id": "CAL_CWE23_T10", "cwe_id": "CWE23", "task_prompt": "Implement a Java method readDownload(Path downloadRoot, String requestedName) that reads a downloadable file selected by a request parameter."},
+    {"prompt_id": "CAL_CWE23_T11", "cwe_id": "CWE23", "task_prompt": "Implement a Java method writeCacheEntry(Path cacheRoot, String cacheKey, byte[] payload) that writes a cache entry under a cache directory."},
+    {"prompt_id": "CAL_CWE23_T12", "cwe_id": "CWE23", "task_prompt": "Implement a Java method loadThemeResource(Path themeRoot, String resourceName) that reads a theme resource by filename."},
+    {"prompt_id": "CAL_CWE36_T01", "cwe_id": "CWE36", "task_prompt": "Implement a Java method readConfiguredFile(String userPath) that reads bytes from a path supplied by a user setting."},
+    {"prompt_id": "CAL_CWE36_T02", "cwe_id": "CWE36", "task_prompt": "Implement a Java method importDocument(String path) that opens a document from a path submitted by a client."},
+    {"prompt_id": "CAL_CWE36_T03", "cwe_id": "CWE36", "task_prompt": "Implement a Java method streamLogFile(String requestedPath, OutputStream output) that streams a log file selected by path."},
+    {"prompt_id": "CAL_CWE36_T04", "cwe_id": "CWE36", "task_prompt": "Implement a Java method deleteTemporaryFile(String tempPath) that deletes a temporary file selected by the caller."},
+    {"prompt_id": "CAL_CWE36_T05", "cwe_id": "CWE36", "task_prompt": "Implement a Java method parseCsvFile(String csvPath) that opens and reads a CSV file path supplied at runtime."},
+    {"prompt_id": "CAL_CWE36_T06", "cwe_id": "CWE36", "task_prompt": "Implement a Java method loadBackup(String backupPath) that reads a backup file from a caller-provided path."},
+    {"prompt_id": "CAL_CWE36_T07", "cwe_id": "CWE36", "task_prompt": "Implement a Java method saveDiagnosticDump(String outputPath, byte[] dump) that writes a diagnostic dump to a supplied path."},
+    {"prompt_id": "CAL_CWE36_T08", "cwe_id": "CWE36", "task_prompt": "Implement a Java method readCertificate(String certificatePath) that reads a certificate from a path passed by the caller."},
+    {"prompt_id": "CAL_CWE36_T09", "cwe_id": "CWE36", "task_prompt": "Implement a Java method loadProfileImage(String imagePath) that opens a profile image using a supplied path."},
+    {"prompt_id": "CAL_CWE36_T10", "cwe_id": "CWE36", "task_prompt": "Implement a Java method readJobInput(String inputPath) that reads a batch job input file from a supplied path."},
+    {"prompt_id": "CAL_CWE36_T11", "cwe_id": "CWE36", "task_prompt": "Implement a Java method archiveFile(String sourcePath, Path archiveDir) that copies a caller-supplied source file into an archive directory."},
+    {"prompt_id": "CAL_CWE36_T12", "cwe_id": "CWE36", "task_prompt": "Implement a Java method loadLicense(String licensePath) that reads license text from a path supplied by configuration."}
+  ]
+}

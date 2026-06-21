@@ -320,6 +320,57 @@ python src/main.py predict --code src/test/test_vulnerable.java --json \
   --fusion-config ai_benchmark/per_cwe_fusion_config.json
 ```
 
+### Etapa 3: CWE23 Y CWE36
+
+Esta etapa evalua traversal de rutas relativo y absoluto con corpus externos separados
+para calibracion y holdout congelado. Los resultados historicos se conservan asociados a
+esta etapa y no reemplazan las etapas anteriores.
+
+#### Artefactos
+
+- Manifiestos: `prompts_cwe23_cwe36_calibration.json`,
+  `prompts_cwe23_cwe36_holdout.json`.
+- Calibracion: `cwe23_cwe36_calibration_samples.jsonl`,
+  `cwe23_cwe36_calibration_evaluation_summary.json`,
+  `cwe23_cwe36_calibration_fusion_config.json`.
+- Holdout: `cwe23_cwe36_holdout_samples.jsonl`,
+  `cwe23_cwe36_holdout_evaluation_summary.json`.
+- Fusion combinada: `per_cwe_fusion_config.json`; conserva los overrides previos y agrega
+  los overrides de CWE23 y CWE36.
+
+```bash
+python src/ai_benchmark.py scaffold \
+  --manifest ai_benchmark/prompts_cwe23_cwe36_calibration.json \
+  --output ai_benchmark/cwe23_cwe36_calibration_scaffold.jsonl \
+  --model-id "provider/model-version" \
+  --generated-at "YYYY-MM-DD" \
+  --generation-parameters-json '{"temperature": 0}'
+
+python src/ai_benchmark.py scaffold \
+  --manifest ai_benchmark/prompts_cwe23_cwe36_holdout.json \
+  --output ai_benchmark/cwe23_cwe36_holdout_scaffold.jsonl \
+  --model-id "provider/model-version" \
+  --generated-at "YYYY-MM-DD" \
+  --generation-parameters-json '{"temperature": 0}'
+```
+
+Evaluacion congelada:
+
+```bash
+python src/experiments.py --experiment e5 --ai-mode calibration \
+  --ai-benchmark ai_benchmark/cwe23_cwe36_calibration_samples.jsonl
+
+python src/experiments.py --experiment e5 --ai-mode holdout \
+  --ai-benchmark ai_benchmark/cwe23_cwe36_holdout_samples.jsonl \
+  --fusion-config ai_benchmark/cwe23_cwe36_calibration_fusion_config.json
+```
+
+La calibracion selecciono umbral `0,5` para CWE23 y `0,4` para CWE36. En holdout, el
+modelo neuronal obtuvo F1 vulnerable `0,8` con `48` falsos positivos; las heuristicas y
+el hibrido congelado obtuvieron F1 vulnerable `1,0`, sin falsos positivos ni falsos
+negativos. Cada corpus incluyo `144` muestras, balanceadas por categoria: `72` CWE23 y
+`72` CWE36.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,
