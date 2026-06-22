@@ -289,6 +289,28 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(safe_result["is_vulnerable"])
         self.assertTrue(ambiguous_result["review_required"])
 
+    def test_predictor_identifies_unescaped_and_escaped_html_output(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = 'return "<p>" + commentText + "</p>";'
+        safe = 'return "<p>" + org.apache.commons.text.StringEscapeUtils.escapeHtml4(commentText) + "</p>";'
+        ambiguous = "return renderSafeHtml(commentText);"
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE80")
+        self.assertTrue(
+            any(match["pattern_name"] == "unescaped_html_output" for match in vulnerable_result["heuristic_matches"])
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE80" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
     def test_path_traversal_safety_does_not_suppress_other_cwe_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

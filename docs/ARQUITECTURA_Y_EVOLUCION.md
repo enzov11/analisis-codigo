@@ -324,6 +324,55 @@ Artefactos principales:
 - [`cwe23_cwe36_calibration_fusion_config.json`](../ai_benchmark/cwe23_cwe36_calibration_fusion_config.json)
 - [`cwe23_cwe36_holdout_evaluation_summary.json`](../ai_benchmark/cwe23_cwe36_holdout_evaluation_summary.json)
 
+### Etapa 4: Incorporacion De CWE80
+
+#### Alcance Y Cambios Iniciales
+
+La cuarta etapa incorpora cross-site scripting en fragmentos Java que construyen o
+escriben salida HTML. Esta categoria introduce una familia distinta de evidencia:
+validacion de salida y codificacion contextual, no solo control de sinks de backend.
+
+El analizador local identifica retornos y escrituras HTML mediante `return`,
+`PrintWriter`, `HttpServletResponse`, operaciones `write`, `print`, `println`, `append`
+y respuestas `ResponseEntity.ok`. Como evidencia vulnerable reconoce HTML dinamico que
+concatena datos externos sin escape local. Como evidencia segura reconoce codificadores
+HTML conocidos, por ejemplo `StringEscapeUtils.escapeHtml4`, `HtmlUtils.htmlEscape`,
+`Encode.forHtml`, `encodeForHTML`, `ESAPI.encoder().encodeForHTML`, `Jsoup.clean` y
+reemplazos locales basicos de caracteres HTML. Helpers no resolubles como
+`renderSafeHtml` se registran como ambiguos.
+
+#### Estado Actual
+
+La etapa cuenta con registro central de CWE, oraculo no destructivo, evidencia
+explicable en el predictor, manifiestos de calibracion y holdout, y entrenamiento Juliet
+con seis categorias. El modelo Juliet versionado para seis categorias obtuvo accuracy
+`0,9890`, ROC-AUC `0,9996` y F1 vulnerable global `0,9814`; para CWE80 obtuvo `537`
+muestras de prueba, ROC-AUC `0,9997` y F1 vulnerable `0,9920`.
+
+La calibracion externa inicial contiene `72` muestras aprobadas, con `48` seguras y
+`24` vulnerables. En este corpus, el modelo neuronal mostro una transferencia debil:
+F1 vulnerable `0,0645`, `36` falsos positivos y `22` falsos negativos. Como hipotesis,
+esto sugiere que el modelo entrenado en Juliet reconoce mal algunos patrones de salida
+HTML generados fuera del dominio sintetico. La capa heuristica, basada en evidencia
+explicable de escape HTML y salida dinamica, obtuvo F1 vulnerable `1,000`; la fusion
+calibrada tambien obtuvo F1 vulnerable `1,000`, sin falsos positivos ni falsos
+negativos, con umbral `0,4` para CWE80.
+
+El holdout congelado tambien contiene `72` muestras aprobadas, con `48` seguras y `24`
+vulnerables. Con la configuracion seleccionada exclusivamente desde calibracion, el
+modelo neuronal obtuvo F1 vulnerable `0,0000`, con `36` falsos positivos y `24` falsos
+negativos. Las heuristicas y el hibrido congelado obtuvieron F1 vulnerable `1,000`, sin
+falsos positivos ni falsos negativos. La etapa queda cerrada con override CWE80 activo en
+la configuracion de fusion por CWE.
+
+Artefactos preparados:
+
+- [`prompts_cwe80_calibration.json`](../ai_benchmark/prompts_cwe80_calibration.json)
+- [`prompts_cwe80_holdout.json`](../ai_benchmark/prompts_cwe80_holdout.json)
+- [`cwe80_calibration_evaluation_summary.json`](../ai_benchmark/cwe80_calibration_evaluation_summary.json)
+- [`cwe80_calibration_fusion_config.json`](../ai_benchmark/cwe80_calibration_fusion_config.json)
+- [`cwe80_holdout_evaluation_summary.json`](../ai_benchmark/cwe80_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

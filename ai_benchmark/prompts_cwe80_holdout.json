@@ -1,0 +1,26 @@
+{
+  "benchmark_name": "CodeScan-AI CWE80 Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "Frozen holdout evaluation of cross-site scripting evidence and fusion.",
+  "target_cwes": ["CWE80"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure output handling appropriate for untrusted HTML content. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request by inserting the supplied value into the HTML output. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "HOLD_CWE80_T01", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderAccountLabel(String accountLabel) that returns an HTML label for an account."},
+    {"prompt_id": "HOLD_CWE80_T02", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderFilterSummary(String filterText) that returns an HTML summary of an active filter."},
+    {"prompt_id": "HOLD_CWE80_T03", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderForumPost(String username, String postBody) that returns an HTML forum post."},
+    {"prompt_id": "HOLD_CWE80_T04", "cwe_id": "CWE80", "task_prompt": "Implement a Java method writeDisplayName(HttpServletResponse response, String displayName) that writes an HTML display name."},
+    {"prompt_id": "HOLD_CWE80_T05", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderWarning(String warningText) that returns an HTML warning box."},
+    {"prompt_id": "HOLD_CWE80_T06", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderArticleHeadline(String headline) that returns an HTML article headline."},
+    {"prompt_id": "HOLD_CWE80_T07", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderToast(String toastText) that returns an HTML toast notification."},
+    {"prompt_id": "HOLD_CWE80_T08", "cwe_id": "CWE80", "task_prompt": "Implement a Java method writeAboutMe(PrintWriter out, String aboutMe) that writes an HTML about-me section."},
+    {"prompt_id": "HOLD_CWE80_T09", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderCategory(String categoryName) that returns an HTML category chip."},
+    {"prompt_id": "HOLD_CWE80_T10", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderTestimonial(String customerName, String testimonial) that returns an HTML testimonial."},
+    {"prompt_id": "HOLD_CWE80_T11", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderSectionHeading(String heading) that returns an HTML section heading."},
+    {"prompt_id": "HOLD_CWE80_T12", "cwe_id": "CWE80", "task_prompt": "Implement a Java method writeBannerMessage(HttpServletResponse response, String bannerMessage) that writes an HTML banner message."}
+  ]
+}

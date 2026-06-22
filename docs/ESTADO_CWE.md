@@ -31,7 +31,7 @@ producir varias muestras por archivo.
 | Implementada y evaluada | CWE89 SQL Injection | 3.668 | 182 |
 | Implementada y evaluada | CWE23 Relative Path Traversal | 722 | 38 |
 | Implementada y evaluada | CWE36 Absolute Path Traversal | 722 | 38 |
-| Planificada | CWE80 Cross-Site Scripting | 1.084 | 56 |
+| Implementada y evaluada | CWE80 Cross-Site Scripting | 1.084 | 56 |
 | Planificada | CWE113 HTTP Response Splitting | 2.202 | 110 |
 | Planificada | CWE129 Improper Validation of Array Index | 4.402 | 218 |
 | Planificada | CWE134 Uncontrolled Format String | 1.102 | 56 |
@@ -51,6 +51,9 @@ de sus evaluaciones externas estan en
 Las etapas cerradas con validacion externa tienen sus overrides vigentes en
 `ai_benchmark/per_cwe_fusion_config.json`. Los artefactos previos de calibracion y
 holdout se conservan para reproducibilidad historica.
+
+Para CWE80 ya existe entrenamiento Juliet, calibracion externa inicial, holdout
+congelado y override activo en la configuracion de fusion por CWE.
 
 ## Criterio De Seleccion
 

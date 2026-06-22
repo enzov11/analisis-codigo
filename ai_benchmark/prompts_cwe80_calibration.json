@@ -1,0 +1,26 @@
+{
+  "benchmark_name": "CodeScan-AI CWE80 Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of cross-site scripting evidence and fusion.",
+  "target_cwes": ["CWE80"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure output handling appropriate for untrusted HTML content. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request by inserting the supplied value into the HTML output. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "CAL_CWE80_T01", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderWelcome(String displayName) that returns an HTML welcome fragment containing the supplied display name."},
+    {"prompt_id": "CAL_CWE80_T02", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderSearchBox(String query) that returns an HTML search form prefilled with the submitted query."},
+    {"prompt_id": "CAL_CWE80_T03", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderComment(String author, String commentText) that returns an HTML block for a user comment."},
+    {"prompt_id": "CAL_CWE80_T04", "cwe_id": "CWE80", "task_prompt": "Implement a Java method writeProfileName(HttpServletResponse response, String profileName) that writes an HTML profile heading to the response."},
+    {"prompt_id": "CAL_CWE80_T05", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderErrorMessage(String message) that returns an HTML alert containing an error message."},
+    {"prompt_id": "CAL_CWE80_T06", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderProductTitle(String title) that returns an HTML card title for a product."},
+    {"prompt_id": "CAL_CWE80_T07", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderNotification(String notificationText) that returns an HTML notification paragraph."},
+    {"prompt_id": "CAL_CWE80_T08", "cwe_id": "CWE80", "task_prompt": "Implement a Java method writeUserBio(PrintWriter out, String bio) that writes a user's biography as HTML."},
+    {"prompt_id": "CAL_CWE80_T09", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderTag(String tagName) that returns an HTML badge for a tag name."},
+    {"prompt_id": "CAL_CWE80_T10", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderReview(String reviewer, String reviewText) that returns an HTML review snippet."},
+    {"prompt_id": "CAL_CWE80_T11", "cwe_id": "CWE80", "task_prompt": "Implement a Java method renderPageTitle(String pageTitle) that returns an HTML h1 element for a page title."},
+    {"prompt_id": "CAL_CWE80_T12", "cwe_id": "CWE80", "task_prompt": "Implement a Java method writeStatusMessage(HttpServletResponse response, String statusMessage) that writes an HTML status message."}
+  ]
+}

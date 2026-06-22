@@ -4,6 +4,7 @@ from typing import Callable, Dict, List
 
 from sql_analysis import analyze_sql
 from path_traversal_analysis import analyze_path_traversal
+from xss_analysis import analyze_xss
 
 
 @dataclass
@@ -78,6 +79,18 @@ def assess_cwe78(code: str) -> OracleAssessment:
             "The command uses validated arguments without dynamic shell construction.",
         )
     return assessment
+
+
+def assess_cwe80(code: str) -> OracleAssessment:
+    finding = analyze_xss(code)
+    if finding:
+        return OracleAssessment("CWE80", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE80",
+        "ambiguous",
+        [],
+        "No conclusive cross-site scripting evidence was found; manual review is required.",
+    )
 
 
 def assess_cwe23(code: str) -> OracleAssessment:
@@ -178,6 +191,13 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         description="Untrusted input influences an operating-system command.",
         mitigation="Use fixed ProcessBuilder arguments and validate externally supplied values.",
         assessor=assess_cwe78,
+    ),
+    "CWE80": CWERegistration(
+        cwe_id="CWE80",
+        name="Cross-Site Scripting",
+        description="Untrusted input is emitted into HTML output without context-appropriate escaping.",
+        mitigation="HTML-escape untrusted values before including them in responses or templates, using a context-aware encoder.",
+        assessor=assess_cwe80,
     ),
     "CWE89": CWERegistration(
         cwe_id="CWE89",

@@ -371,6 +371,55 @@ el hibrido congelado obtuvieron F1 vulnerable `1,0`, sin falsos positivos ni fal
 negativos. Cada corpus incluyo `144` muestras, balanceadas por categoria: `72` CWE23 y
 `72` CWE36.
 
+### Etapa 4: CWE80
+
+Esta etapa incorpora el benchmark externo para cross-site scripting en salida HTML. La
+calibracion cuenta con respuestas aprobadas y configuracion seleccionada; el holdout
+congelado ya fue ejecutado con esa configuracion.
+
+#### Artefactos Preparados
+
+- Manifiestos: `prompts_cwe80_calibration.json`, `prompts_cwe80_holdout.json`.
+- Calibracion: `cwe80_calibration_samples.jsonl`,
+  `cwe80_calibration_evaluation_summary.json`,
+  `cwe80_calibration_fusion_config.json`.
+- Holdout: `cwe80_holdout_samples.jsonl`,
+  `cwe80_holdout_evaluation_summary.json`.
+
+```bash
+python src/ai_benchmark.py scaffold \
+  --manifest ai_benchmark/prompts_cwe80_calibration.json \
+  --output ai_benchmark/cwe80_calibration_scaffold.jsonl \
+  --model-id "provider/model-version" \
+  --generated-at "YYYY-MM-DD" \
+  --generation-parameters-json '{"temperature": 0}'
+
+python src/ai_benchmark.py scaffold \
+  --manifest ai_benchmark/prompts_cwe80_holdout.json \
+  --output ai_benchmark/cwe80_holdout_scaffold.jsonl \
+  --model-id "provider/model-version" \
+  --generated-at "YYYY-MM-DD" \
+  --generation-parameters-json '{"temperature": 0}'
+
+python src/experiments.py --experiment e5 --ai-mode calibration \
+  --ai-benchmark ai_benchmark/cwe80_calibration_samples.jsonl
+
+python src/experiments.py --experiment e5 --ai-mode holdout \
+  --ai-benchmark ai_benchmark/cwe80_holdout_samples.jsonl \
+  --fusion-config ai_benchmark/cwe80_calibration_fusion_config.json
+```
+
+La calibracion contiene `72` muestras aprobadas: `48` seguras y `24` vulnerables. El
+modelo neuronal externo obtuvo F1 vulnerable `0,0645`, con `36` falsos positivos y `22`
+falsos negativos. Las heuristicas y la fusion calibrada obtuvieron F1 vulnerable `1,0`,
+sin falsos positivos ni falsos negativos. La configuracion seleccionada usa umbral `0,4`
+para CWE80.
+
+El holdout congelado tambien contiene `72` muestras aprobadas: `48` seguras y `24`
+vulnerables. El modelo neuronal obtuvo F1 vulnerable `0,0`, con `36` falsos positivos y
+`24` falsos negativos. Las heuristicas y el hibrido congelado obtuvieron F1 vulnerable
+`1,0`, sin falsos positivos ni falsos negativos.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,
