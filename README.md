@@ -96,12 +96,16 @@ EMBEDDING_DIM=256
 LSTM_UNITS=128
 BATCH_SIZE=32
 EPOCHS=15
+TRAINING_PROFILE=final
 TRAIN_SPLIT=0.7
 VALIDATION_SPLIT=0.15
 TEST_SPLIT=0.15
 RANDOM_SEED=42
 BALANCE_DATASET=True
 MAX_OVERSAMPLE_MULTIPLIER=2.0
+EARLY_STOPPING_PATIENCE=3
+EARLY_STOPPING_MIN_DELTA=0.001
+TENSORBOARD_HISTOGRAM_FREQ=0
 PREDICTION_THRESHOLD=0.5
 ```
 
@@ -119,6 +123,32 @@ Con `REQUIRE_ALL_TARGET_CWES=True`, el entrenamiento falla si el dataset no cont
 
 ```bash
 python src/main.py train
+```
+
+Para validar rapidamente que una nueva CWE carga, divide y entrena sin esperar un ciclo
+completo, usar un entrenamiento de humo. Estas metricas son diagnosticas y no deben
+reportarse como resultado final:
+
+```bash
+TRAINING_PROFILE=smoke \
+EPOCHS=2 \
+MAX_SAMPLES_PER_CWE=1200 \
+TENSORBOARD_HISTOGRAM_FREQ=0 \
+TF_CPP_MIN_LOG_LEVEL=2 \
+venv/bin/python src/main.py train
+```
+
+Para cerrar una etapa con metricas reportables, usar el dataset completo y dejar que
+early stopping corte si la validacion deja de mejorar:
+
+```bash
+TRAINING_PROFILE=final \
+EPOCHS=15 \
+EARLY_STOPPING_PATIENCE=3 \
+EARLY_STOPPING_MIN_DELTA=0.001 \
+TENSORBOARD_HISTOGRAM_FREQ=0 \
+TF_CPP_MIN_LOG_LEVEL=2 \
+venv/bin/python src/main.py train
 ```
 
 Para imprimir el resumen de evaluacion:

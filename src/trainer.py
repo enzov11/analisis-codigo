@@ -27,6 +27,8 @@ class ModelTrainer:
 
         print("Loading and preprocessing dataset...")
         df, _ = self.data_loader.load_dataset()
+        original_dataset_summary = self.data_loader.summarize_dataset(df)
+        df = self._limit_samples_per_cwe(df)
         dataset_summary = self.data_loader.summarize_dataset(df)
         train_df, validation_df, test_df = self.data_loader.split_train_validation_test(df)
 
@@ -55,17 +57,7 @@ class ModelTrainer:
         model = VulDeePeckerModel(vocab_size, num_cwe_types)
         model.summary()
 
-        monitor_metric = "val_main_accuracy" if num_cwe_types > 1 else "val_accuracy"
-        callbacks = [
-            ModelCheckpoint(
-                artifact_paths["model"],
-                monitor=monitor_metric,
-                save_best_only=True,
-                mode="max",
-            ),
-            TensorBoard(log_dir=artifact_paths["log_dir"], histogram_freq=1),
-            EarlyStopping(patience=5, restore_best_weights=True),
-        ]
+        callbacks = self._build_callbacks(artifact_paths)
 
         X_train, y_train, cwe_types_train = self._balance_dataset(
             X_train, y_train, cwe_types_train, num_cwe_types
@@ -106,18 +98,32 @@ class ModelTrainer:
         with open(artifact_paths["cwe_encoder"], "wb") as handle:
             pickle.dump(self.cwe_encoder, handle)
 
+        training_run = self._training_run_summary(history)
         evaluation = self.evaluate(model.model, X_test, y_test, cwe_types_test, test_df)
         metadata = {
             "artifact_version": self.config.ARTIFACT_VERSION or "unversioned",
+            "training_profile": self.config.TRAINING_PROFILE,
             "max_code_length": self.config.MAX_CODE_LENGTH,
             "max_tokens": self.config.MAX_TOKENS,
+            "max_samples_per_cwe": self.config.MAX_SAMPLES_PER_CWE,
             "prediction_threshold": self.config.PREDICTION_THRESHOLD,
             "num_cwe_types": num_cwe_types,
             "cwe_classes": self.cwe_encoder.classes_.tolist(),
+            "original_dataset_summary": original_dataset_summary,
             "dataset_summary": dataset_summary,
             "train_samples": int(len(train_df)),
             "validation_samples": int(len(validation_df)),
             "test_samples": int(len(test_df)),
+            "training_run": training_run,
+            "callback_config": {
+                "early_stopping_monitor": self.config.EARLY_STOPPING_MONITOR,
+                "early_stopping_mode": self.config.EARLY_STOPPING_MODE,
+                "early_stopping_patience": self.config.EARLY_STOPPING_PATIENCE,
+                "early_stopping_min_delta": self.config.EARLY_STOPPING_MIN_DELTA,
+                "checkpoint_monitor": self.config.CHECKPOINT_MONITOR,
+                "checkpoint_mode": self.config.CHECKPOINT_MODE,
+                "tensorboard_histogram_freq": self.config.TENSORBOARD_HISTOGRAM_FREQ,
+            },
             "split_summaries": {
                 "train": self.data_loader.summarize_dataset(train_df),
                 "validation": self.data_loader.summarize_dataset(validation_df),
@@ -137,6 +143,104 @@ class ModelTrainer:
         print(f"CWE encoder saved to {artifact_paths['cwe_encoder']}")
         print(f"Evaluation summary saved to {artifact_paths['evaluation']}")
         return history, evaluation
+
+    def _build_callbacks(self, artifact_paths):
+        return [
+            ModelCheckpoint(
+                artifact_paths["model"],
+                monitor=self.config.CHECKPOINT_MONITOR,
+                save_best_only=True,
+                mode=self.config.CHECKPOINT_MODE,
+            ),
+            TensorBoard(
+                log_dir=artifact_paths["log_dir"],
+                histogram_freq=self.config.TENSORBOARD_HISTOGRAM_FREQ,
+            ),
+            EarlyStopping(
+                monitor=self.config.EARLY_STOPPING_MONITOR,
+                mode=self.config.EARLY_STOPPING_MODE,
+                patience=self.config.EARLY_STOPPING_PATIENCE,
+                min_delta=self.config.EARLY_STOPPING_MIN_DELTA,
+                restore_best_weights=True,
+            ),
+        ]
+
+    def _limit_samples_per_cwe(self, df):
+        max_samples = self.config.MAX_SAMPLES_PER_CWE
+        if not max_samples:
+            return df
+
+        sampled = []
+        rng = self.config.RANDOM_SEED
+        for _, cwe_df in df.groupby("cwe_id", sort=True):
+            if len(cwe_df) <= max_samples:
+                sampled.append(cwe_df)
+                continue
+            sampled.append(self._stratified_sample_cwe(cwe_df, max_samples, rng))
+        limited = pd.concat(sampled).sample(frac=1, random_state=rng).reset_index(drop=True)
+        print(
+            "Applied MAX_SAMPLES_PER_CWE="
+            f"{max_samples}; dataset reduced from {len(df)} to {len(limited)} samples."
+        )
+        return limited
+
+    @staticmethod
+    def _stratified_sample_cwe(cwe_df, max_samples, random_state):
+        label_groups = list(cwe_df.groupby("label", sort=True))
+        if len(label_groups) == 1:
+            return cwe_df.sample(n=max_samples, random_state=random_state)
+
+        total = len(cwe_df)
+        allocations = {}
+        remainders = []
+        for label, label_df in label_groups:
+            exact = max_samples * len(label_df) / total
+            count = min(len(label_df), max(1, int(np.floor(exact))))
+            allocations[label] = count
+            remainders.append((exact - np.floor(exact), label, len(label_df)))
+
+        while sum(allocations.values()) < max_samples:
+            candidates = [
+                item for item in sorted(remainders, reverse=True)
+                if allocations[item[1]] < item[2]
+            ]
+            if not candidates:
+                break
+            _, label, _ = candidates[0]
+            allocations[label] += 1
+
+        while sum(allocations.values()) > max_samples:
+            label = max(allocations, key=allocations.get)
+            if allocations[label] <= 1:
+                break
+            allocations[label] -= 1
+
+        sampled = [
+            label_df.sample(n=allocations[label], random_state=random_state)
+            for label, label_df in label_groups
+        ]
+        return pd.concat(sampled)
+
+    def _training_run_summary(self, history):
+        epochs_trained = len(history.epoch)
+        monitor = self.config.EARLY_STOPPING_MONITOR
+        values = history.history.get(monitor, [])
+        best_epoch = None
+        best_value = None
+        if values:
+            if self.config.EARLY_STOPPING_MODE == "max":
+                best_index = int(np.argmax(values))
+            else:
+                best_index = int(np.argmin(values))
+            best_epoch = best_index + 1
+            best_value = float(values[best_index])
+        return {
+            "epochs_requested": self.config.EPOCHS,
+            "epochs_trained": epochs_trained,
+            "best_epoch": best_epoch,
+            "best_monitor": monitor,
+            "best_monitor_value": best_value,
+        }
 
     def evaluate(self, trained_model, X_test, y_test, cwe_types_test, test_df):
         raw_predictions = trained_model.predict(X_test, verbose=0)

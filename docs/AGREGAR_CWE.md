@@ -23,17 +23,20 @@ Una CWE solo se presenta como completamente soportada cuando ambas capacidades f
 5. **Integrar predictor:** producir evidencia vulnerable, de seguridad o ambigua con linea, razon y correccion sugerida.
 6. **Agregar pruebas:** cubrir al menos un caso vulnerable, uno seguro, uno ambiguo, confusiones con CWE vecinas y regresiones existentes.
 7. **Preparar entrenamiento:** comprobar distribucion por CWE y ejecutar split por grupos con semillas `42`, `7`, `13`, `21` y `100`.
-8. **Crear benchmark IA:** definir 12 tareas de calibracion y 12 de holdout, disjuntas, con tres condiciones y dos completions.
-9. **Revisar y congelar:** usar revision manual y oraculo estructural; calibrar solamente con calibracion y ejecutar holdout una vez.
-10. **Configurar la fusion:** agregar un override `by_cwe` solamente si la calibracion de la categoria contiene ambas clases; en caso contrario heredar `default`.
-11. **Versionar resultados:** conservar modelos, configuraciones y resumenes anteriores; publicar metricas globales y por CWE aunque sean bajas.
-12. **Actualizar la evolucion:** agregar la categoria a una nueva etapa o a la etapa de integracion correspondiente en [`ARQUITECTURA_Y_EVOLUCION.md`](ARQUITECTURA_Y_EVOLUCION.md), sin reemplazar resultados historicos.
+8. **Validar integracion con smoke training:** usar pocas epocas y, si hace falta, `MAX_SAMPLES_PER_CWE` para detectar errores de carga, encoder o shapes sin producir metricas finales.
+9. **Entrenar etapa final:** usar el dataset completo, early stopping configurable y checkpoint del mejor modelo antes de reportar resultados.
+10. **Crear benchmark IA:** definir 12 tareas de calibracion y 12 de holdout, disjuntas, con tres condiciones y dos completions.
+11. **Revisar y congelar:** usar revision manual y oraculo estructural; calibrar solamente con calibracion y ejecutar holdout una vez.
+12. **Configurar la fusion:** agregar un override `by_cwe` solamente si la calibracion de la categoria contiene ambas clases; en caso contrario heredar `default`.
+13. **Versionar resultados:** conservar modelos, configuraciones y resumenes anteriores; publicar metricas globales y por CWE aunque sean bajas.
+14. **Actualizar la evolucion:** agregar la categoria a una nueva etapa o a la etapa de integracion correspondiente en [`ARQUITECTURA_Y_EVOLUCION.md`](ARQUITECTURA_Y_EVOLUCION.md), sin reemplazar resultados historicos.
 
 ## Criterios De Aceptacion
 
 - La CWE aparece una sola vez en el registro central.
 - La CWE se agrega a `TARGET_CWE_IDS` solamente cuando sus datos de entrenamiento estan disponibles.
 - El dataset contiene la categoria; el entrenamiento falla claramente si falta.
+- El entrenamiento de humo no se usa como resultado final.
 - Los tests seguros, vulnerables, ambiguos y de no confusion pasan.
 - No existe solapamiento entre tareas de calibracion y holdout.
 - Ninguna muestra IA entra al entrenamiento Juliet.

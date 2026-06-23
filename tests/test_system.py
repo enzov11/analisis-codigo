@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.layers import Dense, Embedding, GlobalAveragePooling1D, Input
 from tensorflow.keras.models import Model
@@ -43,6 +44,7 @@ def create_test_artifacts(base_dir: Path):
     os.environ["EVALUATION_SAVE_PATH"] = str(base_dir / "evaluation.json")
     os.environ["LOG_DIR"] = str(base_dir / "logs")
     os.environ["PREDICTION_THRESHOLD"] = "0.5"
+    os.environ["TARGET_CWE_IDS"] = "CWE78,CWE89"
 
     config_module, preprocessor_module, _ = reload_modules()
     preprocessor = preprocessor_module.CodePreprocessor()
@@ -586,6 +588,105 @@ class PipelineTests(unittest.TestCase):
         }
 
         self.assertEqual(selected_counts, {"small": 4, "medium": 8, "large": 10})
+
+    def test_training_optimization_config_is_read_from_environment(self):
+        os.environ["TRAINING_PROFILE"] = "smoke"
+        os.environ.pop("EPOCHS", None)
+        os.environ["MAX_SAMPLES_PER_CWE"] = "1200"
+        os.environ["EARLY_STOPPING_PATIENCE"] = "2"
+        os.environ["EARLY_STOPPING_MIN_DELTA"] = "0.01"
+        os.environ["EARLY_STOPPING_MONITOR"] = "val_main_loss"
+        os.environ["EARLY_STOPPING_MODE"] = "min"
+        os.environ["CHECKPOINT_MONITOR"] = "val_main_loss"
+        os.environ["CHECKPOINT_MODE"] = "min"
+        os.environ["TENSORBOARD_HISTOGRAM_FREQ"] = "0"
+
+        config_module = importlib.import_module("config")
+        importlib.reload(config_module)
+
+        self.assertEqual(config_module.Config.TRAINING_PROFILE, "smoke")
+        self.assertEqual(config_module.Config.EPOCHS, 2)
+        self.assertEqual(config_module.Config.MAX_SAMPLES_PER_CWE, 1200)
+        self.assertEqual(config_module.Config.EARLY_STOPPING_PATIENCE, 2)
+        self.assertEqual(config_module.Config.EARLY_STOPPING_MIN_DELTA, 0.01)
+        self.assertEqual(config_module.Config.EARLY_STOPPING_MONITOR, "val_main_loss")
+        self.assertEqual(config_module.Config.CHECKPOINT_MONITOR, "val_main_loss")
+        self.assertEqual(config_module.Config.TENSORBOARD_HISTOGRAM_FREQ, 0)
+
+    def test_training_callbacks_use_configured_monitors(self):
+        os.environ["EARLY_STOPPING_PATIENCE"] = "2"
+        os.environ["EARLY_STOPPING_MIN_DELTA"] = "0.01"
+        os.environ["EARLY_STOPPING_MONITOR"] = "val_main_loss"
+        os.environ["EARLY_STOPPING_MODE"] = "min"
+        os.environ["CHECKPOINT_MONITOR"] = "val_main_loss"
+        os.environ["CHECKPOINT_MODE"] = "min"
+        os.environ["TENSORBOARD_HISTOGRAM_FREQ"] = "0"
+
+        config_module = importlib.import_module("config")
+        trainer_module = importlib.import_module("trainer")
+        importlib.reload(config_module)
+        importlib.reload(trainer_module)
+        trainer = trainer_module.ModelTrainer()
+
+        callbacks = trainer._build_callbacks(trainer.config.get_artifact_paths())
+        callback_by_name = {type(callback).__name__: callback for callback in callbacks}
+
+        checkpoint = callback_by_name["ModelCheckpoint"]
+        early_stopping = callback_by_name["EarlyStopping"]
+        tensorboard = callback_by_name["TensorBoard"]
+
+        self.assertEqual(checkpoint.monitor, "val_main_loss")
+        self.assertEqual(early_stopping.monitor, "val_main_loss")
+        self.assertEqual(early_stopping.patience, 2)
+        self.assertEqual(early_stopping.min_delta, 0.01)
+        self.assertEqual(tensorboard.histogram_freq, 0)
+
+    def test_max_samples_per_cwe_limits_dataset_without_dropping_labels(self):
+        os.environ["MAX_SAMPLES_PER_CWE"] = "6"
+        os.environ["RANDOM_SEED"] = "42"
+        config_module = importlib.import_module("config")
+        trainer_module = importlib.import_module("trainer")
+        importlib.reload(config_module)
+        importlib.reload(trainer_module)
+        trainer = trainer_module.ModelTrainer()
+        rows = []
+        for cwe_id in ("CWE78", "CWE89"):
+            for label, count in ((0, 8), (1, 4)):
+                for index in range(count):
+                    rows.append(
+                        {
+                            "cwe_id": cwe_id,
+                            "label": label,
+                            "sample_group": f"{cwe_id}_{label}_{index}",
+                            "code": "sample",
+                        }
+                    )
+        dataset = pd.DataFrame(rows)
+
+        limited = trainer._limit_samples_per_cwe(dataset)
+
+        self.assertEqual(limited.groupby("cwe_id").size().to_dict(), {"CWE78": 6, "CWE89": 6})
+        for _, cwe_df in limited.groupby("cwe_id"):
+            self.assertEqual(set(cwe_df["label"]), {0, 1})
+
+    def test_training_run_summary_records_best_epoch(self):
+        trainer_module = importlib.import_module("trainer")
+        trainer = trainer_module.ModelTrainer()
+        trainer.config.EPOCHS = 5
+        trainer.config.EARLY_STOPPING_MONITOR = "val_main_loss"
+        trainer.config.EARLY_STOPPING_MODE = "min"
+
+        class FakeHistory:
+            epoch = [0, 1, 2]
+            history = {"val_main_loss": [0.8, 0.4, 0.5]}
+
+        summary = trainer._training_run_summary(FakeHistory())
+
+        self.assertEqual(summary["epochs_requested"], 5)
+        self.assertEqual(summary["epochs_trained"], 3)
+        self.assertEqual(summary["best_epoch"], 2)
+        self.assertEqual(summary["best_monitor"], "val_main_loss")
+        self.assertEqual(summary["best_monitor_value"], 0.4)
 
 
 if __name__ == "__main__":
