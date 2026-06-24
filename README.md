@@ -16,9 +16,10 @@ El repositorio contiene el codigo, el protocolo experimental y los corpus necesa
 - Permite aplicar una configuracion de fusion congelada para reproducir la evaluacion de codigo generado por IA.
 - Define las CWE oficiales y sus oraculos no destructivos en un registro central extensible.
 
-Las categorias oficiales actuales son `CWE23`, `CWE36`, `CWE78`, `CWE80`, `CWE89` y
-`CWE90`. Los artefactos persistidos actuales incluyen el modelo Juliet de seis
-categorias y las configuraciones externas congeladas por etapa, incluida CWE80.
+Las categorias oficiales actuales son `CWE23`, `CWE36`, `CWE78`, `CWE80`, `CWE89`,
+`CWE90` y `CWE113`. Los artefactos persistidos actuales incluyen el modelo Juliet de
+siete categorias y las configuraciones externas congeladas por etapa, incluida CWE80;
+CWE113 queda cerrada como etapa evaluada, sin override global nuevo de fusion.
 
 ## Estructura Del Proyecto
 
@@ -29,6 +30,11 @@ src/
   predictor.py         inferencia neuronal + heuristicas explicables
   cwe_registry.py      registro oficial y oraculos estructurales CWE
   sql_analysis.py      resolucion local compartida de construcciones SQL
+  path_traversal_analysis.py
+                       resolucion local compartida de traversal de rutas
+  xss_analysis.py      resolucion local compartida de salida HTML/XSS
+  http_response_splitting_analysis.py
+                       resolucion local compartida de cabeceras HTTP
   experiments.py       runner de experimentos del articulo
   ai_benchmark.py      utilidades para corpus de codigo generado por IA
   data_loader.py       carga y etiquetado de muestras Juliet
@@ -337,6 +343,7 @@ python src/experiments.py --experiment e7
 | 2 | Ampliacion del evaluador y del protocolo externo | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-2-ampliacion-a-cwe89); [Benchmark](ai_benchmark/README.md#etapa-2-cwe89) |
 | 3 | Traversal de rutas relativo y absoluto | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-3-incorporacion-de-cwe23-y-cwe36); [Benchmark](ai_benchmark/README.md#etapa-3-cwe23-y-cwe36) |
 | 4 | Cross-site scripting en salida HTML | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-4-incorporacion-de-cwe80); [Benchmark](ai_benchmark/README.md#etapa-4-cwe80) |
+| 5 | HTTP response splitting | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-5-incorporacion-de-cwe113); [Benchmark](ai_benchmark/README.md#etapa-5-cwe113) |
 
 Cada etapa conserva sus metricas, cambios, hallazgos y limitaciones. El estado vigente
 de soporte y la hoja de ruta se mantienen en

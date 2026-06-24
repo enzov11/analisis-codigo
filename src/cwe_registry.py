@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Dict, List
 
+from http_response_splitting_analysis import analyze_http_response_splitting
 from sql_analysis import analyze_sql
 from path_traversal_analysis import analyze_path_traversal
 from xss_analysis import analyze_xss
@@ -90,6 +91,18 @@ def assess_cwe80(code: str) -> OracleAssessment:
         "ambiguous",
         [],
         "No conclusive cross-site scripting evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe113(code: str) -> OracleAssessment:
+    finding = analyze_http_response_splitting(code)
+    if finding:
+        return OracleAssessment("CWE113", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE113",
+        "ambiguous",
+        [],
+        "No conclusive HTTP response splitting evidence was found; manual review is required.",
     )
 
 
@@ -198,6 +211,13 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         description="Untrusted input is emitted into HTML output without context-appropriate escaping.",
         mitigation="HTML-escape untrusted values before including them in responses or templates, using a context-aware encoder.",
         assessor=assess_cwe80,
+    ),
+    "CWE113": CWERegistration(
+        cwe_id="CWE113",
+        name="HTTP Response Splitting",
+        description="Untrusted input influences HTTP headers, redirects, cookies, or content-type values without CRLF protection.",
+        mitigation="Reject or remove carriage returns and line feeds before writing response headers, and prefer allowlisted or encoded header values.",
+        assessor=assess_cwe113,
     ),
     "CWE89": CWERegistration(
         cwe_id="CWE89",

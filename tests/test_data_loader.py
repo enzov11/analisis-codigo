@@ -117,7 +117,7 @@ class DataLoaderDirectoryTests(unittest.TestCase):
 
     def test_three_way_split_is_per_cwe_and_has_no_group_overlap(self):
         rows = []
-        for cwe_id in ("CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90"):
+        for cwe_id in ("CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90", "CWE113"):
             for group_index in range(20):
                 for label in (0, 1):
                     rows.append(
@@ -130,7 +130,7 @@ class DataLoaderDirectoryTests(unittest.TestCase):
         dataset = pd.DataFrame(rows)
 
         train, validation, test = self._loader(
-            ["CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90"]
+            ["CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90", "CWE113"]
         ).split_train_validation_test(dataset)
 
         group_sets = [set(part["sample_group"]) for part in (train, validation, test)]
@@ -140,7 +140,7 @@ class DataLoaderDirectoryTests(unittest.TestCase):
         for part in (train, validation, test):
             self.assertEqual(
                 set(part["cwe_id"]),
-                {"CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90"},
+                {"CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90", "CWE113"},
             )
             self.assertEqual(set(part["label"]), {0, 1})
 

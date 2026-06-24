@@ -373,6 +373,62 @@ Artefactos preparados:
 - [`cwe80_calibration_fusion_config.json`](../ai_benchmark/cwe80_calibration_fusion_config.json)
 - [`cwe80_holdout_evaluation_summary.json`](../ai_benchmark/cwe80_holdout_evaluation_summary.json)
 
+### Etapa 5: Incorporacion De CWE113
+
+#### Alcance Y Cambios Iniciales
+
+La quinta etapa incorpora HTTP Response Splitting en fragmentos Java que escriben
+cabeceras, redirecciones, cookies o tipos de contenido HTTP. Esta categoria amplia el
+evaluador hacia una superficie donde el riesgo depende de si datos externos pueden
+introducir caracteres CRLF en valores que terminan controlando la respuesta.
+
+El analizador local identifica sinks como `setHeader`, `addHeader`, variantes tipadas de
+cabeceras, `sendRedirect`, `setContentType`, APIs `HttpHeaders` y construccion de
+`Cookie`. Como evidencia vulnerable reconoce valores dinamicos que llegan a esos sinks
+sin mitigacion local. Como evidencia segura reconoce codificacion o rechazo de CRLF,
+reemplazos explicitos de `\r` y `\n`, allowlists locales y validaciones de cabeceras.
+Helpers de validacion no resolubles dentro del metodo se registran como evidencia
+ambigua para revision.
+
+#### Estado Actual
+
+La etapa cuenta con registro central de CWE, oraculo no destructivo, evidencia
+explicable en el predictor, manifiestos/scaffolds separados para calibracion y holdout,
+y entrenamiento Juliet con siete categorias.
+
+La calibracion externa contiene `72` muestras aprobadas: `12` seguras y `60`
+vulnerables. En este corpus, el modelo neuronal clasifico todas las muestras como
+vulnerables: F1 vulnerable `0,9091`, con `12` falsos positivos y `0` falsos negativos.
+Como hipotesis, esto sugiere una sensibilidad elevada del modelo ante sinks de cabeceras
+HTTP generados fuera del dominio Juliet. La capa heuristica y la fusion calibrada
+obtuvieron F1 vulnerable `1,000`, sin falsos positivos ni falsos negativos. La
+configuracion seleccionada desde calibracion usa umbral `0,5` para CWE113.
+
+El holdout congelado contiene `72` muestras aprobadas: `18` seguras y `54`
+vulnerables, sin solapamiento de `sample_id` ni `prompt_id` con calibracion. Con la
+configuracion seleccionada exclusivamente desde calibracion, el modelo neuronal obtuvo
+F1 vulnerable `0,8571`, con `18` falsos positivos y `0` falsos negativos. La heuristica
+obtuvo F1 vulnerable `1,000`, sin falsos positivos ni falsos negativos. La fusion
+congelada obtuvo F1 vulnerable `0,8710`, con `16` falsos positivos y `0` falsos
+negativos.
+
+Este resultado deja una limitacion metodologica clara: aunque la heuristica identifica
+correctamente las mitigaciones locales del holdout, la fusion calibrada todavia concede
+demasiado peso a puntajes neuronales altos ante evidencia segura. Por ese motivo, la
+etapa se cierra sin activar un override global para CWE113 en la configuracion de fusion
+por CWE. Cualquier ajuste posterior queda como mejora futura y debera elegirse con nuevos
+datos de calibracion o con una regla predefinida antes de abrir otro holdout.
+
+Artefactos preparados:
+
+- [`prompts_cwe113_calibration.json`](../ai_benchmark/prompts_cwe113_calibration.json)
+- [`prompts_cwe113_holdout.json`](../ai_benchmark/prompts_cwe113_holdout.json)
+- [`cwe113_calibration_scaffold.jsonl`](../ai_benchmark/cwe113_calibration_scaffold.jsonl)
+- [`cwe113_holdout_scaffold.jsonl`](../ai_benchmark/cwe113_holdout_scaffold.jsonl)
+- [`cwe113_calibration_evaluation_summary.json`](../ai_benchmark/cwe113_calibration_evaluation_summary.json)
+- [`cwe113_calibration_fusion_config.json`](../ai_benchmark/cwe113_calibration_fusion_config.json)
+- [`cwe113_holdout_evaluation_summary.json`](../ai_benchmark/cwe113_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

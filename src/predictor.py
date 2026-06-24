@@ -9,6 +9,7 @@ from tensorflow.keras.models import load_model
 
 from config import Config
 from cwe_registry import CWE_REGISTRY
+from http_response_splitting_analysis import analyze_http_response_splitting
 from path_traversal_analysis import analyze_path_traversal
 from preprocessor import CodePreprocessor
 from sql_analysis import analyze_sql
@@ -421,6 +422,7 @@ class VulnerabilityPredictor:
         self._scan_command_evidence(code, evidence)
         self._scan_path_traversal_evidence(code, evidence)
         self._scan_xss_evidence(code, evidence)
+        self._scan_http_response_splitting_evidence(code, evidence)
         self._scan_sql_evidence(code, evidence)
         self._scan_ldap_evidence(code, evidence)
         evidence["vulnerable"].extend(self._scan_generic_patterns(code))
@@ -588,6 +590,34 @@ class VulnerabilityPredictor:
                 match,
                 pattern_name,
                 "CWE80",
+                confidence,
+                finding.rationale,
+                registration.mitigation if kind != "safety" else "",
+                kind,
+            )
+        )
+
+    def _scan_http_response_splitting_evidence(
+        self, code: str, evidence: Dict[str, List[Dict[str, object]]]
+    ):
+        registration = CWE_REGISTRY["CWE113"]
+        finding = analyze_http_response_splitting(code)
+        if not finding:
+            return
+        kind = "safety" if finding.verdict == "safe" else finding.verdict
+        confidence = {"vulnerable": 0.9, "safety": 0.9, "ambiguous": 0.4}[kind]
+        pattern_name = {
+            "vulnerable": "dynamic_http_header_value",
+            "safety": "safe_http_header_value",
+            "ambiguous": "http_header_review",
+        }[kind]
+        match = re.compile(re.escape(finding.code), re.S).search(code, finding.start)
+        evidence[kind].append(
+            self._evidence_match(
+                code,
+                match,
+                pattern_name,
+                "CWE113",
                 confidence,
                 finding.rationale,
                 registration.mitigation if kind != "safety" else "",

@@ -32,7 +32,7 @@ producir varias muestras por archivo.
 | Implementada y evaluada | CWE23 Relative Path Traversal | 722 | 38 |
 | Implementada y evaluada | CWE36 Absolute Path Traversal | 722 | 38 |
 | Implementada y evaluada | CWE80 Cross-Site Scripting | 1.084 | 56 |
-| Planificada | CWE113 HTTP Response Splitting | 2.202 | 110 |
+| Implementada y evaluada | CWE113 HTTP Response Splitting | 2.202 | 110 |
 | Planificada | CWE129 Improper Validation of Array Index | 4.402 | 218 |
 | Planificada | CWE134 Uncontrolled Format String | 1.102 | 56 |
 | Planificada | CWE190 Integer Overflow | 4.219 | 209 |
@@ -48,12 +48,18 @@ historial de etapas de
 de sus evaluaciones externas estan en
 [`../ai_benchmark/README.md`](../ai_benchmark/README.md).
 
-Las etapas cerradas con validacion externa tienen sus overrides vigentes en
-`ai_benchmark/per_cwe_fusion_config.json`. Los artefactos previos de calibracion y
-holdout se conservan para reproducibilidad historica.
+Las etapas cerradas con validacion externa conservan sus artefactos de calibracion y
+holdout para reproducibilidad historica. Cuando una configuracion de fusion resulta apta
+para uso global, su override se registra en `ai_benchmark/per_cwe_fusion_config.json`.
 
 Para CWE80 ya existe entrenamiento Juliet, calibracion externa inicial, holdout
 congelado y override activo en la configuracion de fusion por CWE.
+
+Para CWE113 ya existe soporte en el registro central, oraculo heuristico, entrenamiento
+Juliet con siete categorias, calibracion externa aprobada y holdout congelado ejecutado.
+La etapa se cierra como implementada y evaluada, sin promover un override global nuevo:
+la heuristica supero a la fusion calibrada en holdout, y esa mejora de fusion queda como
+trabajo futuro opcional.
 
 ## Criterio De Seleccion
 

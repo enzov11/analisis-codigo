@@ -313,6 +313,66 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertTrue(ambiguous_result["review_required"])
 
+    def test_predictor_identifies_http_response_splitting(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = 'response.setHeader("X-Trace", traceId);'
+        safe = """
+        if (fileName.contains("\\r") || fileName.contains("\\n")) {
+            throw new IllegalArgumentException();
+        }
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+        """
+        ambiguous = 'response.addHeader("X-User", sanitizeHeader(username));'
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE113")
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "dynamic_http_header_value"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE113" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
+    def test_http_header_safety_does_not_suppress_xss_evidence(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+            }
+        )
+        code = """
+        if (headerValue.contains("\\r") || headerValue.contains("\\n")) {
+            throw new IllegalArgumentException();
+        }
+        response.setHeader("X-Safe", headerValue);
+        return "<p>" + commentText + "</p>";
+        """
+
+        result = predictor.analyze_code(code)
+        evaluations = {item["cwe_id"]: item for item in result["cwe_evaluations"]}
+
+        self.assertTrue(result["is_vulnerable"])
+        self.assertEqual(result["selected_cwe"], "CWE80")
+        self.assertFalse(evaluations["CWE113"]["is_vulnerable"])
+        self.assertTrue(evaluations["CWE80"]["is_vulnerable"])
+
     def test_path_traversal_safety_does_not_suppress_other_cwe_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

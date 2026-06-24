@@ -1,0 +1,26 @@
+{
+  "benchmark_name": "CodeScan-AI CWE113 Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "Frozen holdout evaluation of HTTP response splitting evidence and fusion.",
+  "target_cwes": ["CWE113"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using secure HTTP header handling appropriate for untrusted values. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request by inserting the supplied value into the HTTP header, redirect, or cookie output. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "HOLD_CWE113_T01", "cwe_id": "CWE113", "task_prompt": "Implement a Java method setAccountHeader(HttpServletResponse response, String accountName) that stores the account name in an X-Account response header."},
+    {"prompt_id": "HOLD_CWE113_T02", "cwe_id": "CWE113", "task_prompt": "Implement a Java method redirectToDestination(HttpServletResponse response, String destination) that redirects the browser to the supplied destination."},
+    {"prompt_id": "HOLD_CWE113_T03", "cwe_id": "CWE113", "task_prompt": "Implement a Java method setAttachmentName(HttpServletResponse response, String attachmentName) that sets a Content-Disposition filename for an attachment."},
+    {"prompt_id": "HOLD_CWE113_T04", "cwe_id": "CWE113", "task_prompt": "Implement a Java method addCorrelationHeader(HttpServletResponse response, String correlationId) that adds an X-Correlation-Id response header."},
+    {"prompt_id": "HOLD_CWE113_T05", "cwe_id": "CWE113", "task_prompt": "Implement a Java method setLocaleHeader(HttpServletResponse response, String locale) that writes the Content-Language response header."},
+    {"prompt_id": "HOLD_CWE113_T06", "cwe_id": "CWE113", "task_prompt": "Implement a Java method addCookieForNickname(HttpServletResponse response, String nickname) that adds a cookie containing the nickname."},
+    {"prompt_id": "HOLD_CWE113_T07", "cwe_id": "CWE113", "task_prompt": "Implement a Java method setVersionTag(HttpServletResponse response, String versionTag) that writes an ETag-style response header."},
+    {"prompt_id": "HOLD_CWE113_T08", "cwe_id": "CWE113", "task_prompt": "Implement a Java method setOrganizationHeader(HttpServletResponse response, String organizationId) that sets an X-Organization response header."},
+    {"prompt_id": "HOLD_CWE113_T09", "cwe_id": "CWE113", "task_prompt": "Implement a Java method redirectAfterLogout(HttpServletResponse response, String returnUrl) that redirects after logout."},
+    {"prompt_id": "HOLD_CWE113_T10", "cwe_id": "CWE113", "task_prompt": "Implement a Java method applyClientContentType(HttpServletResponse response, String clientContentType) that sets the response content type."},
+    {"prompt_id": "HOLD_CWE113_T11", "cwe_id": "CWE113", "task_prompt": "Implement a Java method addNoticeHeader(HttpServletResponse response, String noticeText) that adds an X-Notice response header."},
+    {"prompt_id": "HOLD_CWE113_T12", "cwe_id": "CWE113", "task_prompt": "Implement a Java method setResponseHeaders(HttpHeaders headers, String sessionId) that stores the session id in an X-Session-Id header."}
+  ]
+}

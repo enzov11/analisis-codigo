@@ -313,6 +313,84 @@ class AIBenchmarkTests(unittest.TestCase):
         self.assertTrue(all(sample["corpus_role"] == "calibration" for sample in imported))
         ai_benchmark.validate_samples(imported)
 
+    def test_cwe113_manifests_are_complete_and_disjoint(self):
+        manifest_paths = [
+            REPO_ROOT / "ai_benchmark" / "prompts.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_large_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe89_large_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe23_cwe36_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe23_cwe36_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe80_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe80_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe113_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe113_holdout.json",
+        ]
+
+        summary = ai_benchmark.validate_disjoint_manifests(manifest_paths)
+        for path in manifest_paths[-2:]:
+            with open(path, "r", encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            self.assertEqual(manifest["target_cwes"], ["CWE113"])
+            self.assertEqual(len(manifest["tasks"]), 12)
+            self.assertEqual(set(manifest["conditions"]), {"neutral", "secure", "risk-prone"})
+            self.assertEqual(
+                len(manifest["tasks"])
+                * len(manifest["conditions"])
+                * manifest["completions_per_prompt"],
+                72,
+            )
+
+        self.assertEqual(summary["task_count"], 240)
+        for name in (
+            "cwe113_calibration_scaffold.jsonl",
+            "cwe113_holdout_scaffold.jsonl",
+        ):
+            scaffold = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / name)
+            self.assertEqual(len(scaffold), 72)
+            self.assertTrue(all(row["review_status"] == "pending" for row in scaffold))
+            self.assertTrue(all(not row["generated_code"] for row in scaffold))
+
+    def test_cwe113_scaffold_and_mock_import_are_valid(self):
+        with tempfile.TemporaryDirectory(prefix="ai-response-splitting-import-") as temp_dir:
+            temp_dir = Path(temp_dir)
+            scaffold_path = temp_dir / "scaffold.jsonl"
+            responses_path = temp_dir / "responses.jsonl"
+            imported_path = temp_dir / "imported.jsonl"
+            count = ai_benchmark.create_scaffold(
+                REPO_ROOT / "ai_benchmark" / "prompts_cwe113_calibration.json",
+                scaffold_path,
+                "provider/model-version",
+                "2026-06-22",
+                {"temperature": 0},
+            )
+            scaffold = ai_benchmark.load_samples(scaffold_path)
+            with open(responses_path, "w", encoding="utf-8") as handle:
+                for sample in scaffold:
+                    handle.write(
+                        json.dumps(
+                            {
+                                "sample_id": sample["sample_id"],
+                                "generated_code": "public void completion(HttpServletResponse response, String value) { response.setHeader(\"X-Test\", value); }",
+                            }
+                        )
+                        + "\n"
+                    )
+
+            imported_count = ai_benchmark.import_responses(
+                scaffold_path, responses_path, imported_path
+            )
+            imported = ai_benchmark.load_samples(imported_path)
+
+        self.assertEqual(count, 72)
+        self.assertEqual(imported_count, 72)
+        self.assertEqual({row["cwe_id"] for row in imported}, {"CWE113"})
+        self.assertTrue(all(sample["corpus_role"] == "calibration" for sample in imported))
+        ai_benchmark.validate_samples(imported)
+
     def test_codex_collector_generation_parameters_are_configurable(self):
         defaults = collect_codex_responses.parse_generation_parameters(None, "gpt-5.5")
         overridden = collect_codex_responses.parse_generation_parameters(
@@ -887,6 +965,48 @@ class AIBenchmarkTests(unittest.TestCase):
         self.assertEqual(response_vulnerable.verdict, "vulnerable")
         self.assertEqual(ambiguous.verdict, "ambiguous")
 
+    def test_cwe113_structural_oracle_distinguishes_header_splitting_patterns(self):
+        vulnerable = ai_benchmark.assess_code(
+            'response.setHeader("X-User", username);',
+            "CWE113",
+        )
+        safe_reject = ai_benchmark.assess_code(
+            """
+            if (filename.contains("\\r") || filename.contains("\\n")) {
+                throw new IllegalArgumentException();
+            }
+            response.setHeader("Content-Disposition", "attachment; filename=" + filename);
+            """,
+            "CWE113",
+        )
+        safe_encode = ai_benchmark.assess_code(
+            'response.sendRedirect("/next?url=" + URLEncoder.encode(nextUrl, "UTF-8"));',
+            "CWE113",
+        )
+        qualified_cookie_vulnerable = ai_benchmark.assess_code(
+            'response.addCookie(new javax.servlet.http.Cookie("displayName", displayName));',
+            "CWE113",
+        )
+        cookie_safe = ai_benchmark.assess_code(
+            """
+            String value = java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(displayName.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            response.addCookie(new javax.servlet.http.Cookie("displayName", value));
+            """,
+            "CWE113",
+        )
+        ambiguous = ai_benchmark.assess_code(
+            'response.addHeader("X-User", sanitizeHeader(username));',
+            "CWE113",
+        )
+
+        self.assertEqual(vulnerable.verdict, "vulnerable")
+        self.assertEqual(safe_reject.verdict, "safe")
+        self.assertEqual(safe_encode.verdict, "safe")
+        self.assertEqual(qualified_cookie_vulnerable.verdict, "vulnerable")
+        self.assertEqual(cookie_safe.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+
     def test_cwe89_structural_oracle_distinguishes_dynamic_parameterized_and_ambiguous(self):
         vulnerable = ai_benchmark.assess_code(
             'String query = "SELECT * FROM users WHERE name = \'" + username + "\'"; '
@@ -948,7 +1068,7 @@ class AIBenchmarkTests(unittest.TestCase):
     def test_supported_cwes_are_defined_by_the_central_registry(self):
         self.assertEqual(
             ai_benchmark.SUPPORTED_CWES,
-            {"CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90"},
+            {"CWE23", "CWE36", "CWE78", "CWE80", "CWE89", "CWE90", "CWE113"},
         )
 
 
