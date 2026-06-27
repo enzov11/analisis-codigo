@@ -485,6 +485,61 @@ Artefactos preparados:
 - [`cwe129_holdout_samples.jsonl`](../ai_benchmark/cwe129_holdout_samples.jsonl)
 - [`cwe129_holdout_evaluation_summary.json`](../ai_benchmark/cwe129_holdout_evaluation_summary.json)
 
+### Etapa 7: Incorporacion De CWE134
+
+#### Alcance
+
+La septima etapa incorpora CWE134, cadenas de formato no controladas. La categoria ya
+esta incluida en el baseline neuronal comun `cwe15-roadmap-v1`, por lo que la etapa
+agrega heuristica, explicabilidad y evaluacion externa sin reentrenar el modelo.
+
+#### Analisis Heuristico
+
+El analizador identifica el argumento que controla el formato en `printf`,
+`String.format`, `Formatter.format`, `MessageFormat.format` y `String.formatted`.
+Clasifica como vulnerable un formato dinamico no validado y como seguro un formato
+literal o localmente resuelto, aunque sus argumentos contengan datos externos.
+
+Tambien contempla sobrecargas con `Locale`, constantes nombradas, asignaciones locales,
+escape de `%` y allowlists explicitas. Los valores producidos por helpers externos como
+`sanitizeFormat` o `validateFormat` se mantienen ambiguos para revision manual.
+
+#### Estado Actual
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999626` y F1 vulnerable `0,9767` sobre
+`762` muestras de test, con `9` falsos positivos y `0` falsos negativos. Estos
+resultados pertenecen al dataset sintetico y no demuestran transferencia a codigo
+generado por IA.
+
+Se prepararon corpus separados de calibracion y holdout, cada uno con `12` tareas,
+condiciones neutral, segura y riesgosa, y dos completions por condicion. La calibracion
+externa se completo con `72` muestras revisadas: `24` seguras y `48` vulnerables. La red
+sola obtuvo F1 vulnerable `0,800` y `24` falsos positivos; la heuristica y la fusion
+calibrada obtuvieron F1 vulnerable `1,000`, sin errores. La configuracion seleccionada
+usa umbral `0,4`.
+
+El holdout separado se ejecuto una sola vez con `72` muestras: `24` seguras y `48`
+vulnerables. La red sola mantuvo F1 vulnerable `0,800` y `24` falsos positivos; la
+heuristica y la fusion congelada alcanzaron F1 vulnerable `1,000`, sin errores. El
+override CWE134 con umbral `0,4` fue incorporado a la configuracion global.
+
+La etapa queda cerrada. Los resultados muestran nuevamente una transferencia neuronal
+deficiente frente a evidencia estructural explicita. Como limitacion, las respuestas
+neutral y risk-prone fueron identicas y las dos completions por condicion tampoco
+aportaron variacion independiente.
+
+Artefactos preparados:
+
+- [`prompts_cwe134_calibration.json`](../ai_benchmark/prompts_cwe134_calibration.json)
+- [`prompts_cwe134_holdout.json`](../ai_benchmark/prompts_cwe134_holdout.json)
+- [`cwe134_calibration_scaffold.jsonl`](../ai_benchmark/cwe134_calibration_scaffold.jsonl)
+- [`cwe134_holdout_scaffold.jsonl`](../ai_benchmark/cwe134_holdout_scaffold.jsonl)
+- [`cwe134_calibration_samples.jsonl`](../ai_benchmark/cwe134_calibration_samples.jsonl)
+- [`cwe134_calibration_fusion_config.json`](../ai_benchmark/cwe134_calibration_fusion_config.json)
+- [`cwe134_calibration_evaluation_summary.json`](../ai_benchmark/cwe134_calibration_evaluation_summary.json)
+- [`cwe134_holdout_samples.jsonl`](../ai_benchmark/cwe134_holdout_samples.jsonl)
+- [`cwe134_holdout_evaluation_summary.json`](../ai_benchmark/cwe134_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

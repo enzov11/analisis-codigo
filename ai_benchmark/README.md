@@ -509,6 +509,49 @@ positivos ni falsos negativos. Las respuestas neutral y secure fueron seguras, m
 las risk-prone fueron vulnerables. La etapa queda cerrada, con la limitacion de que el
 corpus externo es controlado y las dos completions de cada condicion fueron identicas.
 
+### Etapa 7: CWE134
+
+Esta etapa incorpora cadenas de formato no controladas. CWE134 ya forma parte del
+baseline neuronal comun `cwe15-roadmap-v1`; no requiere un nuevo entrenamiento.
+
+El oraculo distingue entre un formato dinamico que controla `printf`, `String.format`,
+`Formatter.format`, `MessageFormat.format` o `String.formatted`, y el uso seguro de un
+formato literal con valores externos como argumentos. Las asignaciones locales a
+literales y allowlists explicitas se reconocen como seguras; helpers de sanitizacion no
+resolubles quedan ambiguos.
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999626` y F1 vulnerable `0,9767` sobre
+`762` muestras de test, con `9` falsos positivos y `0` falsos negativos. Estas metricas
+no sustituyen la evaluacion externa.
+
+#### Artefactos Preparados
+
+- Manifiestos: `prompts_cwe134_calibration.json`, `prompts_cwe134_holdout.json`.
+- Scaffolds: `cwe134_calibration_scaffold.jsonl`, `cwe134_holdout_scaffold.jsonl`.
+- Cada corpus contiene `12` tareas, `3` condiciones y `2` completions: `72` muestras
+  potenciales.
+- Corpus aprobado: `cwe134_calibration_samples.jsonl`, con `24` muestras seguras y `48`
+  vulnerables.
+- Configuracion congelada: `cwe134_calibration_fusion_config.json`.
+- Holdout aprobado: `cwe134_holdout_samples.jsonl`, con `24` muestras seguras y `48`
+  vulnerables.
+- Metricas: `cwe134_calibration_evaluation_summary.json` y
+  `cwe134_holdout_evaluation_summary.json`.
+
+La red sola obtuvo F1 vulnerable `0,800` y `24` falsos positivos. La heuristica y la
+fusion calibrada alcanzaron F1 vulnerable `1,000`, sin falsos positivos ni falsos
+negativos. La configuracion seleccionada usa umbral `0,4`, pesos `0,75` y `0,55`,
+descuento seguro `0,20` y peso ambiguo `0,0`.
+
+En holdout, la red sola mantuvo F1 vulnerable `0,800` y `24` falsos positivos. La
+heuristica y la fusion congelada mantuvieron F1 vulnerable `1,000`, sin falsos
+positivos ni falsos negativos. El override CWE134 fue incorporado a
+`per_cwe_fusion_config.json`.
+
+La etapa queda cerrada. Como limitacion, las respuestas neutral y risk-prone fueron
+identicas, al igual que las dos completions de cada condicion, por lo que el corpus no
+representa variacion independiente entre generaciones.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,

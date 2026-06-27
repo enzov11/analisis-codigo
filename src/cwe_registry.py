@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List
 
 from array_index_analysis import analyze_array_index
+from format_string_analysis import analyze_format_string
 from http_response_splitting_analysis import analyze_http_response_splitting
 from sql_analysis import analyze_sql
 from path_traversal_analysis import analyze_path_traversal
@@ -116,6 +117,18 @@ def assess_cwe129(code: str) -> OracleAssessment:
         "ambiguous",
         [],
         "No conclusive array index validation evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe134(code: str) -> OracleAssessment:
+    finding = analyze_format_string(code)
+    if finding:
+        return OracleAssessment("CWE134", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE134",
+        "ambiguous",
+        [],
+        "No conclusive uncontrolled format string evidence was found; manual review is required.",
     )
 
 
@@ -270,8 +283,7 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         name="Uncontrolled Format String",
         description="Untrusted input controls a format string or formatting operation.",
         mitigation="Use fixed format strings and pass untrusted values only as formatting arguments after validation.",
-        assessor=_pending_assessor("CWE134"),
-        heuristic_supported=False,
+        assessor=assess_cwe134,
     ),
     "CWE190": CWERegistration(
         cwe_id="CWE190",

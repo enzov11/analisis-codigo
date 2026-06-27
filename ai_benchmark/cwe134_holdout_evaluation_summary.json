@@ -1,0 +1,546 @@
+{
+  "prevalence": {
+    "num_samples": 72,
+    "safe_samples": 24,
+    "vulnerable_samples": 48,
+    "vulnerability_rate": 0.6666666666666666
+  },
+  "overall": {
+    "neural_only": {
+      "accuracy": 0.6666666666666666,
+      "precision_vulnerable": 0.6666666666666666,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 0.8,
+      "false_positives": 24,
+      "false_negatives": 0,
+      "confusion_matrix": [
+        [
+          0,
+          24
+        ],
+        [
+          0,
+          48
+        ]
+      ],
+      "threshold": 0.5,
+      "roc_auc": 0.48958333333333337
+    },
+    "heuristic_only": {
+      "accuracy": 1.0,
+      "precision_vulnerable": 1.0,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 1.0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "confusion_matrix": [
+        [
+          24,
+          0
+        ],
+        [
+          0,
+          48
+        ]
+      ],
+      "threshold": 0.5,
+      "roc_auc": 1.0
+    },
+    "contextual_max_score": {
+      "accuracy": 0.6666666666666666,
+      "precision_vulnerable": 0.6666666666666666,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 0.8,
+      "false_positives": 24,
+      "false_negatives": 0,
+      "confusion_matrix": [
+        [
+          0,
+          24
+        ],
+        [
+          0,
+          48
+        ]
+      ],
+      "threshold": 0.5,
+      "roc_auc": 1.0
+    },
+    "recalibrated_hybrid": {
+      "accuracy": 1.0,
+      "precision_vulnerable": 1.0,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 1.0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "confusion_matrix": [
+        [
+          24,
+          0
+        ],
+        [
+          0,
+          48
+        ]
+      ],
+      "threshold": "per_cwe",
+      "roc_auc": 1.0
+    },
+    "hybrid": {
+      "accuracy": 1.0,
+      "precision_vulnerable": 1.0,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 1.0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "confusion_matrix": [
+        [
+          24,
+          0
+        ],
+        [
+          0,
+          48
+        ]
+      ],
+      "threshold": "per_cwe",
+      "roc_auc": 1.0
+    }
+  },
+  "by_cwe": {
+    "CWE134": {
+      "num_samples": 72,
+      "safe_samples": 24,
+      "vulnerable_samples": 48,
+      "vulnerability_rate": 0.6666666666666666,
+      "metrics": {
+        "neural_only": {
+          "accuracy": 0.6666666666666666,
+          "precision_vulnerable": 0.6666666666666666,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 0.8,
+          "false_positives": 24,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              24
+            ],
+            [
+              0,
+              48
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": 0.48958333333333337
+        },
+        "heuristic_only": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              24,
+              0
+            ],
+            [
+              0,
+              48
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": 1.0
+        },
+        "contextual_max_score": {
+          "accuracy": 0.6666666666666666,
+          "precision_vulnerable": 0.6666666666666666,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 0.8,
+          "false_positives": 24,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              24
+            ],
+            [
+              0,
+              48
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": 1.0
+        },
+        "recalibrated_hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              24,
+              0
+            ],
+            [
+              0,
+              48
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": 1.0
+        },
+        "hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              24,
+              0
+            ],
+            [
+              0,
+              48
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": 1.0
+        }
+      }
+    }
+  },
+  "by_prompt_condition": {
+    "neutral": {
+      "num_samples": 24,
+      "safe_samples": 0,
+      "vulnerable_samples": 24,
+      "vulnerability_rate": 1.0,
+      "metrics": {
+        "neural_only": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "heuristic_only": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "contextual_max_score": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "recalibrated_hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": null
+        },
+        "hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": null
+        }
+      }
+    },
+    "risk-prone": {
+      "num_samples": 24,
+      "safe_samples": 0,
+      "vulnerable_samples": 24,
+      "vulnerability_rate": 1.0,
+      "metrics": {
+        "neural_only": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "heuristic_only": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "contextual_max_score": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "recalibrated_hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": null
+        },
+        "hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              24
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": null
+        }
+      }
+    },
+    "secure": {
+      "num_samples": 24,
+      "safe_samples": 24,
+      "vulnerable_samples": 0,
+      "vulnerability_rate": 0.0,
+      "metrics": {
+        "neural_only": {
+          "accuracy": 0.0,
+          "precision_vulnerable": 0.0,
+          "recall_vulnerable": 0.0,
+          "f1_vulnerable": 0.0,
+          "false_positives": 24,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              24
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "heuristic_only": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 0.0,
+          "recall_vulnerable": 0.0,
+          "f1_vulnerable": 0.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              24,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "contextual_max_score": {
+          "accuracy": 0.0,
+          "precision_vulnerable": 0.0,
+          "recall_vulnerable": 0.0,
+          "f1_vulnerable": 0.0,
+          "false_positives": 24,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              0,
+              24
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "threshold": 0.5,
+          "roc_auc": null
+        },
+        "recalibrated_hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 0.0,
+          "recall_vulnerable": 0.0,
+          "f1_vulnerable": 0.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              24,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": null
+        },
+        "hybrid": {
+          "accuracy": 1.0,
+          "precision_vulnerable": 0.0,
+          "recall_vulnerable": 0.0,
+          "f1_vulnerable": 0.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              24,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "threshold": "per_cwe",
+          "roc_auc": null
+        }
+      }
+    }
+  }
+}

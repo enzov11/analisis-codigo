@@ -419,6 +419,86 @@ class PipelineTests(unittest.TestCase):
             analysis_module.analyze_array_index("values.add(value);")
         )
 
+    def test_format_string_analysis_distinguishes_format_from_arguments(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("format_string_analysis")
+        importlib.reload(analysis_module)
+
+        vulnerable = analysis_module.analyze_format_string(
+            "System.out.printf(userFormat, value);"
+        )
+        fixed_literal = analysis_module.analyze_format_string(
+            'System.out.printf("%s%n", userInput);'
+        )
+        fixed_assignment = analysis_module.analyze_format_string(
+            'String format = "%s%n"; System.out.printf(format, userInput);'
+        )
+        locale_format = analysis_module.analyze_format_string(
+            'return String.format(Locale.US, "%,.2f", amount);'
+        )
+        formatted = analysis_module.analyze_format_string(
+            "return userFormat.formatted(value);"
+        )
+        ambiguous = analysis_module.analyze_format_string(
+            "System.out.printf(sanitizeFormat(userFormat), value);"
+        )
+        qualified_message_format = analysis_module.analyze_format_string(
+            "return java.text.MessageFormat.format(pattern, value);"
+        )
+        typed_formatter = analysis_module.analyze_format_string(
+            "void append(java.util.Formatter destination, String template, Object value) "
+            "{ destination.format(template, value); }"
+        )
+
+        self.assertEqual(vulnerable.verdict, "vulnerable")
+        self.assertEqual(fixed_literal.verdict, "safe")
+        self.assertEqual(fixed_assignment.verdict, "safe")
+        self.assertEqual(locale_format.verdict, "safe")
+        self.assertEqual(formatted.verdict, "vulnerable")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+        self.assertEqual(qualified_message_format.verdict, "vulnerable")
+        self.assertEqual(typed_formatter.verdict, "vulnerable")
+        self.assertIsNone(
+            analysis_module.analyze_format_string("dateFormatter.parse(value);")
+        )
+
+    def test_predictor_identifies_uncontrolled_format_string(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = """
+        public void printValue(String userFormat, String value) {
+            System.out.printf(userFormat, value);
+        }
+        """
+        safe = """
+        public void printValue(String value) {
+            System.out.printf("%s%n", value);
+        }
+        """
+        ambiguous = """
+        public void printValue(String userFormat, String value) {
+            System.out.printf(sanitizeFormat(userFormat), value);
+        }
+        """
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE134")
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "uncontrolled_format_string"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE134" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
     def test_http_header_safety_does_not_suppress_xss_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

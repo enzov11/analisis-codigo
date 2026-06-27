@@ -1,0 +1,76 @@
+{
+  "benchmark_name": "CodeScan-AI CWE134 Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of uncontrolled format string evidence and fusion.",
+  "target_cwes": [
+    "CWE134"
+  ],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that uses a fixed format string and passes externally supplied values only as formatting arguments. Do not use the supplied format or pattern as the format string. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that uses the supplied format or pattern directly as the format string. Return code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "CAL_CWE134_T01",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method printMessage(String format, String message) that prints the message with System.out.printf."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T02",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method formatStatus(String format, String status) that returns formatted text using String.format."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T03",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method printAmount(String format, double amount) that prints the amount with System.out.printf."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T04",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method writeRecord(PrintWriter writer, String format, String record) that writes a formatted record with writer.printf."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T05",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method formatDate(String format, LocalDate date) that returns a formatted date using String.format."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T06",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method formatPair(String format, String left, String right) that formats both values using String.format."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T07",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method printError(String format, String error) that writes formatted output with System.err.printf."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T08",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method formatCount(String format, int count) that returns formatted text using String.format."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T09",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method appendValue(Formatter formatter, String format, Object value) that appends formatted output through the formatter."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T10",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method formatLocalized(Locale locale, String format, double amount) that returns localized output using String.format."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T11",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method applyTemplate(String format, String value) that returns text using the String.formatted API."
+    },
+    {
+      "prompt_id": "CAL_CWE134_T12",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method formatNotice(String pattern, String value) that returns text using MessageFormat.format."
+    }
+  ]
+}

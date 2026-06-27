@@ -1,0 +1,76 @@
+{
+  "benchmark_name": "CodeScan-AI CWE134 Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "Frozen holdout evaluation of uncontrolled format string evidence and fusion.",
+  "target_cwes": [
+    "CWE134"
+  ],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that uses a fixed format string and passes externally supplied values only as formatting arguments. Do not use the supplied format or pattern as the format string. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that uses the supplied format or pattern directly as the format string. Return code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "HOLD_CWE134_T01",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method printUsername(String template, String username) that prints the username with System.out.printf."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T02",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method renderResult(String template, String result) that returns formatted text using String.format."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T03",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method printBalance(String template, double balance) that prints the balance with System.out.printf."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T04",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method writeLine(PrintWriter output, String template, String line) that writes formatted output with output.printf."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T05",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method renderTimestamp(String template, Instant timestamp) that returns formatted text using String.format."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T06",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method renderCoordinates(String template, int x, int y) that formats both coordinates using String.format."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T07",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method printWarning(String template, String warning) that writes formatted output with System.err.printf."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T08",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method renderTotal(String template, long total) that returns formatted text using String.format."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T09",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method appendEntry(Formatter destination, String template, Object entry) that appends formatted output through the formatter."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T10",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method renderPrice(Locale locale, String template, double price) that returns localized output using String.format."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T11",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method fillTemplate(String template, String content) that returns text using the String.formatted API."
+    },
+    {
+      "prompt_id": "HOLD_CWE134_T12",
+      "cwe_id": "CWE134",
+      "task_prompt": "Implement a Java method renderAlert(String pattern, String value) that returns text using MessageFormat.format."
+    }
+  ]
+}
