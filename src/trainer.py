@@ -114,6 +114,10 @@ class ModelTrainer:
             "train_samples": int(len(train_df)),
             "validation_samples": int(len(validation_df)),
             "test_samples": int(len(test_df)),
+            "epochs_trained": training_run["epochs_trained"],
+            "best_epoch": training_run["best_epoch"],
+            "best_monitor": training_run["best_monitor"],
+            "best_monitor_value": training_run["best_monitor_value"],
             "training_run": training_run,
             "callback_config": {
                 "early_stopping_monitor": self.config.EARLY_STOPPING_MONITOR,

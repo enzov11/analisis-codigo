@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Callable, Dict, List
 
+from array_index_analysis import analyze_array_index
 from http_response_splitting_analysis import analyze_http_response_splitting
 from sql_analysis import analyze_sql
 from path_traversal_analysis import analyze_path_traversal
@@ -106,6 +107,18 @@ def assess_cwe113(code: str) -> OracleAssessment:
     )
 
 
+def assess_cwe129(code: str) -> OracleAssessment:
+    finding = analyze_array_index(code)
+    if finding:
+        return OracleAssessment("CWE129", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE129",
+        "ambiguous",
+        [],
+        "No conclusive array index validation evidence was found; manual review is required.",
+    )
+
+
 def assess_cwe23(code: str) -> OracleAssessment:
     finding = analyze_path_traversal(code, "CWE23")
     if finding:
@@ -183,6 +196,18 @@ def assess_cwe90(code: str) -> OracleAssessment:
     return assessment
 
 
+def _pending_assessor(cwe_id: str) -> Callable[[str], OracleAssessment]:
+    def assess_pending_cwe(code: str) -> OracleAssessment:
+        return OracleAssessment(
+            cwe_id,
+            "ambiguous",
+            [],
+            "No structural oracle is implemented for this CWE yet; rely on the neural score and manual review until the category-specific heuristic is added.",
+        )
+
+    return assess_pending_cwe
+
+
 CWE_REGISTRY: Dict[str, CWERegistration] = {
     "CWE23": CWERegistration(
         cwe_id="CWE23",
@@ -219,6 +244,13 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         mitigation="Reject or remove carriage returns and line feeds before writing response headers, and prefer allowlisted or encoded header values.",
         assessor=assess_cwe113,
     ),
+    "CWE129": CWERegistration(
+        cwe_id="CWE129",
+        name="Improper Validation of Array Index",
+        description="Untrusted input controls an array, list, or string index without a bounds check.",
+        mitigation="Validate that the index is non-negative and below the target length or size before indexed access, or use a checked index helper.",
+        assessor=assess_cwe129,
+    ),
     "CWE89": CWERegistration(
         cwe_id="CWE89",
         name="SQL Injection",
@@ -232,6 +264,62 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         description="Untrusted input influences the structure of an LDAP filter.",
         mitigation="Escape or parameterize externally supplied LDAP filter values.",
         assessor=assess_cwe90,
+    ),
+    "CWE134": CWERegistration(
+        cwe_id="CWE134",
+        name="Uncontrolled Format String",
+        description="Untrusted input controls a format string or formatting operation.",
+        mitigation="Use fixed format strings and pass untrusted values only as formatting arguments after validation.",
+        assessor=_pending_assessor("CWE134"),
+        heuristic_supported=False,
+    ),
+    "CWE190": CWERegistration(
+        cwe_id="CWE190",
+        name="Integer Overflow",
+        description="Arithmetic on externally controlled numeric values may overflow before validation or allocation.",
+        mitigation="Validate numeric bounds before arithmetic and use checked operations such as Math.addExact when overflow must be detected.",
+        assessor=_pending_assessor("CWE190"),
+        heuristic_supported=False,
+    ),
+    "CWE319": CWERegistration(
+        cwe_id="CWE319",
+        name="Cleartext Transmission of Sensitive Information",
+        description="Sensitive data is transmitted over a channel that does not provide transport encryption.",
+        mitigation="Use TLS-protected protocols and reject plaintext endpoints for sensitive values.",
+        assessor=_pending_assessor("CWE319"),
+        heuristic_supported=False,
+    ),
+    "CWE400": CWERegistration(
+        cwe_id="CWE400",
+        name="Resource Exhaustion",
+        description="Untrusted input controls resource allocation, loop bounds, collection growth, or expensive processing.",
+        mitigation="Apply quotas, maximum sizes, timeouts, and bounded iteration before consuming resources.",
+        assessor=_pending_assessor("CWE400"),
+        heuristic_supported=False,
+    ),
+    "CWE470": CWERegistration(
+        cwe_id="CWE470",
+        name="Unsafe Reflection",
+        description="Untrusted input controls reflective class, method, constructor, or field resolution.",
+        mitigation="Use an allowlist of permitted reflective targets and avoid resolving classes or members directly from user input.",
+        assessor=_pending_assessor("CWE470"),
+        heuristic_supported=False,
+    ),
+    "CWE601": CWERegistration(
+        cwe_id="CWE601",
+        name="Open Redirect",
+        description="Untrusted input controls the destination of a redirect or forwarding operation.",
+        mitigation="Allow only relative redirects or validate targets against a strict allowlist of trusted hosts.",
+        assessor=_pending_assessor("CWE601"),
+        heuristic_supported=False,
+    ),
+    "CWE643": CWERegistration(
+        cwe_id="CWE643",
+        name="XPath Injection",
+        description="Untrusted input influences the structure of an XPath expression.",
+        mitigation="Bind untrusted values through XPath variables or validate them against strict allowlists before expression construction.",
+        assessor=_pending_assessor("CWE643"),
+        heuristic_supported=False,
     ),
 }
 

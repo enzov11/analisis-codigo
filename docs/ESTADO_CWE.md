@@ -22,6 +22,11 @@ producir varias muestras por archivo.
 - **Planificada:** fue seleccionada por relevancia, disponibilidad en Juliet y viabilidad
   para construir heuristicas explicables.
 
+Ademas de estos estados operativos, las 15 categorias de la hoja de ruta estan
+registradas para entrenamiento neuronal comun en `cwe15-roadmap-v1`. Las categorias sin
+oraculo especifico conservan `heuristic_supported=False` y no se consideran cerradas
+hasta completar heuristica, benchmark externo y documentacion de etapa.
+
 ## Hoja De Ruta Hacia 15 CWE
 
 | Estado | CWE | Archivos Java | Familias |
@@ -33,7 +38,7 @@ producir varias muestras por archivo.
 | Implementada y evaluada | CWE36 Absolute Path Traversal | 722 | 38 |
 | Implementada y evaluada | CWE80 Cross-Site Scripting | 1.084 | 56 |
 | Implementada y evaluada | CWE113 HTTP Response Splitting | 2.202 | 110 |
-| Planificada | CWE129 Improper Validation of Array Index | 4.402 | 218 |
+| Implementada y evaluada | CWE129 Improper Validation of Array Index | 4.402 | 218 |
 | Planificada | CWE134 Uncontrolled Format String | 1.102 | 56 |
 | Planificada | CWE190 Integer Overflow | 4.219 | 209 |
 | Planificada | CWE319 Cleartext Transmission of Sensitive Information | 612 | 32 |
@@ -60,6 +65,18 @@ Juliet con siete categorias, calibracion externa aprobada y holdout congelado ej
 La etapa se cierra como implementada y evaluada, sin promover un override global nuevo:
 la heuristica supero a la fusion calibrada en holdout, y esa mejora de fusion queda como
 trabajo futuro opcional.
+
+Para CWE129 ya existe soporte en el registro central, oraculo heuristico, evidencia
+explicable y entrenamiento dentro del baseline neuronal comun `cwe15-roadmap-v1`. La
+calibracion externa y el holdout congelado fueron completados con ambas clases. La
+heuristica y la fusion obtuvieron F1 vulnerable `1,000` en holdout, y el override
+validado fue incorporado a `ai_benchmark/per_cwe_fusion_config.json`. La categoria
+queda implementada y evaluada.
+
+Para CWE134, CWE190, CWE319, CWE400, CWE470, CWE601 y CWE643 existe soporte neuronal
+preparado dentro del registro central para el entrenamiento unico de la hoja de ruta.
+Sus oraculos especificos, prompts, calibraciones y holdouts se agregaran en etapas
+posteriores.
 
 ## Criterio De Seleccion
 

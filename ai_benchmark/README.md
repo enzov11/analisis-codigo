@@ -475,6 +475,40 @@ falsos negativos. El hibrido congelado obtuvo F1 vulnerable `0,8710`, con `16` f
 positivos y `0` falsos negativos. Por esto, CWE113 queda cerrada sin override global
 activo; una regla de fusion mas conservadora queda como mejora futura.
 
+### Etapa 6: CWE129
+
+Esta etapa evalua la validacion impropia de indices. CWE129 ya fue incluida en el
+baseline neuronal comun `cwe15-roadmap-v1` y completo su calibracion externa desde el
+scaffold JSONL y su holdout congelado. El override validado fue incorporado a
+`per_cwe_fusion_config.json`.
+
+En Juliet, el baseline comun obtuvo para CWE129 ROC-AUC `0,999627` y F1 vulnerable
+`0,9768` sobre `2.796` muestras de test. Estos numeros solo documentan el rendimiento en
+Juliet; la decision de fusion debe salir del corpus de calibracion externo.
+
+#### Artefactos Preparados
+
+- Manifiestos: `prompts_cwe129_calibration.json`, `prompts_cwe129_holdout.json`.
+- Scaffolds: `cwe129_calibration_scaffold.jsonl`, `cwe129_holdout_scaffold.jsonl`.
+- Corpus aprobado: `cwe129_calibration_samples.jsonl`, con `72` muestras (`24` seguras
+  y `48` vulnerables).
+- Configuracion congelada: `cwe129_calibration_fusion_config.json`.
+- Holdout aprobado: `cwe129_holdout_samples.jsonl`, con `72` muestras (`48` seguras y
+  `24` vulnerables).
+- Metricas: `cwe129_calibration_evaluation_summary.json` y
+  `cwe129_holdout_evaluation_summary.json`.
+
+La red sola obtuvo F1 vulnerable `0,800` y `24` falsos positivos. La heuristica y la
+fusion calibrada alcanzaron F1 vulnerable `1,000`, sin falsos positivos ni falsos
+negativos. La configuracion seleccionada usa umbral `0,4`, pesos `0,75` y `0,55`,
+descuento seguro `0,20` y peso ambiguo `0,0`.
+
+En holdout, la red sola obtuvo F1 vulnerable `0,500` y `48` falsos positivos. La
+heuristica y la fusion congelada mantuvieron F1 vulnerable `1,000`, sin falsos
+positivos ni falsos negativos. Las respuestas neutral y secure fueron seguras, mientras
+las risk-prone fueron vulnerables. La etapa queda cerrada, con la limitacion de que el
+corpus externo es controlado y las dos completions de cada condicion fueron identicas.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,

@@ -343,6 +343,82 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertTrue(ambiguous_result["review_required"])
 
+    def test_predictor_identifies_improper_array_index_validation(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = "public int valueAt(int[] values, int index) { return values[index]; }"
+        safe = """
+        public int valueAt(int[] values, int index) {
+            if (index < 0 || index >= values.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            return values[index];
+        }
+        """
+        ambiguous = "int safe = validateIndex(index, values.length); return values[safe];"
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE129")
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "unchecked_dynamic_index"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE129" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
+    def test_array_index_analysis_respects_inclusive_upper_bounds(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("array_index_analysis")
+        importlib.reload(analysis_module)
+
+        list_insert = """
+        if (index < 0 || index > values.size()) {
+            throw new IndexOutOfBoundsException();
+        }
+        values.add(index, value);
+        """
+        substring = """
+        if (start < 0 || start > input.length()) {
+            throw new IndexOutOfBoundsException();
+        }
+        return input.substring(start);
+        """
+        array_access = """
+        if (index < 0 || index > values.length) {
+            throw new IndexOutOfBoundsException();
+        }
+        return values[index];
+        """
+        list_get = """
+        if (index < 0 || index > values.size()) {
+            throw new IndexOutOfBoundsException();
+        }
+        return values.get(index);
+        """
+
+        self.assertEqual(analysis_module.analyze_array_index(list_insert).verdict, "safe")
+        self.assertEqual(analysis_module.analyze_array_index(substring).verdict, "safe")
+        self.assertEqual(
+            analysis_module.analyze_array_index(array_access).verdict,
+            "vulnerable",
+        )
+        self.assertEqual(
+            analysis_module.analyze_array_index(list_get).verdict,
+            "vulnerable",
+        )
+        self.assertIsNone(
+            analysis_module.analyze_array_index("values.add(value);")
+        )
+
     def test_http_header_safety_does_not_suppress_xss_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

@@ -16,10 +16,12 @@ El repositorio contiene el codigo, el protocolo experimental y los corpus necesa
 - Permite aplicar una configuracion de fusion congelada para reproducir la evaluacion de codigo generado por IA.
 - Define las CWE oficiales y sus oraculos no destructivos en un registro central extensible.
 
-Las categorias oficiales actuales son `CWE23`, `CWE36`, `CWE78`, `CWE80`, `CWE89`,
-`CWE90` y `CWE113`. Los artefactos persistidos actuales incluyen el modelo Juliet de
-siete categorias y las configuraciones externas congeladas por etapa, incluida CWE80;
-CWE113 queda cerrada como etapa evaluada, sin override global nuevo de fusion.
+Las categorias oficiales de la hoja de ruta son `CWE23`, `CWE36`, `CWE78`, `CWE80`,
+`CWE89`, `CWE90`, `CWE113`, `CWE129`, `CWE134`, `CWE190`, `CWE319`, `CWE400`,
+`CWE470`, `CWE601` y `CWE643`. El entrenamiento neuronal se prepara sobre este conjunto
+comun de 15 CWE; las categorias que aun no tienen heuristica especifica permanecen como
+soporte pendiente en la capa explicable y se cerraran por etapas con calibracion y
+holdout externo.
 
 ## Estructura Del Proyecto
 
@@ -35,6 +37,8 @@ src/
   xss_analysis.py      resolucion local compartida de salida HTML/XSS
   http_response_splitting_analysis.py
                        resolucion local compartida de cabeceras HTTP
+  array_index_analysis.py
+                       resolucion local compartida de validacion de indices
   experiments.py       runner de experimentos del articulo
   ai_benchmark.py      utilidades para corpus de codigo generado por IA
   data_loader.py       carga y etiquetado de muestras Juliet
@@ -118,8 +122,8 @@ PREDICTION_THRESHOLD=0.5
 Para crear artefactos nuevos sin sobrescribir modelos anteriores, definir una version y no reemplazar manualmente los paths:
 
 ```env
-ARTIFACT_VERSION=cwe78-cwe89-cwe90-v1
-TARGET_CWE_IDS=CWE78,CWE89,CWE90
+ARTIFACT_VERSION=cwe15-roadmap-v1
+TARGET_CWE_IDS=CWE23,CWE36,CWE78,CWE80,CWE89,CWE90,CWE113,CWE129,CWE134,CWE190,CWE319,CWE400,CWE470,CWE601,CWE643
 REQUIRE_ALL_TARGET_CWES=True
 ```
 
@@ -163,7 +167,9 @@ Para imprimir el resumen de evaluacion:
 python src/main.py train --json
 ```
 
-La version de tres categorias requiere casos Java para `CWE78`, `CWE89` y `CWE90`. El Juliet local auditado contiene las tres categorias, incluida CWE89 dentro de subdirectorios `s01` a `s04`.
+La version de 15 categorias usa un unico baseline neuronal para la hoja de ruta. El
+Juliet local auditado contiene las 15 categorias seleccionadas; algunas, como CWE89,
+guardan archivos dentro de subdirectorios y son resueltas por el cargador.
 
 Para reproducir estrictamente el modelo original del articulo antes de ampliar el dataset:
 
@@ -344,6 +350,7 @@ python src/experiments.py --experiment e7
 | 3 | Traversal de rutas relativo y absoluto | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-3-incorporacion-de-cwe23-y-cwe36); [Benchmark](ai_benchmark/README.md#etapa-3-cwe23-y-cwe36) |
 | 4 | Cross-site scripting en salida HTML | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-4-incorporacion-de-cwe80); [Benchmark](ai_benchmark/README.md#etapa-4-cwe80) |
 | 5 | HTTP response splitting | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-5-incorporacion-de-cwe113); [Benchmark](ai_benchmark/README.md#etapa-5-cwe113) |
+| 6 | Validacion de indices de arrays/listas | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-6-incorporacion-de-cwe129); [Benchmark](ai_benchmark/README.md#etapa-6-cwe129) |
 
 Cada etapa conserva sus metricas, cambios, hallazgos y limitaciones. El estado vigente
 de soporte y la hoja de ruta se mantienen en

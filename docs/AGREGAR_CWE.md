@@ -14,6 +14,12 @@ Cada CWE registrada declara dos capacidades independientes:
 
 Una CWE solo se presenta como completamente soportada cuando ambas capacidades fueron implementadas, probadas y evaluadas.
 
+Para las 15 categorias de la hoja de ruta, el objetivo es usar un unico baseline
+neuronal (`cwe15-roadmap-v1`). Las etapas posteriores deben concentrarse en heuristicas,
+prompts, calibracion y holdout externo; solo se reentrena el modelo si cambia la
+arquitectura, el preprocesamiento, el dataset base o se incorporan categorias fuera de
+esa hoja de ruta.
+
 ## Lista De Verificacion Por CWE
 
 1. **Definir alcance:** documentar fuente, sink, mitigacion, casos ambiguos y categorias vecinas que no deben confundirse.
@@ -22,9 +28,9 @@ Una CWE solo se presenta como completamente soportada cuando ambas capacidades f
 4. **Implementar oraculo:** inspeccionar estructura sin ejecutar comandos, consultas, conexiones ni payloads.
 5. **Integrar predictor:** producir evidencia vulnerable, de seguridad o ambigua con linea, razon y correccion sugerida.
 6. **Agregar pruebas:** cubrir al menos un caso vulnerable, uno seguro, uno ambiguo, confusiones con CWE vecinas y regresiones existentes.
-7. **Preparar entrenamiento:** comprobar distribucion por CWE y ejecutar split por grupos con semillas `42`, `7`, `13`, `21` y `100`.
+7. **Preparar entrenamiento:** si la categoria no esta incluida en el baseline comun, comprobar distribucion por CWE y ejecutar split por grupos con semillas `42`, `7`, `13`, `21` y `100`.
 8. **Validar integracion con smoke training:** usar pocas epocas y, si hace falta, `MAX_SAMPLES_PER_CWE` para detectar errores de carga, encoder o shapes sin producir metricas finales.
-9. **Entrenar etapa final:** usar el dataset completo, early stopping configurable y checkpoint del mejor modelo antes de reportar resultados.
+9. **Entrenar etapa final:** solo cuando corresponda actualizar el baseline; usar el dataset completo, early stopping configurable y checkpoint del mejor modelo antes de reportar resultados.
 10. **Crear benchmark IA:** definir 12 tareas de calibracion y 12 de holdout, disjuntas, con tres condiciones y dos completions.
 11. **Revisar y congelar:** usar revision manual y oraculo estructural; calibrar solamente con calibracion y ejecutar holdout una vez.
 12. **Configurar la fusion:** agregar un override `by_cwe` solamente si la calibracion de la categoria contiene ambas clases; en caso contrario heredar `default`.

@@ -429,6 +429,62 @@ Artefactos preparados:
 - [`cwe113_calibration_fusion_config.json`](../ai_benchmark/cwe113_calibration_fusion_config.json)
 - [`cwe113_holdout_evaluation_summary.json`](../ai_benchmark/cwe113_holdout_evaluation_summary.json)
 
+### Etapa 6: Incorporacion De CWE129
+
+#### Alcance Y Cambios Iniciales
+
+La sexta etapa incorpora validacion impropia de indices en accesos a arrays, listas y
+cadenas. A diferencia de las etapas centradas en inyecciones o sinks de salida, esta
+categoria evalua si un indice potencialmente externo se valida contra los limites del
+contenedor antes de ejecutar operaciones como `array[index]`, `list.get(index)`,
+`list.set(index, ...)`, `charAt(index)` o `substring(index)`.
+
+El analizador local identifica accesos indexados y clasifica como evidencia vulnerable
+los indices dinamicos que llegan al acceso sin validacion local. Como evidencia segura
+reconoce checks de rango inferior y superior, `Objects.checkIndex`, variantes de
+`Preconditions.check*Index` y expresiones acotadas mediante `Math.min`/`Math.max`.
+Helpers no resolubles como `validateIndex` o `safeIndex` se registran como ambiguos para
+revision. La revision inicial permitio precisar la semantica del limite superior:
+`List.add(index, value)` y `substring(start)` admiten el extremo, mientras que
+`array[index]`, `get(index)` y `charAt(index)` requieren un limite exclusivo.
+
+#### Estado Actual
+
+La etapa cuenta con registro central de CWE, oraculo no destructivo, evidencia
+explicable en el predictor, entrenamiento Juliet dentro del baseline comun de 15 CWE y
+manifiestos/scaffolds separados para calibracion y holdout. La calibracion externa se
+completo desde el scaffold JSONL con `72` muestras revisadas: `24` seguras y `48`
+vulnerables. La red sola obtuvo F1 vulnerable `0,800` y `24` falsos positivos; la
+heuristica y la fusion calibrada obtuvieron F1 vulnerable `1,000`, sin errores. La
+configuracion seleccionada usa umbral `0,4`.
+
+El holdout separado se ejecuto una sola vez con `72` muestras: `48` seguras y `24`
+vulnerables. La red sola obtuvo F1 vulnerable `0,500` y `48` falsos positivos; la
+heuristica y la fusion congelada alcanzaron F1 vulnerable `1,000`, sin errores. El
+override CWE129 con umbral `0,4` fue incorporado al archivo global de fusion.
+
+La etapa queda cerrada. Los resultados respaldan la utilidad de la evidencia explicita
+de limites frente a la transferencia deficiente del componente neuronal, pero se
+limitan a tareas controladas y a una sesion/modelo. Ademas, las dos completions por
+condicion fueron identicas, por lo que no representan variacion independiente.
+
+En Juliet, el baseline `cwe15-roadmap-v1` entrenado el 25 de junio de 2026 registro para
+CWE129 un ROC-AUC de `0,999627` y F1 vulnerable de `0,9768` sobre `2.796` muestras de
+test, con `33` falsos positivos y `0` falsos negativos. Estas metricas quedan limitadas
+al dataset Juliet y no reemplazan la validacion externa sobre codigo generado por IA.
+
+Artefactos preparados:
+
+- [`prompts_cwe129_calibration.json`](../ai_benchmark/prompts_cwe129_calibration.json)
+- [`prompts_cwe129_holdout.json`](../ai_benchmark/prompts_cwe129_holdout.json)
+- [`cwe129_calibration_scaffold.jsonl`](../ai_benchmark/cwe129_calibration_scaffold.jsonl)
+- [`cwe129_holdout_scaffold.jsonl`](../ai_benchmark/cwe129_holdout_scaffold.jsonl)
+- [`cwe129_calibration_samples.jsonl`](../ai_benchmark/cwe129_calibration_samples.jsonl)
+- [`cwe129_calibration_fusion_config.json`](../ai_benchmark/cwe129_calibration_fusion_config.json)
+- [`cwe129_calibration_evaluation_summary.json`](../ai_benchmark/cwe129_calibration_evaluation_summary.json)
+- [`cwe129_holdout_samples.jsonl`](../ai_benchmark/cwe129_holdout_samples.jsonl)
+- [`cwe129_holdout_evaluation_summary.json`](../ai_benchmark/cwe129_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:
@@ -439,6 +495,21 @@ Cada nueva etapa debera registrar:
 4. **Resultados:** metricas Juliet y externas, incluidas las limitaciones.
 5. **Hallazgos:** fallos observados e hipotesis respaldadas.
 6. **Trabajo pendiente:** mejoras derivadas sin presentarlas como capacidades existentes.
+
+### Baseline Neuronal Comun Para La Hoja De Ruta
+
+Despues de las primeras etapas incrementales, el entrenamiento neuronal pasa a
+organizarse como un unico baseline para las 15 CWE seleccionadas en la hoja de ruta:
+`CWE23`, `CWE36`, `CWE78`, `CWE80`, `CWE89`, `CWE90`, `CWE113`, `CWE129`, `CWE134`,
+`CWE190`, `CWE319`, `CWE400`, `CWE470`, `CWE601` y `CWE643`. Este baseline queda
+versionado como `cwe15-roadmap-v1`.
+
+La motivacion es reducir el costo de reentrenar el modelo cada vez que se agrega una
+categoria ya planificada. A partir de este punto, las etapas futuras incorporaran
+principalmente oraculos especificos, evidencias explicables, prompts, calibracion,
+holdout externo y documentacion. El modelo neuronal solo deberia reentrenarse si cambia
+la arquitectura, el preprocesamiento, el dataset de entrenamiento o se agregan categorias
+fuera de las 15 previstas.
 
 ## Trabajo Futuro Priorizado
 

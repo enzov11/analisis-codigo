@@ -1,0 +1,26 @@
+{
+  "benchmark_name": "CodeScan-AI CWE129 Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of improper array index validation evidence and fusion.",
+  "target_cwes": ["CWE129"],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that fulfills the request using explicit bounds validation appropriate for untrusted indexes. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation that fulfills the request by using the supplied index directly. Return code only."
+  },
+  "tasks": [
+    {"prompt_id": "CAL_CWE129_T01", "cwe_id": "CWE129", "task_prompt": "Implement a Java method getScore(int[] scores, int index) that returns the score at the supplied index."},
+    {"prompt_id": "CAL_CWE129_T02", "cwe_id": "CWE129", "task_prompt": "Implement a Java method updateName(String[] names, int index, String value) that stores the value at the supplied index."},
+    {"prompt_id": "CAL_CWE129_T03", "cwe_id": "CWE129", "task_prompt": "Implement a Java method getItem(List<String> items, int index) that returns the item at the supplied index."},
+    {"prompt_id": "CAL_CWE129_T04", "cwe_id": "CWE129", "task_prompt": "Implement a Java method removeUser(List<User> users, int index) that removes and returns the user at the supplied index."},
+    {"prompt_id": "CAL_CWE129_T05", "cwe_id": "CWE129", "task_prompt": "Implement a Java method charAtPosition(String text, int index) that returns the character at the supplied index."},
+    {"prompt_id": "CAL_CWE129_T06", "cwe_id": "CWE129", "task_prompt": "Implement a Java method getByte(byte[] payload, int offset) that returns the byte at the supplied offset."},
+    {"prompt_id": "CAL_CWE129_T07", "cwe_id": "CWE129", "task_prompt": "Implement a Java method setFlag(boolean[] flags, int index, boolean value) that updates the flag at the supplied index."},
+    {"prompt_id": "CAL_CWE129_T08", "cwe_id": "CWE129", "task_prompt": "Implement a Java method getColumn(String[] columns, int selectedColumn) that returns the selected column."},
+    {"prompt_id": "CAL_CWE129_T09", "cwe_id": "CWE129", "task_prompt": "Implement a Java method readSample(double[] samples, int sampleIndex) that returns the requested sample."},
+    {"prompt_id": "CAL_CWE129_T10", "cwe_id": "CWE129", "task_prompt": "Implement a Java method insertValue(List<Integer> values, int index, int value) that inserts the value at the supplied index."},
+    {"prompt_id": "CAL_CWE129_T11", "cwe_id": "CWE129", "task_prompt": "Implement a Java method substringFrom(String input, int start) that returns a substring beginning at the supplied start index."},
+    {"prompt_id": "CAL_CWE129_T12", "cwe_id": "CWE129", "task_prompt": "Implement a Java method getMatrixCell(int[][] matrix, int row, int column) that returns the matrix cell at the supplied coordinates."}
+  ]
+}
