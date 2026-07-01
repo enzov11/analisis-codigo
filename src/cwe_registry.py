@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List
 
 from array_index_analysis import analyze_array_index
+from cleartext_transmission_analysis import analyze_cleartext_transmission
 from format_string_analysis import analyze_format_string
 from http_response_splitting_analysis import analyze_http_response_splitting
 from integer_overflow_analysis import analyze_integer_overflow
@@ -142,6 +143,18 @@ def assess_cwe190(code: str) -> OracleAssessment:
         "ambiguous",
         [],
         "No conclusive integer overflow evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe319(code: str) -> OracleAssessment:
+    finding = analyze_cleartext_transmission(code)
+    if finding:
+        return OracleAssessment("CWE319", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE319",
+        "ambiguous",
+        [],
+        "No conclusive cleartext transmission evidence was found; manual review is required.",
     )
 
 
@@ -310,8 +323,7 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         name="Cleartext Transmission of Sensitive Information",
         description="Sensitive data is transmitted over a channel that does not provide transport encryption.",
         mitigation="Use TLS-protected protocols and reject plaintext endpoints for sensitive values.",
-        assessor=_pending_assessor("CWE319"),
-        heuristic_supported=False,
+        assessor=assess_cwe319,
     ),
     "CWE400": CWERegistration(
         cwe_id="CWE400",

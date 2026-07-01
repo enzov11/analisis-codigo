@@ -594,6 +594,49 @@ La etapa queda cerrada. Como limitacion, las respuestas neutral y risk-prone fue
 identicas, al igual que las dos completions de cada condicion, por lo que el corpus no
 representa variacion independiente entre generaciones.
 
+### Etapa 9: CWE319
+
+Esta etapa incorpora transmision en texto claro de informacion sensible. CWE319 ya
+forma parte del baseline neuronal comun `cwe15-roadmap-v1`; no requiere un nuevo
+entrenamiento.
+
+El oraculo exige dos elementos antes de emitir evidencia: una variable sensible y un
+sink de red. Distingue HTTP, FTP, Telnet y `Socket` plano de HTTPS, `SSLSocket` y APIs
+TLS. Los endpoints dinamicos sin validacion local quedan ambiguos; una URL aislada sin
+flujo sensible no se considera evidencia.
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999208` y F1 vulnerable `0,9725` sobre
+`507` muestras de test, con `5` falsos positivos y `2` falsos negativos. Estas metricas
+no sustituyen la evaluacion externa.
+
+#### Artefactos Preparados
+
+- Manifiestos: `prompts_cwe319_calibration.json`, `prompts_cwe319_holdout.json`.
+- Scaffolds: `cwe319_calibration_scaffold.jsonl`, `cwe319_holdout_scaffold.jsonl`.
+- Cada corpus contiene `12` tareas, `3` condiciones y `2` completions: `72` muestras
+  potenciales.
+- Corpus aprobado: `cwe319_calibration_samples.jsonl`, con `48` muestras seguras y `24`
+  vulnerables.
+- Configuracion congelada: `cwe319_calibration_fusion_config.json`.
+- Holdout aprobado: `cwe319_holdout_samples.jsonl`, con `48` muestras seguras y `24`
+  vulnerables.
+- Metricas: `cwe319_calibration_evaluation_summary.json` y
+  `cwe319_holdout_evaluation_summary.json`.
+
+La red sola clasifico las `72` muestras como seguras: obtuvo F1 vulnerable `0,000` y
+`24` falsos negativos. La heuristica y la fusion calibrada alcanzaron F1 vulnerable
+`1,000`, sin falsos positivos ni falsos negativos. La configuracion seleccionada usa
+umbral `0,4`, pesos `0,75` y `0,55`, descuento seguro `0,20` y peso ambiguo `0,0`.
+
+En el holdout congelado, la red volvio a clasificar las `72` muestras como seguras:
+obtuvo F1 vulnerable `0,000` y `24` falsos negativos. La heuristica y la fusion
+mantuvieron F1 vulnerable `1,000`, sin falsos positivos ni falsos negativos. El
+override CWE319 validado se incorporo a `per_cwe_fusion_config.json`.
+
+La etapa queda cerrada. Como limitacion, las dos completions de cada combinacion de
+tarea y condicion fueron identicas, por lo que el corpus contiene `33` implementaciones
+distintas entre sus `72` muestras.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,

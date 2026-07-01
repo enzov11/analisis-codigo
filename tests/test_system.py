@@ -589,6 +589,101 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertTrue(ambiguous_result["review_required"])
 
+    def test_cleartext_transmission_analysis_requires_sensitive_network_flow(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("cleartext_transmission_analysis")
+        importlib.reload(analysis_module)
+
+        http = analysis_module.analyze_cleartext_transmission(
+            'new URL("http://api.example/login?token=" + token).openConnection();'
+        )
+        https = analysis_module.analyze_cleartext_transmission(
+            'new URL("https://api.example/login?token=" + token).openConnection();'
+        )
+        socket = analysis_module.analyze_cleartext_transmission(
+            """
+            Socket socket = new Socket("api.example", 8080);
+            new PrintWriter(socket.getOutputStream(), true).println(password);
+            """
+        )
+        tls_socket = analysis_module.analyze_cleartext_transmission(
+            """
+            SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault()
+                .createSocket("api.example", 443);
+            new PrintWriter(socket.getOutputStream(), true).println(password);
+            """
+        )
+        dynamic_endpoint = analysis_module.analyze_cleartext_transmission(
+            """
+            HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint))
+                .header("Authorization", token)
+                .build();
+            """
+        )
+        aliased_body = analysis_module.analyze_cleartext_transmission(
+            """
+            String body = "password="
+                + URLEncoder.encode(password, StandardCharsets.UTF_8);
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.example/login"))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+            """
+        )
+
+        self.assertEqual(http.verdict, "vulnerable")
+        self.assertEqual(https.verdict, "safe")
+        self.assertEqual(socket.verdict, "vulnerable")
+        self.assertEqual(tls_socket.verdict, "safe")
+        self.assertEqual(dynamic_endpoint.verdict, "ambiguous")
+        self.assertEqual(aliased_body.verdict, "safe")
+        self.assertIsNone(
+            analysis_module.analyze_cleartext_transmission(
+                'new URL("http://public.example/status").openConnection();'
+            )
+        )
+
+    def test_predictor_identifies_cleartext_sensitive_transmission(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = """
+        public void sendToken(String token) throws Exception {
+            URL url = new URL("http://api.example/login?token=" + token);
+            url.openConnection().getInputStream();
+        }
+        """
+        safe = """
+        public void sendToken(String token) throws Exception {
+            URL url = new URL("https://api.example/login?token=" + token);
+            url.openConnection().getInputStream();
+        }
+        """
+        ambiguous = """
+        public HttpRequest request(String endpoint, String token) {
+            return HttpRequest.newBuilder(URI.create(endpoint))
+                .header("Authorization", token)
+                .build();
+        }
+        """
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE319")
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "cleartext_sensitive_transmission"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE319" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
     def test_http_header_safety_does_not_suppress_xss_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

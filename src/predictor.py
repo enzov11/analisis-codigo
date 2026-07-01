@@ -8,6 +8,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 
 from array_index_analysis import analyze_array_index
+from cleartext_transmission_analysis import analyze_cleartext_transmission
 from format_string_analysis import analyze_format_string
 from integer_overflow_analysis import analyze_integer_overflow
 from config import Config
@@ -429,6 +430,7 @@ class VulnerabilityPredictor:
         self._scan_array_index_evidence(code, evidence)
         self._scan_format_string_evidence(code, evidence)
         self._scan_integer_overflow_evidence(code, evidence)
+        self._scan_cleartext_transmission_evidence(code, evidence)
         self._scan_sql_evidence(code, evidence)
         self._scan_ldap_evidence(code, evidence)
         evidence["vulnerable"].extend(self._scan_generic_patterns(code))
@@ -708,6 +710,34 @@ class VulnerabilityPredictor:
                 match,
                 pattern_name,
                 "CWE190",
+                confidence,
+                finding.rationale,
+                registration.mitigation if kind != "safety" else "",
+                kind,
+            )
+        )
+
+    def _scan_cleartext_transmission_evidence(
+        self, code: str, evidence: Dict[str, List[Dict[str, object]]]
+    ):
+        registration = CWE_REGISTRY["CWE319"]
+        finding = analyze_cleartext_transmission(code)
+        if not finding:
+            return
+        kind = "safety" if finding.verdict == "safe" else finding.verdict
+        confidence = {"vulnerable": 0.9, "safety": 0.9, "ambiguous": 0.4}[kind]
+        pattern_name = {
+            "vulnerable": "cleartext_sensitive_transmission",
+            "safety": "tls_sensitive_transmission",
+            "ambiguous": "transport_security_review",
+        }[kind]
+        match = re.compile(re.escape(finding.code), re.S).search(code, finding.start)
+        evidence[kind].append(
+            self._evidence_match(
+                code,
+                match,
+                pattern_name,
+                "CWE319",
                 confidence,
                 finding.rationale,
                 registration.mitigation if kind != "safety" else "",

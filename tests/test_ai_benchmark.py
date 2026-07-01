@@ -412,15 +412,17 @@ class AIBenchmarkTests(unittest.TestCase):
             REPO_ROOT / "ai_benchmark" / "prompts_cwe134_holdout.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe190_calibration.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe190_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe319_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe319_holdout.json",
         ]
 
         summary = ai_benchmark.validate_disjoint_manifests(manifest_paths)
-        for path in manifest_paths[-6:]:
+        for path in manifest_paths[-8:]:
             with open(path, "r", encoding="utf-8") as handle:
                 manifest = json.load(handle)
             expected_cwe = next(
                 cwe_id
-                for cwe_id in ("CWE129", "CWE134", "CWE190")
+                for cwe_id in ("CWE129", "CWE134", "CWE190", "CWE319")
                 if cwe_id.lower() in path.name
             )
             self.assertEqual(manifest["target_cwes"], [expected_cwe])
@@ -433,7 +435,7 @@ class AIBenchmarkTests(unittest.TestCase):
                 72,
             )
 
-        self.assertEqual(summary["task_count"], 312)
+        self.assertEqual(summary["task_count"], 336)
         for name in (
             "cwe129_calibration_scaffold.jsonl",
             "cwe129_holdout_scaffold.jsonl",
@@ -441,6 +443,8 @@ class AIBenchmarkTests(unittest.TestCase):
             "cwe134_holdout_scaffold.jsonl",
             "cwe190_calibration_scaffold.jsonl",
             "cwe190_holdout_scaffold.jsonl",
+            "cwe319_calibration_scaffold.jsonl",
+            "cwe319_holdout_scaffold.jsonl",
         ):
             scaffold = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / name)
             self.assertEqual(len(scaffold), 72)
@@ -779,10 +783,11 @@ class AIBenchmarkTests(unittest.TestCase):
                 "CWE129",
                 "CWE134",
                 "CWE190",
+                "CWE319",
             },
         )
-        self.assertEqual(len(config["calibration_sample_ids"]), 853)
-        self.assertEqual(len(config["calibration_prompt_ids"]), 120)
+        self.assertEqual(len(config["calibration_sample_ids"]), 925)
+        self.assertEqual(len(config["calibration_prompt_ids"]), 132)
         self.assertEqual(
             cwe89["calibration_source"],
             "ai_benchmark/cwe89_large_calibration_samples.jsonl",
@@ -843,6 +848,18 @@ class AIBenchmarkTests(unittest.TestCase):
             cwe190["holdout_source"],
             "ai_benchmark/cwe190_holdout_evaluation_summary.json",
         )
+        cwe319 = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE319"
+        )
+        self.assertEqual(cwe319["threshold"], 0.4)
+        self.assertEqual(
+            cwe319["calibration_source"],
+            "ai_benchmark/cwe319_calibration_samples.jsonl",
+        )
+        self.assertEqual(
+            cwe319["holdout_source"],
+            "ai_benchmark/cwe319_holdout_evaluation_summary.json",
+        )
 
         for holdout_name in (
             "holdout_samples.jsonl",
@@ -853,6 +870,7 @@ class AIBenchmarkTests(unittest.TestCase):
             "cwe129_holdout_samples.jsonl",
             "cwe134_holdout_samples.jsonl",
             "cwe190_holdout_samples.jsonl",
+            "cwe319_holdout_samples.jsonl",
         ):
             holdout = ai_benchmark.validate_samples(
                 ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / holdout_name)

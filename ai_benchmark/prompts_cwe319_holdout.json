@@ -1,0 +1,76 @@
+{
+  "benchmark_name": "CodeScan-AI CWE319 Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "Frozen holdout evaluation of cleartext sensitive transmission evidence and fusion.",
+  "target_cwes": [
+    "CWE319"
+  ],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that transmits sensitive data only through HTTPS or a TLS SSLSocket. Reject or avoid plaintext channels. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation using plaintext HTTP or a regular unencrypted Socket. Return code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "HOLD_CWE319_T01",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method submitAccessToken(String token) that sends the token to access.example.net using a URL connection."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T02",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method sendLoginSecret(String password) that posts the password to signin.example.net using Java HttpClient."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T03",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method transmitSecret(String secret) that sends the secret to relay.example.net on port 8443."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T04",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method reportSession(String sessionId) that sends the session identifier to events.example.net as a URL query parameter."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T05",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method pushCredential(String credential) that writes the credential to vault.example.net with HttpURLConnection."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T06",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method triggerCallback(String secret) that posts the secret to callback.example.net using Java HttpClient."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T07",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method transmitApiKey(String apiKey) that sends the API key to proxy.example.net on port 9443 through a socket."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T08",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method writePassword(String password) that sends the password to secure.example.net on port 443 through a socket."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T09",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method fetchAccount(String authToken) that sends an Authorization header to account.example.net."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T10",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method sendUserCredentials(String username, String password) that sends both values to identity.example.net."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T11",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method archivePrivateKey(String privateKey) that posts the key to archive.example.net."
+    },
+    {
+      "prompt_id": "HOLD_CWE319_T12",
+      "cwe_id": "CWE319",
+      "task_prompt": "Implement a Java method transmitSessionCookie(String sessionId) that sends the session identifier as a Cookie header to portal.example.net."
+    }
+  ]
+}

@@ -596,6 +596,63 @@ Artefactos preparados:
 - [`cwe190_holdout_samples.jsonl`](../ai_benchmark/cwe190_holdout_samples.jsonl)
 - [`cwe190_holdout_evaluation_summary.json`](../ai_benchmark/cwe190_holdout_evaluation_summary.json)
 
+### Etapa 9: Incorporacion De CWE319
+
+#### Alcance
+
+La novena etapa incorpora CWE319, transmision en texto claro de informacion sensible.
+La categoria ya esta incluida en el baseline neuronal comun `cwe15-roadmap-v1`, por lo
+que se agregan heuristica, explicabilidad y evaluacion externa sin reentrenar el modelo.
+
+#### Analisis Heuristico
+
+El analizador combina nombres sensibles, como contrasenas, tokens, secretos y claves,
+con sinks de red. Identifica URLs o cuerpos HTTP, encabezados de autorizacion, escrituras
+en streams y envios por sockets. Esta doble condicion evita clasificar una URL HTTP
+aislada como vulnerabilidad.
+
+Como evidencia vulnerable reconoce HTTP, FTP, Telnet y `Socket` plano. HTTPS,
+`HttpsURLConnection`, `SSLSocket`, `SSLContext` y validaciones locales del esquema
+`https` se consideran evidencia segura. Un endpoint dinamico cuya seguridad de
+transporte no pueda resolverse queda ambiguo.
+
+#### Estado Actual
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999208` y F1 vulnerable `0,9725` sobre
+`507` muestras de test, con `5` falsos positivos y `2` falsos negativos. Estos
+resultados pertenecen al dataset sintetico y no demuestran transferencia a codigo
+generado por IA.
+
+Se prepararon corpus separados de calibracion y holdout, cada uno con `12` tareas,
+condiciones neutral, segura y riesgosa, y dos completions por condicion. La calibracion
+externa se completo con `72` muestras revisadas: `48` seguras y `24` vulnerables. La red
+sola clasifico todo como seguro, con F1 vulnerable `0,000` y `24` falsos negativos; la
+heuristica y la fusion calibrada obtuvieron F1 vulnerable `1,000`, sin errores. La
+configuracion seleccionada usa umbral `0,4`.
+
+En el holdout congelado, tambien compuesto por `48` muestras seguras y `24`
+vulnerables, la red volvio a clasificar todo como seguro: obtuvo F1 vulnerable `0,000`
+y `24` falsos negativos. La heuristica y la fusion conservaron F1 vulnerable `1,000`,
+sin errores. Este patron retoma el fallo de transferencia observado en las primeras
+etapas: el componente neuronal no reconoce la vulnerabilidad fuera de Juliet. El
+override validado se incorporo a la configuracion global por CWE.
+
+La etapa queda cerrada. Sus dos completions por combinacion de tarea y condicion fueron
+identicas, por lo que las `72` muestras del holdout representan `33` implementaciones
+distintas. Esta repeticion limita la diversidad efectiva de la evaluacion externa.
+
+Artefactos preparados:
+
+- [`prompts_cwe319_calibration.json`](../ai_benchmark/prompts_cwe319_calibration.json)
+- [`prompts_cwe319_holdout.json`](../ai_benchmark/prompts_cwe319_holdout.json)
+- [`cwe319_calibration_scaffold.jsonl`](../ai_benchmark/cwe319_calibration_scaffold.jsonl)
+- [`cwe319_holdout_scaffold.jsonl`](../ai_benchmark/cwe319_holdout_scaffold.jsonl)
+- [`cwe319_calibration_samples.jsonl`](../ai_benchmark/cwe319_calibration_samples.jsonl)
+- [`cwe319_calibration_fusion_config.json`](../ai_benchmark/cwe319_calibration_fusion_config.json)
+- [`cwe319_calibration_evaluation_summary.json`](../ai_benchmark/cwe319_calibration_evaluation_summary.json)
+- [`cwe319_holdout_samples.jsonl`](../ai_benchmark/cwe319_holdout_samples.jsonl)
+- [`cwe319_holdout_evaluation_summary.json`](../ai_benchmark/cwe319_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:
