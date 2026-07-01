@@ -540,6 +540,62 @@ Artefactos preparados:
 - [`cwe134_holdout_samples.jsonl`](../ai_benchmark/cwe134_holdout_samples.jsonl)
 - [`cwe134_holdout_evaluation_summary.json`](../ai_benchmark/cwe134_holdout_evaluation_summary.json)
 
+### Etapa 8: Incorporacion De CWE190
+
+#### Alcance
+
+La octava etapa incorpora CWE190, desbordamiento de enteros. La categoria ya esta
+incluida en el baseline neuronal comun `cwe15-roadmap-v1`, por lo que se agregan
+heuristica, explicabilidad y evaluacion externa sin reentrenar el modelo.
+
+#### Analisis Heuristico
+
+El analizador identifica suma, resta, multiplicacion, incremento, decremento y
+operaciones compuestas sobre variables numericas. La aritmetica directa sobre parametros
+dinamicos se considera vulnerable cuando no existe una proteccion local anterior.
+
+Como evidencia segura reconoce `Math.addExact`, `Math.subtractExact`,
+`Math.multiplyExact` y las demas operaciones `Math.*Exact`, ademas de `BigInteger`,
+constantes pequenas y guardas contra `MAX_VALUE`/`MIN_VALUE`. Los helpers externos como
+`isSafeToAdd` o `validateRange` quedan ambiguos porque sus garantias no pueden
+comprobarse dentro del metodo.
+
+#### Estado Actual
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999730` y F1 vulnerable `0,9807` sobre
+`2.793` muestras de test, con `21` falsos positivos y `6` falsos negativos. Estos
+resultados pertenecen al dataset sintetico y no demuestran transferencia a codigo
+generado por IA.
+
+Se prepararon corpus separados de calibracion y holdout, cada uno con `12` tareas,
+condiciones neutral, segura y riesgosa, y dos completions por condicion. La calibracion
+externa se completo con `72` muestras revisadas: `24` seguras y `48` vulnerables. La red
+sola obtuvo F1 vulnerable `0,800` y `24` falsos positivos; la heuristica y la fusion
+calibrada obtuvieron F1 vulnerable `1,000`, sin errores. La configuracion seleccionada
+usa umbral `0,4`.
+
+El holdout separado se ejecuto una sola vez con `72` muestras: `24` seguras y `48`
+vulnerables. La red sola mantuvo F1 vulnerable `0,800` y `24` falsos positivos; la
+heuristica y la fusion congelada alcanzaron F1 vulnerable `1,000`, sin errores. El
+override CWE190 con umbral `0,4` fue incorporado a la configuracion global.
+
+La etapa queda cerrada. Los resultados muestran otra brecha entre el rendimiento
+neuronal en Juliet y su transferencia a metodos generados. Como limitacion, las
+respuestas neutral y risk-prone fueron identicas y las dos completions por condicion no
+aportaron variacion independiente.
+
+Artefactos preparados:
+
+- [`prompts_cwe190_calibration.json`](../ai_benchmark/prompts_cwe190_calibration.json)
+- [`prompts_cwe190_holdout.json`](../ai_benchmark/prompts_cwe190_holdout.json)
+- [`cwe190_calibration_scaffold.jsonl`](../ai_benchmark/cwe190_calibration_scaffold.jsonl)
+- [`cwe190_holdout_scaffold.jsonl`](../ai_benchmark/cwe190_holdout_scaffold.jsonl)
+- [`cwe190_calibration_samples.jsonl`](../ai_benchmark/cwe190_calibration_samples.jsonl)
+- [`cwe190_calibration_fusion_config.json`](../ai_benchmark/cwe190_calibration_fusion_config.json)
+- [`cwe190_calibration_evaluation_summary.json`](../ai_benchmark/cwe190_calibration_evaluation_summary.json)
+- [`cwe190_holdout_samples.jsonl`](../ai_benchmark/cwe190_holdout_samples.jsonl)
+- [`cwe190_holdout_evaluation_summary.json`](../ai_benchmark/cwe190_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

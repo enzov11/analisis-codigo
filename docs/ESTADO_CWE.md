@@ -40,7 +40,7 @@ hasta completar heuristica, benchmark externo y documentacion de etapa.
 | Implementada y evaluada | CWE113 HTTP Response Splitting | 2.202 | 110 |
 | Implementada y evaluada | CWE129 Improper Validation of Array Index | 4.402 | 218 |
 | Implementada y evaluada | CWE134 Uncontrolled Format String | 1.102 | 56 |
-| Planificada | CWE190 Integer Overflow | 4.219 | 209 |
+| Implementada y evaluada | CWE190 Integer Overflow | 4.219 | 209 |
 | Planificada | CWE319 Cleartext Transmission of Sensitive Information | 612 | 32 |
 | Planificada | CWE400 Resource Exhaustion | 2.402 | 120 |
 | Planificada | CWE470 Unsafe Reflection | 722 | 38 |
@@ -79,10 +79,15 @@ fusion obtuvieron F1 vulnerable `1,000` en holdout, y el override validado fue
 incorporado a `ai_benchmark/per_cwe_fusion_config.json`. La categoria queda
 implementada y evaluada.
 
-Para CWE190, CWE319, CWE400, CWE470, CWE601 y CWE643 existe soporte neuronal preparado
-dentro del registro central para el entrenamiento unico de la hoja de ruta. Sus
-oraculos especificos, prompts, calibraciones y holdouts se agregaran en etapas
-posteriores.
+Para CWE190 ya existe soporte neuronal en el baseline comun, oraculo heuristico,
+evidencia explicable, calibracion externa y holdout congelado. La heuristica y la
+fusion obtuvieron F1 vulnerable `1,000` en holdout, y el override validado fue
+incorporado a `ai_benchmark/per_cwe_fusion_config.json`. La categoria queda
+implementada y evaluada.
+
+Para CWE319, CWE400, CWE470, CWE601 y CWE643 existe soporte neuronal preparado dentro
+del registro central para el entrenamiento unico de la hoja de ruta. Sus oraculos
+especificos, prompts, calibraciones y holdouts se agregaran en etapas posteriores.
 
 ## Criterio De Seleccion
 

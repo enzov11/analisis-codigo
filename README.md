@@ -352,6 +352,7 @@ python src/experiments.py --experiment e7
 | 5 | HTTP response splitting | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-5-incorporacion-de-cwe113); [Benchmark](ai_benchmark/README.md#etapa-5-cwe113) |
 | 6 | Validacion de indices de arrays/listas | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-6-incorporacion-de-cwe129); [Benchmark](ai_benchmark/README.md#etapa-6-cwe129) |
 | 7 | Cadenas de formato no controladas | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-7-incorporacion-de-cwe134); [Benchmark](ai_benchmark/README.md#etapa-7-cwe134) |
+| 8 | Desbordamiento de enteros | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-8-incorporacion-de-cwe190); [Benchmark](ai_benchmark/README.md#etapa-8-cwe190) |
 
 Cada etapa conserva sus metricas, cambios, hallazgos y limitaciones. El estado vigente
 de soporte y la hoja de ruta se mantienen en

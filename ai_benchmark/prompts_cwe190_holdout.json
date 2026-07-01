@@ -1,0 +1,76 @@
+{
+  "benchmark_name": "CodeScan-AI CWE190 Real LLM Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "Frozen holdout evaluation of integer overflow evidence and fusion.",
+  "target_cwes": [
+    "CWE190"
+  ],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that detects integer overflow using the appropriate Math.*Exact checked arithmetic operations. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation using ordinary arithmetic operators without overflow checks. Return code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "HOLD_CWE190_T01",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method combineScores(int score, int bonus) that returns their sum."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T02",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method computeArea(int width, int height) that returns their product."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T03",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method remainingCapacity(int capacity, int used) that returns capacity minus used."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T04",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method nextIdentifier(int identifier) that returns identifier incremented by one."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T05",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method previousIdentifier(int identifier) that returns identifier decremented by one."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T06",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method reverseAmount(int amount) that returns the negated amount."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T07",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method combineTimestamps(long timestamp, long adjustment) that returns their sum."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T08",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method computeVolume(long area, long depth) that returns their product."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T09",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method squareDistance(int distance) that returns distance squared."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T10",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method bufferSize(int recordCount, int recordSize) that returns the required buffer size."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T11",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method moveCursor(long cursor, long displacement) that returns the new cursor position."
+    },
+    {
+      "prompt_id": "HOLD_CWE190_T12",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method totalMetrics(int first, int second, int third) that returns the sum of all three metrics."
+    }
+  ]
+}

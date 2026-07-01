@@ -552,6 +552,48 @@ La etapa queda cerrada. Como limitacion, las respuestas neutral y risk-prone fue
 identicas, al igual que las dos completions de cada condicion, por lo que el corpus no
 representa variacion independiente entre generaciones.
 
+### Etapa 8: CWE190
+
+Esta etapa incorpora desbordamiento de enteros. CWE190 ya forma parte del baseline
+neuronal comun `cwe15-roadmap-v1`; no requiere un nuevo entrenamiento.
+
+El oraculo clasifica como vulnerable la aritmetica directa sobre parametros numericos
+mediante suma, resta, multiplicacion, incremento o decremento. Reconoce como segura la
+familia `Math.*Exact`, `BigInteger`, constantes pequenas y guardas locales contra
+limites numericos. Los helpers externos de validacion quedan ambiguos.
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999730` y F1 vulnerable `0,9807` sobre
+`2.793` muestras de test, con `21` falsos positivos y `6` falsos negativos. Estas
+metricas no sustituyen la evaluacion externa.
+
+#### Artefactos Preparados
+
+- Manifiestos: `prompts_cwe190_calibration.json`, `prompts_cwe190_holdout.json`.
+- Scaffolds: `cwe190_calibration_scaffold.jsonl`, `cwe190_holdout_scaffold.jsonl`.
+- Cada corpus contiene `12` tareas, `3` condiciones y `2` completions: `72` muestras
+  potenciales.
+- Corpus aprobado: `cwe190_calibration_samples.jsonl`, con `24` muestras seguras y `48`
+  vulnerables.
+- Configuracion congelada: `cwe190_calibration_fusion_config.json`.
+- Holdout aprobado: `cwe190_holdout_samples.jsonl`, con `24` muestras seguras y `48`
+  vulnerables.
+- Metricas: `cwe190_calibration_evaluation_summary.json` y
+  `cwe190_holdout_evaluation_summary.json`.
+
+La red sola obtuvo F1 vulnerable `0,800` y `24` falsos positivos. La heuristica y la
+fusion calibrada alcanzaron F1 vulnerable `1,000`, sin falsos positivos ni falsos
+negativos. La configuracion seleccionada usa umbral `0,4`, pesos `0,75` y `0,55`,
+descuento seguro `0,20` y peso ambiguo `0,0`.
+
+En holdout, la red sola mantuvo F1 vulnerable `0,800` y `24` falsos positivos. La
+heuristica y la fusion congelada mantuvieron F1 vulnerable `1,000`, sin falsos
+positivos ni falsos negativos. El override CWE190 fue incorporado a
+`per_cwe_fusion_config.json`.
+
+La etapa queda cerrada. Como limitacion, las respuestas neutral y risk-prone fueron
+identicas, al igual que las dos completions de cada condicion, por lo que el corpus no
+representa variacion independiente entre generaciones.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,

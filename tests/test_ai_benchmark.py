@@ -391,7 +391,7 @@ class AIBenchmarkTests(unittest.TestCase):
         self.assertTrue(all(sample["corpus_role"] == "calibration" for sample in imported))
         ai_benchmark.validate_samples(imported)
 
-    def test_cwe129_and_cwe134_manifests_are_complete_and_disjoint(self):
+    def test_recent_cwe_manifests_are_complete_and_disjoint(self):
         manifest_paths = [
             REPO_ROOT / "ai_benchmark" / "prompts.json",
             REPO_ROOT / "ai_benchmark" / "prompts_calibration.json",
@@ -410,13 +410,19 @@ class AIBenchmarkTests(unittest.TestCase):
             REPO_ROOT / "ai_benchmark" / "prompts_cwe129_holdout.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe134_calibration.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe134_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe190_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe190_holdout.json",
         ]
 
         summary = ai_benchmark.validate_disjoint_manifests(manifest_paths)
-        for path in manifest_paths[-4:]:
+        for path in manifest_paths[-6:]:
             with open(path, "r", encoding="utf-8") as handle:
                 manifest = json.load(handle)
-            expected_cwe = "CWE134" if "cwe134" in path.name else "CWE129"
+            expected_cwe = next(
+                cwe_id
+                for cwe_id in ("CWE129", "CWE134", "CWE190")
+                if cwe_id.lower() in path.name
+            )
             self.assertEqual(manifest["target_cwes"], [expected_cwe])
             self.assertEqual(len(manifest["tasks"]), 12)
             self.assertEqual(set(manifest["conditions"]), {"neutral", "secure", "risk-prone"})
@@ -427,12 +433,14 @@ class AIBenchmarkTests(unittest.TestCase):
                 72,
             )
 
-        self.assertEqual(summary["task_count"], 288)
+        self.assertEqual(summary["task_count"], 312)
         for name in (
             "cwe129_calibration_scaffold.jsonl",
             "cwe129_holdout_scaffold.jsonl",
             "cwe134_calibration_scaffold.jsonl",
             "cwe134_holdout_scaffold.jsonl",
+            "cwe190_calibration_scaffold.jsonl",
+            "cwe190_holdout_scaffold.jsonl",
         ):
             scaffold = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / name)
             self.assertEqual(len(scaffold), 72)
@@ -770,10 +778,11 @@ class AIBenchmarkTests(unittest.TestCase):
                 "CWE90",
                 "CWE129",
                 "CWE134",
+                "CWE190",
             },
         )
-        self.assertEqual(len(config["calibration_sample_ids"]), 781)
-        self.assertEqual(len(config["calibration_prompt_ids"]), 108)
+        self.assertEqual(len(config["calibration_sample_ids"]), 853)
+        self.assertEqual(len(config["calibration_prompt_ids"]), 120)
         self.assertEqual(
             cwe89["calibration_source"],
             "ai_benchmark/cwe89_large_calibration_samples.jsonl",
@@ -822,6 +831,18 @@ class AIBenchmarkTests(unittest.TestCase):
             cwe134["holdout_source"],
             "ai_benchmark/cwe134_holdout_evaluation_summary.json",
         )
+        cwe190 = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE190"
+        )
+        self.assertEqual(cwe190["threshold"], 0.4)
+        self.assertEqual(
+            cwe190["calibration_source"],
+            "ai_benchmark/cwe190_calibration_samples.jsonl",
+        )
+        self.assertEqual(
+            cwe190["holdout_source"],
+            "ai_benchmark/cwe190_holdout_evaluation_summary.json",
+        )
 
         for holdout_name in (
             "holdout_samples.jsonl",
@@ -831,6 +852,7 @@ class AIBenchmarkTests(unittest.TestCase):
             "cwe80_holdout_samples.jsonl",
             "cwe129_holdout_samples.jsonl",
             "cwe134_holdout_samples.jsonl",
+            "cwe190_holdout_samples.jsonl",
         ):
             holdout = ai_benchmark.validate_samples(
                 ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / holdout_name)

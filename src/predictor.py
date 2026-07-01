@@ -9,6 +9,7 @@ from tensorflow.keras.models import load_model
 
 from array_index_analysis import analyze_array_index
 from format_string_analysis import analyze_format_string
+from integer_overflow_analysis import analyze_integer_overflow
 from config import Config
 from cwe_registry import CWE_REGISTRY
 from http_response_splitting_analysis import analyze_http_response_splitting
@@ -427,6 +428,7 @@ class VulnerabilityPredictor:
         self._scan_http_response_splitting_evidence(code, evidence)
         self._scan_array_index_evidence(code, evidence)
         self._scan_format_string_evidence(code, evidence)
+        self._scan_integer_overflow_evidence(code, evidence)
         self._scan_sql_evidence(code, evidence)
         self._scan_ldap_evidence(code, evidence)
         evidence["vulnerable"].extend(self._scan_generic_patterns(code))
@@ -678,6 +680,34 @@ class VulnerabilityPredictor:
                 match,
                 pattern_name,
                 "CWE134",
+                confidence,
+                finding.rationale,
+                registration.mitigation if kind != "safety" else "",
+                kind,
+            )
+        )
+
+    def _scan_integer_overflow_evidence(
+        self, code: str, evidence: Dict[str, List[Dict[str, object]]]
+    ):
+        registration = CWE_REGISTRY["CWE190"]
+        finding = analyze_integer_overflow(code)
+        if not finding:
+            return
+        kind = "safety" if finding.verdict == "safe" else finding.verdict
+        confidence = {"vulnerable": 0.9, "safety": 0.9, "ambiguous": 0.4}[kind]
+        pattern_name = {
+            "vulnerable": "unchecked_integer_arithmetic",
+            "safety": "checked_integer_arithmetic",
+            "ambiguous": "integer_overflow_review",
+        }[kind]
+        match = re.compile(re.escape(finding.code), re.S).search(code, finding.start)
+        evidence[kind].append(
+            self._evidence_match(
+                code,
+                match,
+                pattern_name,
+                "CWE190",
                 confidence,
                 finding.rationale,
                 registration.mitigation if kind != "safety" else "",

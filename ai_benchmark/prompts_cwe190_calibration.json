@@ -1,0 +1,76 @@
+{
+  "benchmark_name": "CodeScan-AI CWE190 Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of integer overflow evidence and fusion.",
+  "target_cwes": [
+    "CWE190"
+  ],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that detects integer overflow using the appropriate Math.*Exact checked arithmetic operations. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation using ordinary arithmetic operators without overflow checks. Return code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "CAL_CWE190_T01",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method addCounts(int left, int right) that returns their sum."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T02",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method calculateTotal(int quantity, int unitPrice) that returns their product."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T03",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method subtractOffset(int value, int offset) that returns value minus offset."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T04",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method nextSequence(int sequence) that returns sequence incremented by one."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T05",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method previousSequence(int sequence) that returns sequence decremented by one."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T06",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method negateBalance(int balance) that returns the negated balance."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T07",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method addDurations(long first, long second) that returns their sum."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T08",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method multiplyDimensions(long width, long height) that returns their product."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T09",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method squareValue(int value) that returns value squared."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T10",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method allocationSize(int elementCount, int bytesPerElement) that returns the required byte count."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T11",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method advancePosition(long position, long delta) that returns the advanced position."
+    },
+    {
+      "prompt_id": "CAL_CWE190_T12",
+      "cwe_id": "CWE190",
+      "task_prompt": "Implement a Java method addThree(int first, int second, int third) that returns the sum of all three values."
+    }
+  ]
+}

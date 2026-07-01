@@ -499,6 +499,96 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertTrue(ambiguous_result["review_required"])
 
+    def test_integer_overflow_analysis_distinguishes_checked_arithmetic(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("integer_overflow_analysis")
+        importlib.reload(analysis_module)
+
+        vulnerable = analysis_module.analyze_integer_overflow(
+            "public int add(int left, int right) { return left + right; }"
+        )
+        vulnerable_negation = analysis_module.analyze_integer_overflow(
+            "public int negate(int value) { return -value; }"
+        )
+        checked = analysis_module.analyze_integer_overflow(
+            "public int add(int left, int right) { return Math.addExact(left, right); }"
+        )
+        guarded = analysis_module.analyze_integer_overflow(
+            """
+            public int increment(int value) {
+                if (value >= Integer.MAX_VALUE) {
+                    throw new ArithmeticException();
+                }
+                return value + 1;
+            }
+            """
+        )
+        constant = analysis_module.analyze_integer_overflow(
+            "public int calculate() { int value = 20; return value * 2; }"
+        )
+        ambiguous = analysis_module.analyze_integer_overflow(
+            """
+            public int add(int left, int right) {
+                if (!isSafeToAdd(left, right)) {
+                    throw new ArithmeticException();
+                }
+                return left + right;
+            }
+            """
+        )
+
+        self.assertEqual(vulnerable.verdict, "vulnerable")
+        self.assertEqual(vulnerable_negation.verdict, "vulnerable")
+        self.assertEqual(checked.verdict, "safe")
+        self.assertEqual(guarded.verdict, "safe")
+        self.assertEqual(constant.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+        self.assertIsNone(
+            analysis_module.analyze_integer_overflow(
+                'public String label(int value) { return "value=" + value; }'
+            )
+        )
+
+    def test_predictor_identifies_integer_overflow(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = """
+        public int calculateTotal(int count, int unitPrice) {
+            return count * unitPrice;
+        }
+        """
+        safe = """
+        public int calculateTotal(int count, int unitPrice) {
+            return Math.multiplyExact(count, unitPrice);
+        }
+        """
+        ambiguous = """
+        public int calculateTotal(int count, int unitPrice) {
+            if (!isSafeToMultiply(count, unitPrice)) {
+                throw new ArithmeticException();
+            }
+            return count * unitPrice;
+        }
+        """
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE190")
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "unchecked_integer_arithmetic"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE190" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
     def test_http_header_safety_does_not_suppress_xss_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(
