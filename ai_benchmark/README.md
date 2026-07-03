@@ -637,6 +637,54 @@ La etapa queda cerrada. Como limitacion, las dos completions de cada combinacion
 tarea y condicion fueron identicas, por lo que el corpus contiene `33` implementaciones
 distintas entre sus `72` muestras.
 
+### Etapa 10: CWE400
+
+Esta etapa incorpora agotamiento de recursos. CWE400 ya forma parte del baseline
+neuronal comun `cwe15-roadmap-v1`; no requiere un nuevo entrenamiento.
+
+El oraculo local examina operaciones cuyo costo depende de un valor dinamico:
+asignaciones de arrays y colecciones, capacidad de buffers, cantidad de iteraciones,
+esperas y numero de workers. Un valor usado sin maximo local se considera evidencia
+vulnerable; un literal, un `Math.min` o una validacion contra un limite fijo se considera
+evidencia segura. Los helpers de cuota o validacion cuyo cuerpo no esta disponible
+quedan ambiguos.
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999629` y F1 vulnerable `0,9767` sobre
+`1.526` muestras de test, con `16` falsos positivos y `2` falsos negativos. Estas
+metricas no sustituyen la evaluacion externa.
+
+#### Artefactos Preparados
+
+- Manifiestos: `prompts_cwe400_calibration.json`, `prompts_cwe400_holdout.json`.
+- Scaffolds: `cwe400_calibration_scaffold.jsonl`, `cwe400_holdout_scaffold.jsonl`.
+- Cada corpus contiene `12` tareas, `3` condiciones y `2` completions: `72` muestras
+  potenciales.
+- Corpus aprobado: `cwe400_calibration_samples.jsonl`, con `24` muestras seguras y `48`
+  vulnerables.
+- Configuracion congelada: `cwe400_calibration_fusion_config.json`.
+- Holdout aprobado: `cwe400_holdout_samples.jsonl`, con `24` muestras seguras y `48`
+  vulnerables.
+- Metricas: `cwe400_calibration_evaluation_summary.json` y
+  `cwe400_holdout_evaluation_summary.json`.
+
+La red obtuvo F1 vulnerable `0,7719`, con `22` falsos positivos y `4` falsos negativos.
+La heuristica y la fusion calibrada alcanzaron F1 vulnerable `1,000`, sin errores. La
+configuracion seleccionada usa umbral `0,4`, pesos `0,75` y `0,55`, descuento seguro
+`0,20` y peso ambiguo `0,0`.
+
+Como limitacion, las `72` muestras de calibracion contienen `25` implementaciones
+distintas: las dos completions de cada condicion fueron identicas y casi todas las
+respuestas neutral y risk-prone coincidieron.
+
+En el holdout congelado, la red repitio F1 vulnerable `0,7719`, con `22` falsos
+positivos y `4` falsos negativos. La heuristica y la fusion mantuvieron F1 vulnerable
+`1,000`, sin errores. El override CWE400 validado se incorporo a
+`per_cwe_fusion_config.json`.
+
+La etapa queda cerrada. Las `72` muestras del holdout contienen `26` implementaciones
+distintas, por lo que la repeticion entre completions y condiciones limita su diversidad
+efectiva.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,

@@ -653,6 +653,67 @@ Artefactos preparados:
 - [`cwe319_holdout_samples.jsonl`](../ai_benchmark/cwe319_holdout_samples.jsonl)
 - [`cwe319_holdout_evaluation_summary.json`](../ai_benchmark/cwe319_holdout_evaluation_summary.json)
 
+### Etapa 10: Incorporacion De CWE400
+
+#### Alcance
+
+La decima etapa incorpora CWE400, agotamiento de recursos. La categoria ya esta
+incluida en el baseline neuronal comun `cwe15-roadmap-v1`, por lo que se agregan
+heuristica, explicabilidad y evaluacion externa sin reentrenar el modelo.
+
+#### Analisis Heuristico
+
+El analizador local busca consumos cuyo limite pueda resolverse dentro del metodo:
+asignaciones de arrays y colecciones, buffers con capacidad inicial, bucles controlados
+por entrada, esperas y pools de workers. La evidencia vulnerable requiere un valor
+dinamico usado sin maximo local. Literales, topes mediante `Math.min` y validaciones
+contra limites fijos producen evidencia segura; helpers externos de cuota o validacion
+producen evidencia ambigua.
+
+Esta delimitacion evita considerar vulnerable cualquier bucle o uso normal de memoria.
+Tambien mantiene la evidencia separada por CWE: un limite de asignacion reconocido para
+CWE400 no suprime, por ejemplo, una multiplicacion vulnerable a desbordamiento de
+CWE190.
+
+#### Estado Actual
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999629` y F1 vulnerable `0,9767` sobre
+`1.526` muestras de test, con `16` falsos positivos y `2` falsos negativos. Estos
+resultados pertenecen al dataset sintetico y no demuestran transferencia a codigo
+generado por IA.
+
+Se prepararon corpus separados de calibracion y holdout, cada uno con `12` tareas,
+condiciones neutral, segura y riesgosa, y dos completions por condicion. La calibracion
+se completo con `72` muestras revisadas: `24` seguras y `48` vulnerables. La red obtuvo
+F1 vulnerable `0,7719`, con `22` falsos positivos y `4` falsos negativos. La heuristica
+y la fusion calibrada obtuvieron F1 vulnerable `1,000`, sin errores. La configuracion
+seleccionada usa umbral `0,4`.
+
+Las `72` muestras de calibracion representan `25` implementaciones distintas porque las
+dos completions de cada condicion fueron identicas y casi todas las respuestas neutral
+y riesgosa coincidieron. Esta repeticion limita la diversidad efectiva.
+
+En el holdout congelado, tambien compuesto por `24` muestras seguras y `48`
+vulnerables, la red repitio F1 vulnerable `0,7719`, con `22` falsos positivos y `4`
+falsos negativos. La heuristica y la fusion conservaron F1 vulnerable `1,000`, sin
+errores. El override validado se incorporo a la configuracion global por CWE.
+
+La etapa queda cerrada. Las `72` muestras del holdout representan `26`
+implementaciones distintas, por lo que la repeticion entre completions y condiciones
+continua limitando la diversidad externa.
+
+Artefactos preparados:
+
+- [`prompts_cwe400_calibration.json`](../ai_benchmark/prompts_cwe400_calibration.json)
+- [`prompts_cwe400_holdout.json`](../ai_benchmark/prompts_cwe400_holdout.json)
+- [`cwe400_calibration_scaffold.jsonl`](../ai_benchmark/cwe400_calibration_scaffold.jsonl)
+- [`cwe400_holdout_scaffold.jsonl`](../ai_benchmark/cwe400_holdout_scaffold.jsonl)
+- [`cwe400_calibration_samples.jsonl`](../ai_benchmark/cwe400_calibration_samples.jsonl)
+- [`cwe400_calibration_fusion_config.json`](../ai_benchmark/cwe400_calibration_fusion_config.json)
+- [`cwe400_calibration_evaluation_summary.json`](../ai_benchmark/cwe400_calibration_evaluation_summary.json)
+- [`cwe400_holdout_samples.jsonl`](../ai_benchmark/cwe400_holdout_samples.jsonl)
+- [`cwe400_holdout_evaluation_summary.json`](../ai_benchmark/cwe400_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

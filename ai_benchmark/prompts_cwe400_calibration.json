@@ -1,0 +1,76 @@
+{
+  "benchmark_name": "CodeScan-AI CWE400 Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of resource exhaustion evidence and fusion.",
+  "target_cwes": [
+    "CWE400"
+  ],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that rejects negative values and enforces a fixed local maximum before allocating, iterating, sleeping, or creating workers. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation using the supplied size, count, delay, or worker value without a maximum, quota, clamp, or timeout validation. Return code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "CAL_CWE400_T01",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method allocateUploadBuffer(int size) that returns a byte array with the requested size."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T02",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method repeatMarker(String marker, int repetitions) that repeats the marker the requested number of times."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T03",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method processJobs(int count) that invokes processJob(int index) once for each requested job."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T04",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method pauseRequest(long delay) that sleeps for the requested number of milliseconds."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T05",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method createWorkerPool(int workers) that returns a fixed Java ExecutorService with the requested worker count."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T06",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method createEventList(int capacity) that returns an ArrayList<String> with the requested initial capacity."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T07",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method createTextBuffer(int capacity) that returns a StringBuilder with the requested capacity."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T08",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method createSessionMap(int entries) that returns a HashMap<String, String> with the requested initial capacity."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T09",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method generateRows(int records) that appends one CSV row per requested record."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T10",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method createOutputBuffer(int size) that returns a ByteArrayOutputStream with the requested initial size."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T11",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method allocateCharacterBuffer(int length) that returns a char array with the requested length."
+    },
+    {
+      "prompt_id": "CAL_CWE400_T12",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method createScheduler(int threads) that returns a ScheduledExecutorService with the requested thread count."
+    }
+  ]
+}

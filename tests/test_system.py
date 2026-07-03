@@ -684,6 +684,158 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertTrue(ambiguous_result["review_required"])
 
+    def test_resource_exhaustion_analysis_resolves_local_limits(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("resource_exhaustion_analysis")
+        importlib.reload(analysis_module)
+
+        allocation = analysis_module.analyze_resource_exhaustion(
+            "return new byte[size];"
+        )
+        guarded = analysis_module.analyze_resource_exhaustion(
+            """
+            if (size < 0 || size > 1048576) {
+                throw new IllegalArgumentException();
+            }
+            return new byte[size];
+            """
+        )
+        negative_check_only = analysis_module.analyze_resource_exhaustion(
+            """
+            if (size < 0) {
+                throw new IllegalArgumentException();
+            }
+            return new byte[size];
+            """
+        )
+        local_named_limit = analysis_module.analyze_resource_exhaustion(
+            """
+            final int maxBytes = 16 * 1024 * 1024;
+            if (size < 0 || size > maxBytes) {
+                throw new IllegalArgumentException();
+            }
+            return new byte[size];
+            """
+        )
+        capped_loop = analysis_module.analyze_resource_exhaustion(
+            """
+            int bounded = Math.min(iterations, 1000);
+            for (int i = 0; i < bounded; i++) {
+                process(i);
+            }
+            """
+        )
+        sleep = analysis_module.analyze_resource_exhaustion(
+            "Thread.sleep(delay);"
+        )
+        thread_pool = analysis_module.analyze_resource_exhaustion(
+            "return Executors.newFixedThreadPool(threads);"
+        )
+        qualified_collection = analysis_module.analyze_resource_exhaustion(
+            "return new java.util.ArrayList<>(capacity);"
+        )
+        ambiguous = analysis_module.analyze_resource_exhaustion(
+            "validateQuota(count); return new ArrayList<>(count);"
+        )
+        constant = analysis_module.analyze_resource_exhaustion(
+            "return new byte[4096];"
+        )
+        extreme = analysis_module.analyze_resource_exhaustion(
+            "return new byte[Integer.MAX_VALUE];"
+        )
+        ternary_lower_bound_only = analysis_module.analyze_resource_exhaustion(
+            "int bounded = size > 0 ? size : 0; return new byte[bounded];"
+        )
+
+        self.assertEqual(allocation.verdict, "vulnerable")
+        self.assertEqual(guarded.verdict, "safe")
+        self.assertEqual(negative_check_only.verdict, "vulnerable")
+        self.assertEqual(local_named_limit.verdict, "safe")
+        self.assertEqual(capped_loop.verdict, "safe")
+        self.assertEqual(sleep.verdict, "vulnerable")
+        self.assertEqual(thread_pool.verdict, "vulnerable")
+        self.assertEqual(qualified_collection.verdict, "vulnerable")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+        self.assertEqual(constant.verdict, "safe")
+        self.assertEqual(extreme.verdict, "vulnerable")
+        self.assertEqual(ternary_lower_bound_only.verdict, "ambiguous")
+        self.assertIsNone(
+            analysis_module.analyze_resource_exhaustion(
+                'return "items=" + count;'
+            )
+        )
+
+    def test_predictor_identifies_resource_exhaustion(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = """
+        public byte[] allocate(int size) {
+            return new byte[size];
+        }
+        """
+        safe = """
+        public byte[] allocate(int size) {
+            if (size < 0 || size > 1048576) {
+                throw new IllegalArgumentException();
+            }
+            return new byte[size];
+        }
+        """
+        ambiguous = """
+        public byte[] allocate(int size) {
+            validateResourceLimit(size);
+            return new byte[size];
+        }
+        """
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE400")
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "unbounded_resource_consumption"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE400" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
+    def test_resource_limit_does_not_suppress_integer_overflow_evidence(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+            }
+        )
+        code = """
+        public byte[] allocate(int count, int unitSize) {
+            if (count < 0 || count > 1000) {
+                throw new IllegalArgumentException();
+            }
+            int total = count * unitSize;
+            return new byte[count];
+        }
+        """
+
+        result = predictor.analyze_code(code)
+        evaluations = {item["cwe_id"]: item for item in result["cwe_evaluations"]}
+
+        self.assertTrue(evaluations["CWE190"]["is_vulnerable"])
+        self.assertFalse(evaluations["CWE400"]["is_vulnerable"])
+
     def test_http_header_safety_does_not_suppress_xss_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

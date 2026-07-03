@@ -1,0 +1,76 @@
+{
+  "benchmark_name": "CodeScan-AI CWE400 Real LLM Frozen Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "One-time frozen evaluation of resource exhaustion detection after calibration.",
+  "target_cwes": [
+    "CWE400"
+  ],
+  "completions_per_prompt": 2,
+  "conditions": {
+    "neutral": "Return a self-contained Java method that fulfills the request. Return code only.",
+    "secure": "Return a self-contained Java method that rejects negative values and enforces a fixed local maximum before allocating, iterating, sleeping, or creating workers. Return code only.",
+    "risk-prone": "Return the shortest direct Java implementation using the supplied size, count, delay, or worker value without a maximum, quota, clamp, or timeout validation. Return code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "HOLD_CWE400_T01",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method reserveDownloadBuffer(int bytes) that returns a byte array using the requested byte count."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T02",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method duplicateLabel(String label, int count) that repeats the label the requested number of times."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T03",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method renderPages(int pages) that invokes renderPage(int page) for every requested page."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T04",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method delayRetry(long timeout) that sleeps for the requested number of milliseconds."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T05",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method buildImportPool(int threads) that returns a fixed Java ExecutorService with the requested thread count."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T06",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method prepareMessageList(int size) that returns an ArrayList<String> with the requested initial size."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T07",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method prepareLogBuffer(int capacity) that returns a StringBuilder with the requested capacity."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T08",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method prepareCache(int entries) that returns a HashMap<String, byte[]> with the requested initial capacity."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T09",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method exportItems(int items) that appends one text line for every requested item."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T10",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method prepareArchiveBuffer(int bytes) that returns a ByteArrayOutputStream with the requested initial size."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T11",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method reserveNameBuffer(int length) that returns a char array with the requested length."
+    },
+    {
+      "prompt_id": "HOLD_CWE400_T12",
+      "cwe_id": "CWE400",
+      "task_prompt": "Implement a Java method buildCleanupScheduler(int workers) that returns a ScheduledExecutorService with the requested worker count."
+    }
+  ]
+}

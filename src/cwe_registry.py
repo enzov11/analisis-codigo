@@ -7,6 +7,7 @@ from cleartext_transmission_analysis import analyze_cleartext_transmission
 from format_string_analysis import analyze_format_string
 from http_response_splitting_analysis import analyze_http_response_splitting
 from integer_overflow_analysis import analyze_integer_overflow
+from resource_exhaustion_analysis import analyze_resource_exhaustion
 from sql_analysis import analyze_sql
 from path_traversal_analysis import analyze_path_traversal
 from xss_analysis import analyze_xss
@@ -155,6 +156,18 @@ def assess_cwe319(code: str) -> OracleAssessment:
         "ambiguous",
         [],
         "No conclusive cleartext transmission evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe400(code: str) -> OracleAssessment:
+    finding = analyze_resource_exhaustion(code)
+    if finding:
+        return OracleAssessment("CWE400", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE400",
+        "ambiguous",
+        [],
+        "No conclusive resource exhaustion evidence was found; manual review is required.",
     )
 
 
@@ -330,8 +343,7 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         name="Resource Exhaustion",
         description="Untrusted input controls resource allocation, loop bounds, collection growth, or expensive processing.",
         mitigation="Apply quotas, maximum sizes, timeouts, and bounded iteration before consuming resources.",
-        assessor=_pending_assessor("CWE400"),
-        heuristic_supported=False,
+        assessor=assess_cwe400,
     ),
     "CWE470": CWERegistration(
         cwe_id="CWE470",
