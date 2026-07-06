@@ -780,6 +780,133 @@ Artefactos preparados:
 - [`cwe470_holdout_samples.jsonl`](../ai_benchmark/cwe470_holdout_samples.jsonl)
 - [`cwe470_holdout_evaluation_summary.json`](../ai_benchmark/cwe470_holdout_evaluation_summary.json)
 
+### Etapa 12: Incorporacion De CWE601
+
+#### Alcance
+
+La duodecima etapa incorpora CWE601, redireccion abierta. La categoria ya esta incluida
+en el baseline neuronal comun `cwe15-roadmap-v1`, por lo que se agregan heuristica,
+explicabilidad y evaluacion externa sin reentrenar el modelo.
+
+#### Analisis Heuristico
+
+El analizador local cubre `sendRedirect`, encabezados HTTP `Location`, `RedirectView` y
+retornos Spring con prefijo `redirect:`. Considera vulnerable que una entrada externa
+controle directamente el destino. Destinos fijos, mapeos cerrados, rutas relativas que
+rechazan URI absolutas o protocol-relative y origenes HTTPS con host exacto producen
+evidencia segura. Los helpers no inspeccionables producen evidencia ambigua.
+
+La validacion sintactica de una URI no demuestra que el destino sea confiable. Ademas,
+la evidencia se mantiene separada de CWE113: rechazar CRLF no evita por si solo una
+redireccion hacia un dominio externo.
+
+#### Estado Actual
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999382` y F1 vulnerable `0,9921` sobre
+`357` muestras de test, con `2` falsos positivos y ningun falso negativo. Estos
+resultados pertenecen al dataset sintetico y no demuestran transferencia a codigo
+generado por IA.
+
+Cada corpus externo contiene `18` tareas, cuatro condiciones y una sola completion por
+combinacion. Las condiciones separan comportamiento neutral, ruta relativa segura,
+origen HTTPS confiable y redireccion directa insegura. Esto produce `72` solicitudes
+textualmente distintas por corpus.
+
+La calibracion externa confirmada contiene `72` implementaciones distintas, con `36`
+muestras seguras y `36` vulnerables. La red neuronal no detecto ninguna muestra
+vulnerable (F1 vulnerable `0,000` y `36` falsos negativos), mientras que la heuristica
+y la fusion calibrada obtuvieron F1 vulnerable `1,000`, sin errores. Esto constituye
+evidencia de calibracion y no permite anticipar el resultado del holdout.
+
+La configuracion seleccionada usa pesos neuronal/heuristico `0,75`/`0,55`, descuento
+seguro `0,20`, peso ambiguo `0,0` y umbral `0,40`. Con esa configuracion congelada se
+ejecuto una sola vez el holdout externo, compuesto por otras `72` implementaciones
+distintas y balanceadas. La red neuronal volvio a obtener F1 vulnerable `0,000`, con
+`36` falsos negativos, mientras que la heuristica y la fusion conservaron F1
+vulnerable `1,000`, sin falsos positivos ni falsos negativos.
+
+El resultado confirma dentro de este corpus externo la necesidad de la capa explicable
+para compensar la falta de transferencia neuronal observada. No demuestra
+generalizacion hacia otros modelos, sesiones o distribuciones de codigo. Tras validar
+el holdout, el override de CWE601 fue incorporado a la configuracion acumulada y la
+etapa quedo cerrada.
+
+Artefactos:
+
+- [`prompts_cwe601_calibration.json`](../ai_benchmark/prompts_cwe601_calibration.json)
+- [`prompts_cwe601_holdout.json`](../ai_benchmark/prompts_cwe601_holdout.json)
+- [`cwe601_calibration_scaffold.jsonl`](../ai_benchmark/cwe601_calibration_scaffold.jsonl)
+- [`cwe601_holdout_scaffold.jsonl`](../ai_benchmark/cwe601_holdout_scaffold.jsonl)
+- [`cwe601_calibration_samples.jsonl`](../ai_benchmark/cwe601_calibration_samples.jsonl)
+- [`cwe601_calibration_fusion_config.json`](../ai_benchmark/cwe601_calibration_fusion_config.json)
+- [`cwe601_calibration_evaluation_summary.json`](../ai_benchmark/cwe601_calibration_evaluation_summary.json)
+- [`cwe601_holdout_samples.jsonl`](../ai_benchmark/cwe601_holdout_samples.jsonl)
+- [`cwe601_holdout_evaluation_summary.json`](../ai_benchmark/cwe601_holdout_evaluation_summary.json)
+
+### Etapa 13: Incorporacion De CWE643
+
+#### Alcance
+
+La decimotercera etapa incorpora CWE643, inyeccion XPath. La categoria ya forma parte
+del baseline neuronal comun `cwe15-roadmap-v1`; la etapa agrega analisis heuristico,
+explicabilidad y corpus externos sin volver a entrenar.
+
+#### Analisis Heuristico
+
+El analizador local inspecciona los argumentos de `XPath.evaluate` y `XPath.compile`.
+Clasifica como vulnerable la concatenacion de entrada externa dentro de una expresion
+XPath. Reconoce como seguras las expresiones fijas, el enlace de valores mediante
+`XPathVariableResolver`, las allowlists locales y los valores escapados mediante
+operaciones conocidas. Un helper de validacion no inspeccionable produce evidencia
+ambigua.
+
+La mitigacion recomendada es mantener fija la estructura XPath y resolver los valores
+externos como variables. El escape se reconoce para compatibilidad con patrones Juliet,
+pero no se considera una sustitucion general del enlace porque su correccion depende
+del contexto literal y de la implementacion usada.
+
+#### Estado Actual
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999626` y F1 vulnerable `0,9767` sobre
+`508` muestras de test, con `6` falsos positivos y ningun falso negativo. Estos
+resultados pertenecen al dataset sintetico.
+
+Se prepararon corpus disjuntos de calibracion y holdout. Cada uno contiene `18` tareas,
+cuatro condiciones y una completion por combinacion, para un total de `72` solicitudes
+textualmente distintas.
+
+La calibracion externa contiene `72` implementaciones distintas: `54` seguras y `18`
+vulnerables. Aunque la condicion neutral no imponia una mitigacion, sus `18` respuestas
+usaron espontaneamente `XPathVariableResolver` y se etiquetaron como seguras segun el
+codigo observado. La red neuronal obtuvo F1 vulnerable `0,4286`, con `48` falsos
+positivos y ningun falso negativo; la heuristica y la fusion calibrada obtuvieron F1
+vulnerable `1,000`, sin errores.
+
+La configuracion seleccionada usa pesos neuronal/heuristico `0,75`/`0,55`, descuento
+seguro `0,20`, peso ambiguo `0,0` y umbral `0,40`. Con esta configuracion se ejecuto
+una sola vez un holdout disjunto con otras `72` implementaciones distintas, `54`
+seguras y `18` vulnerables. La red neuronal obtuvo F1 vulnerable `0,4444`, con `45`
+falsos positivos y ningun falso negativo; la heuristica y la fusion conservaron F1
+vulnerable `1,000`, sin errores.
+
+El comportamiento respalda, dentro de estos corpus, el uso de evidencia explicable
+para reconocer mitigaciones que el baseline neuronal no transfirio correctamente. No
+demuestra generalizacion a otros modelos o distribuciones. Tras validar el holdout, el
+override de CWE643 fue incorporado a la configuracion acumulada. Esta etapa cierra la
+integracion y evaluacion externa de las 15 CWE de la hoja de ruta.
+
+Artefactos:
+
+- [`prompts_cwe643_calibration.json`](../ai_benchmark/prompts_cwe643_calibration.json)
+- [`prompts_cwe643_holdout.json`](../ai_benchmark/prompts_cwe643_holdout.json)
+- [`cwe643_calibration_scaffold.jsonl`](../ai_benchmark/cwe643_calibration_scaffold.jsonl)
+- [`cwe643_holdout_scaffold.jsonl`](../ai_benchmark/cwe643_holdout_scaffold.jsonl)
+- [`cwe643_calibration_samples.jsonl`](../ai_benchmark/cwe643_calibration_samples.jsonl)
+- [`cwe643_calibration_fusion_config.json`](../ai_benchmark/cwe643_calibration_fusion_config.json)
+- [`cwe643_calibration_evaluation_summary.json`](../ai_benchmark/cwe643_calibration_evaluation_summary.json)
+- [`cwe643_holdout_samples.jsonl`](../ai_benchmark/cwe643_holdout_samples.jsonl)
+- [`cwe643_holdout_evaluation_summary.json`](../ai_benchmark/cwe643_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

@@ -44,8 +44,8 @@ hasta completar heuristica, benchmark externo y documentacion de etapa.
 | Implementada y evaluada | CWE319 Cleartext Transmission of Sensitive Information | 612 | 32 |
 | Implementada y evaluada | CWE400 Resource Exhaustion | 2.402 | 120 |
 | Implementada y evaluada | CWE470 Unsafe Reflection | 722 | 38 |
-| Planificada | CWE601 Open Redirect | 542 | 29 |
-| Planificada | CWE643 XPath Injection | 734 | 38 |
+| Implementada y evaluada | CWE601 Open Redirect | 542 | 29 |
+| Implementada y evaluada | CWE643 XPath Injection | 734 | 38 |
 
 Los cambios, resultados y limitaciones de cada grupo de categorias se conservan en el
 historial de etapas de
@@ -103,9 +103,26 @@ La heuristica y la fusion obtuvieron F1 vulnerable `1,000` en holdout, y el over
 validado fue incorporado a `ai_benchmark/per_cwe_fusion_config.json`. La categoria
 queda implementada y evaluada.
 
-Para CWE601 y CWE643 existe soporte neuronal preparado dentro del registro central
-para el entrenamiento unico de la hoja de ruta. Sus oraculos especificos, prompts,
-calibraciones y holdouts se agregaran en etapas posteriores.
+Para CWE601 ya existe soporte neuronal en el baseline comun, oraculo heuristico,
+evidencia explicable y calibracion externa sobre `72` implementaciones distintas. La
+red neuronal obtuvo F1 vulnerable `0,000`, mientras que la heuristica y la fusion
+calibrada obtuvieron `1,000`. En el holdout congelado, tambien compuesto por `72`
+implementaciones distintas y balanceadas, la heuristica y la fusion conservaron F1
+vulnerable `1,000`, sin falsos positivos ni falsos negativos. El override validado fue
+incorporado a `ai_benchmark/per_cwe_fusion_config.json`; la categoria queda
+implementada y evaluada.
+
+Para CWE643 existe soporte neuronal en el baseline comun, oraculo heuristico,
+evidencia explicable y calibracion externa sobre `72` implementaciones distintas. En
+Juliet obtuvo ROC-AUC `0,999626` y F1 vulnerable `0,9767`; en calibracion externa la
+red neuronal obtuvo F1 vulnerable `0,4286`, mientras que la heuristica y la fusion
+calibrada obtuvieron `1,000`. En el holdout congelado, la red neuronal obtuvo F1
+vulnerable `0,4444`, con `45` falsos positivos, mientras que la heuristica y la fusion
+conservaron `1,000` sin errores. El override validado fue incorporado a
+`ai_benchmark/per_cwe_fusion_config.json`; la categoria queda implementada y evaluada.
+
+Con este cierre, las 15 categorias de la hoja de ruta cuentan con soporte neuronal,
+oraculo heuristico explicable y evaluacion externa completada.
 
 ## Criterio De Seleccion
 

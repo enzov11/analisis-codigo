@@ -19,9 +19,8 @@ El repositorio contiene el codigo, el protocolo experimental y los corpus necesa
 Las categorias oficiales de la hoja de ruta son `CWE23`, `CWE36`, `CWE78`, `CWE80`,
 `CWE89`, `CWE90`, `CWE113`, `CWE129`, `CWE134`, `CWE190`, `CWE319`, `CWE400`,
 `CWE470`, `CWE601` y `CWE643`. El entrenamiento neuronal se prepara sobre este conjunto
-comun de 15 CWE; las categorias que aun no tienen heuristica especifica permanecen como
-soporte pendiente en la capa explicable y se cerraran por etapas con calibracion y
-holdout externo.
+comun de 15 CWE. Todas cuentan con heuristica especifica, evidencia explicable y
+evaluacion externa completada; sus resultados se conservan por etapas.
 
 ## Estructura Del Proyecto
 
@@ -43,6 +42,10 @@ src/
                        resolucion local de limites de consumo de recursos
   unsafe_reflection_analysis.py
                        resolucion local de seleccion de objetivos reflectivos
+  open_redirect_analysis.py
+                       resolucion local de destinos de redireccion
+  xpath_injection_analysis.py
+                       resolucion local de construccion de expresiones XPath
   experiments.py       runner de experimentos del articulo
   ai_benchmark.py      utilidades para corpus de codigo generado por IA
   data_loader.py       carga y etiquetado de muestras Juliet
@@ -360,6 +363,8 @@ python src/experiments.py --experiment e7
 | 9 | Transmision en texto claro de informacion sensible | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-9-incorporacion-de-cwe319); [Benchmark](ai_benchmark/README.md#etapa-9-cwe319) |
 | 10 | Agotamiento de recursos | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-10-incorporacion-de-cwe400); [Benchmark](ai_benchmark/README.md#etapa-10-cwe400) |
 | 11 | Reflexion insegura | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-11-incorporacion-de-cwe470); [Benchmark](ai_benchmark/README.md#etapa-11-cwe470) |
+| 12 | Redireccion abierta | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-12-incorporacion-de-cwe601); [Benchmark](ai_benchmark/README.md#etapa-12-cwe601) |
+| 13 | Inyeccion XPath | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-13-incorporacion-de-cwe643); [Benchmark](ai_benchmark/README.md#etapa-13-cwe643) |
 
 Cada etapa conserva sus metricas, cambios, hallazgos y limitaciones. El estado vigente
 de soporte y la hoja de ruta se mantienen en

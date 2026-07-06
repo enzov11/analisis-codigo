@@ -1055,6 +1055,363 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(evaluations["CWE470"]["is_vulnerable"])
         self.assertTrue(evaluations["CWE400"]["is_vulnerable"])
 
+    def test_open_redirect_analysis_requires_destination_restriction(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("open_redirect_analysis")
+        importlib.reload(analysis_module)
+
+        dynamic = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String target)
+                    throws Exception {
+                response.sendRedirect(target);
+            }
+            """
+        )
+        syntax_only = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String target)
+                    throws Exception {
+                new URI(target);
+                response.sendRedirect(target);
+            }
+            """
+        )
+        relative = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String target)
+                    throws Exception {
+                URI uri = URI.create(target).normalize();
+                if (uri.isAbsolute() || uri.getHost() != null) {
+                    throw new IllegalArgumentException();
+                }
+                response.sendRedirect(uri.toString());
+            }
+            """
+        )
+        boolean_relative = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String target)
+                    throws Exception {
+                URI uri = URI.create(target).normalize();
+                boolean external = uri.isAbsolute()
+                    || uri.getHost() != null
+                    || target.startsWith("//");
+                if (external) throw new IllegalArgumentException();
+                response.sendRedirect(uri.toASCIIString());
+            }
+            """
+        )
+        trusted_origin = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String target)
+                    throws Exception {
+                URI uri = URI.create(target);
+                if (!"https".equalsIgnoreCase(uri.getScheme())
+                        || !"app.example.com".equalsIgnoreCase(uri.getHost())) {
+                    throw new IllegalArgumentException();
+                }
+                response.sendRedirect(uri.toString());
+            }
+            """
+        )
+        named_trusted_origin = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String target)
+                    throws Exception {
+                String trustedHost = "app.example.com";
+                URI uri = URI.create(target);
+                boolean approved = "https".equalsIgnoreCase(uri.getScheme())
+                    && trustedHost.equalsIgnoreCase(uri.getHost());
+                if (!approved) throw new IllegalArgumentException();
+                response.sendRedirect(uri.toASCIIString());
+            }
+            """
+        )
+        mapped = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String key)
+                    throws Exception {
+                String target = switch (key) {
+                    case "home" -> "/home";
+                    case "help" -> "/help";
+                    default -> throw new IllegalArgumentException();
+                };
+                response.sendRedirect(target);
+            }
+            """
+        )
+        ambiguous = analysis_module.analyze_open_redirect(
+            """
+            validateRedirect(target);
+            response.sendRedirect(target);
+            """
+        )
+        safe_default = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String target)
+                    throws Exception {
+                if (target == null) {
+                    response.sendRedirect("/");
+                    return;
+                }
+                response.sendRedirect(target);
+            }
+            """
+        )
+        overwritten_default = analysis_module.analyze_open_redirect(
+            """
+            public void redirect(HttpServletResponse response, String returnTo)
+                    throws Exception {
+                String selected = "/admin";
+                if (returnTo != null) selected = returnTo;
+                response.sendRedirect(selected);
+            }
+            """
+        )
+
+        self.assertEqual(dynamic.verdict, "vulnerable")
+        self.assertEqual(syntax_only.verdict, "vulnerable")
+        self.assertEqual(relative.verdict, "safe")
+        self.assertEqual(boolean_relative.verdict, "safe")
+        self.assertEqual(trusted_origin.verdict, "safe")
+        self.assertEqual(named_trusted_origin.verdict, "safe")
+        self.assertEqual(mapped.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+        self.assertEqual(safe_default.verdict, "vulnerable")
+        self.assertEqual(overwritten_default.verdict, "vulnerable")
+
+    def test_predictor_identifies_open_redirect(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+            }
+        )
+        vulnerable = """
+        public void redirect(HttpServletResponse response, String target)
+                throws Exception {
+            response.sendRedirect(target);
+        }
+        """
+        safe = """
+        public void redirect(HttpServletResponse response, String target)
+                throws Exception {
+            URI uri = URI.create(target).normalize();
+            if (uri.isAbsolute() || uri.getHost() != null) {
+                throw new IllegalArgumentException();
+            }
+            response.sendRedirect(uri.toString());
+        }
+        """
+        ambiguous = """
+        public void redirect(HttpServletResponse response, String target)
+                throws Exception {
+            validateRedirect(target);
+            response.sendRedirect(target);
+        }
+        """
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        vulnerable_evaluations = {
+            item["cwe_id"]: item for item in vulnerable_result["cwe_evaluations"]
+        }
+        self.assertTrue(vulnerable_evaluations["CWE601"]["is_vulnerable"])
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "unrestricted_redirect_destination"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        safe_evaluations = {
+            item["cwe_id"]: item for item in safe_result["cwe_evaluations"]
+        }
+        self.assertFalse(safe_evaluations["CWE601"]["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE601" for item in safe_result["safety_evidence"])
+        )
+        ambiguous_evaluations = {
+            item["cwe_id"]: item for item in ambiguous_result["cwe_evaluations"]
+        }
+        self.assertTrue(ambiguous_evaluations["CWE601"]["review_required"])
+
+    def test_xpath_injection_analysis_distinguishes_binding_and_concatenation(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("xpath_injection_analysis")
+        importlib.reload(analysis_module)
+
+        vulnerable = analysis_module.analyze_xpath_injection(
+            """
+            Object find(XPath xpath, Document document, String username)
+                    throws Exception {
+                String query = "//user[name='" + username + "']";
+                return xpath.evaluate(query, document, XPathConstants.NODE);
+            }
+            """
+        )
+        fixed = analysis_module.analyze_xpath_injection(
+            """
+            Object find(XPath xpath, Document document) throws Exception {
+                return xpath.evaluate("//user[@active='true']", document,
+                    XPathConstants.NODESET);
+            }
+            """
+        )
+        bound = analysis_module.analyze_xpath_injection(
+            """
+            Object find(XPath xpath, Document document, String username)
+                    throws Exception {
+                xpath.setXPathVariableResolver(
+                    variable -> "username".equals(variable.getLocalPart())
+                        ? username : null);
+                String query = "//user[name=$username]";
+                return xpath.evaluate(query, document, XPathConstants.NODE);
+            }
+            """
+        )
+        allowlisted = analysis_module.analyze_xpath_injection(
+            """
+            Object find(XPath xpath, Document document, String role)
+                    throws Exception {
+                if (!role.matches("[A-Za-z]+")) {
+                    throw new IllegalArgumentException();
+                }
+                String query = "//user[@role='" + role + "']";
+                return xpath.evaluate(query, document, XPathConstants.NODESET);
+            }
+            """
+        )
+        unicode_allowlisted = analysis_module.analyze_xpath_injection(
+            r"""
+            Object find(XPath xpath, Document document, String author)
+                    throws Exception {
+                if (author == null
+                        || !author.matches("[\\p{L}][\\p{L} .'-]{0,79}")) {
+                    throw new IllegalArgumentException();
+                }
+                String query = "//article[author='" + author + "']";
+                return xpath.evaluate(query, document, XPathConstants.NODESET);
+            }
+            """
+        )
+        aliased_allowlist = analysis_module.analyze_xpath_injection(
+            """
+            Object find(XPath xpath, Document document, String identifier)
+                    throws Exception {
+                if (identifier == null
+                        || !identifier.matches("[A-Z0-9]{6,16}")) {
+                    throw new IllegalArgumentException();
+                }
+                String validated = identifier;
+                String query = "//item[@id='" + validated + "']";
+                return xpath.evaluate(query, document, XPathConstants.NODE);
+            }
+            """
+        )
+        escaped = analysis_module.analyze_xpath_injection(
+            """
+            Object find(XPath xpath, Document document, String name)
+                    throws Exception {
+                String escaped = StringEscapeUtils.escapeXml10(name);
+                String query = "//user[name='" + escaped + "']";
+                return xpath.evaluate(query, document, XPathConstants.NODE);
+            }
+            """
+        )
+        ambiguous = analysis_module.analyze_xpath_injection(
+            """
+            Object find(XPath xpath, Document document, String name)
+                    throws Exception {
+                String checked = validateXPathValue(name);
+                String query = "//user[name='" + checked + "']";
+                return xpath.evaluate(query, document, XPathConstants.NODE);
+            }
+            """
+        )
+
+        self.assertEqual(vulnerable.verdict, "vulnerable")
+        self.assertEqual(fixed.verdict, "safe")
+        self.assertEqual(bound.verdict, "safe")
+        self.assertEqual(allowlisted.verdict, "safe")
+        self.assertEqual(unicode_allowlisted.verdict, "safe")
+        self.assertEqual(aliased_allowlist.verdict, "safe")
+        self.assertEqual(escaped.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+
+    def test_predictor_identifies_xpath_injection(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+            }
+        )
+        code = """
+        Object find(XPath xpath, Document document, String username)
+                throws Exception {
+            String query = "//user[name='" + username + "']";
+            return xpath.evaluate(query, document, XPathConstants.NODE);
+        }
+        """
+
+        result = predictor.analyze_code(code)
+        evaluations = {item["cwe_id"]: item for item in result["cwe_evaluations"]}
+
+        self.assertTrue(evaluations["CWE643"]["is_vulnerable"])
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "dynamic_xpath_expression"
+                for match in result["heuristic_matches"]
+            )
+        )
+
+    def test_crlf_rejection_does_not_make_dynamic_redirect_safe(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+            }
+        )
+        code = """
+        public void redirect(HttpServletResponse response, String target)
+                throws Exception {
+            if (target.contains("\\r") || target.contains("\\n")) {
+                throw new IllegalArgumentException();
+            }
+            response.sendRedirect(target);
+        }
+        """
+
+        result = predictor.analyze_code(code)
+        evaluations = {item["cwe_id"]: item for item in result["cwe_evaluations"]}
+
+        self.assertFalse(evaluations["CWE113"]["is_vulnerable"])
+        self.assertTrue(evaluations["CWE601"]["is_vulnerable"])
+
     def test_http_header_safety_does_not_suppress_xss_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

@@ -47,6 +47,8 @@ class AIBenchmarkTests(unittest.TestCase):
             "allowlist_secure",
             "mapping_secure",
             "direct_insecure",
+            "relative_secure",
+            "trusted_origin_secure",
         ):
             ai_benchmark.validate_sample(
                 included_sample(prompt_condition=condition)
@@ -428,10 +430,14 @@ class AIBenchmarkTests(unittest.TestCase):
             REPO_ROOT / "ai_benchmark" / "prompts_cwe400_holdout.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe470_calibration.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe470_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe601_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe601_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe643_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe643_holdout.json",
         ]
 
         summary = ai_benchmark.validate_disjoint_manifests(manifest_paths)
-        for path in manifest_paths[-12:-2]:
+        for path in manifest_paths[-16:-6]:
             with open(path, "r", encoding="utf-8") as handle:
                 manifest = json.load(handle)
             expected_cwe = next(
@@ -449,27 +455,44 @@ class AIBenchmarkTests(unittest.TestCase):
                 72,
             )
 
-        for path in manifest_paths[-2:]:
+        diverse_conditions = {
+            "CWE470": {
+                "neutral",
+                "allowlist_secure",
+                "mapping_secure",
+                "direct_insecure",
+            },
+            "CWE601": {
+                "neutral",
+                "relative_secure",
+                "trusted_origin_secure",
+                "direct_insecure",
+            },
+            "CWE643": {
+                "neutral",
+                "variable_binding_secure",
+                "allowlist_secure",
+                "direct_insecure",
+            },
+        }
+        for path in manifest_paths[-6:]:
             with open(path, "r", encoding="utf-8") as handle:
                 manifest = json.load(handle)
-            self.assertEqual(manifest["target_cwes"], ["CWE470"])
-            self.assertEqual(len(manifest["tasks"]), 18)
-            self.assertEqual(
-                set(manifest["conditions"]),
-                {
-                    "neutral",
-                    "allowlist_secure",
-                    "mapping_secure",
-                    "direct_insecure",
-                },
+            expected_cwe = next(
+                cwe_id
+                for cwe_id in ("CWE470", "CWE601", "CWE643")
+                if cwe_id.lower() in path.name
             )
+            self.assertEqual(manifest["target_cwes"], [expected_cwe])
+            self.assertEqual(len(manifest["tasks"]), 18)
+            self.assertEqual(set(manifest["conditions"]), diverse_conditions[expected_cwe])
             self.assertEqual(manifest["completions_per_prompt"], 1)
             self.assertEqual(
                 len(manifest["tasks"]) * len(manifest["conditions"]),
                 72,
             )
 
-        self.assertEqual(summary["task_count"], 396)
+        self.assertEqual(summary["task_count"], 468)
         for name in (
             "cwe129_calibration_scaffold.jsonl",
             "cwe129_holdout_scaffold.jsonl",
@@ -483,6 +506,10 @@ class AIBenchmarkTests(unittest.TestCase):
             "cwe400_holdout_scaffold.jsonl",
             "cwe470_calibration_scaffold.jsonl",
             "cwe470_holdout_scaffold.jsonl",
+            "cwe601_calibration_scaffold.jsonl",
+            "cwe601_holdout_scaffold.jsonl",
+            "cwe643_calibration_scaffold.jsonl",
+            "cwe643_holdout_scaffold.jsonl",
         ):
             scaffold = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / name)
             self.assertEqual(len(scaffold), 72)
@@ -801,7 +828,7 @@ class AIBenchmarkTests(unittest.TestCase):
             normalized, "CWE36"
         )
         fallback = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
-            normalized, "CWE601"
+            normalized, "CWE113"
         )
 
         self.assertEqual(config["version"], 2)
@@ -824,10 +851,12 @@ class AIBenchmarkTests(unittest.TestCase):
                 "CWE319",
                 "CWE400",
                 "CWE470",
+                "CWE601",
+                "CWE643",
             },
         )
-        self.assertEqual(len(config["calibration_sample_ids"]), 1069)
-        self.assertEqual(len(config["calibration_prompt_ids"]), 162)
+        self.assertEqual(len(config["calibration_sample_ids"]), 1213)
+        self.assertEqual(len(config["calibration_prompt_ids"]), 198)
         self.assertEqual(
             cwe89["calibration_source"],
             "ai_benchmark/cwe89_large_calibration_samples.jsonl",
@@ -924,6 +953,30 @@ class AIBenchmarkTests(unittest.TestCase):
             cwe470["holdout_source"],
             "ai_benchmark/cwe470_holdout_evaluation_summary.json",
         )
+        cwe601 = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE601"
+        )
+        self.assertEqual(cwe601["threshold"], 0.4)
+        self.assertEqual(
+            cwe601["calibration_source"],
+            "ai_benchmark/cwe601_calibration_samples.jsonl",
+        )
+        self.assertEqual(
+            cwe601["holdout_source"],
+            "ai_benchmark/cwe601_holdout_evaluation_summary.json",
+        )
+        cwe643 = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE643"
+        )
+        self.assertEqual(cwe643["threshold"], 0.4)
+        self.assertEqual(
+            cwe643["calibration_source"],
+            "ai_benchmark/cwe643_calibration_samples.jsonl",
+        )
+        self.assertEqual(
+            cwe643["holdout_source"],
+            "ai_benchmark/cwe643_holdout_evaluation_summary.json",
+        )
 
         for holdout_name in (
             "holdout_samples.jsonl",
@@ -937,6 +990,8 @@ class AIBenchmarkTests(unittest.TestCase):
             "cwe319_holdout_samples.jsonl",
             "cwe400_holdout_samples.jsonl",
             "cwe470_holdout_samples.jsonl",
+            "cwe601_holdout_samples.jsonl",
+            "cwe643_holdout_samples.jsonl",
         ):
             holdout = ai_benchmark.validate_samples(
                 ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / holdout_name)
@@ -1364,6 +1419,30 @@ class AIBenchmarkTests(unittest.TestCase):
             return Class.forName(className).getDeclaredConstructor().newInstance();
             """,
             "CWE470",
+        )
+
+        self.assertEqual(vulnerable.verdict, "vulnerable")
+        self.assertEqual(safe.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+
+    def test_cwe601_oracle_distinguishes_dynamic_restricted_and_ambiguous(self):
+        vulnerable = ai_benchmark.assess_code(
+            "response.sendRedirect(target);",
+            "CWE601",
+        )
+        safe = ai_benchmark.assess_code(
+            """
+            URI uri = URI.create(target).normalize();
+            if (uri.isAbsolute() || uri.getHost() != null) {
+                throw new IllegalArgumentException();
+            }
+            response.sendRedirect(uri.toString());
+            """,
+            "CWE601",
+        )
+        ambiguous = ai_benchmark.assess_code(
+            "validateRedirect(target); response.sendRedirect(target);",
+            "CWE601",
         )
 
         self.assertEqual(vulnerable.verdict, "vulnerable")

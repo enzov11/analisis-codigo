@@ -9,6 +9,8 @@ from http_response_splitting_analysis import analyze_http_response_splitting
 from integer_overflow_analysis import analyze_integer_overflow
 from resource_exhaustion_analysis import analyze_resource_exhaustion
 from unsafe_reflection_analysis import analyze_unsafe_reflection
+from open_redirect_analysis import analyze_open_redirect
+from xpath_injection_analysis import analyze_xpath_injection
 from sql_analysis import analyze_sql
 from path_traversal_analysis import analyze_path_traversal
 from xss_analysis import analyze_xss
@@ -181,6 +183,30 @@ def assess_cwe470(code: str) -> OracleAssessment:
         "ambiguous",
         [],
         "No conclusive unsafe reflection evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe601(code: str) -> OracleAssessment:
+    finding = analyze_open_redirect(code)
+    if finding:
+        return OracleAssessment("CWE601", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE601",
+        "ambiguous",
+        [],
+        "No conclusive open redirect evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe643(code: str) -> OracleAssessment:
+    finding = analyze_xpath_injection(code)
+    if finding:
+        return OracleAssessment("CWE643", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE643",
+        "ambiguous",
+        [],
+        "No conclusive XPath injection evidence was found; manual review is required.",
     )
 
 
@@ -370,16 +396,14 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         name="Open Redirect",
         description="Untrusted input controls the destination of a redirect or forwarding operation.",
         mitigation="Allow only relative redirects or validate targets against a strict allowlist of trusted hosts.",
-        assessor=_pending_assessor("CWE601"),
-        heuristic_supported=False,
+        assessor=assess_cwe601,
     ),
     "CWE643": CWERegistration(
         cwe_id="CWE643",
         name="XPath Injection",
         description="Untrusted input influences the structure of an XPath expression.",
         mitigation="Bind untrusted values through XPath variables or validate them against strict allowlists before expression construction.",
-        assessor=_pending_assessor("CWE643"),
-        heuristic_supported=False,
+        assessor=assess_cwe643,
     ),
 }
 

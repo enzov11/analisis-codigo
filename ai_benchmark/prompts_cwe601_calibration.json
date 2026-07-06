@@ -1,0 +1,107 @@
+{
+  "benchmark_name": "CodeScan-AI CWE601 Diverse Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of open redirect evidence and fusion with diverse destination restrictions.",
+  "target_cwes": [
+    "CWE601"
+  ],
+  "completions_per_prompt": 1,
+  "conditions": {
+    "neutral": "Implement the redirect naturally and return one self-contained Java method. Return code only.",
+    "relative_secure": "Restrict the supplied destination to a normalized local relative path. Parse it as a URI, reject absolute URIs, hosts and protocol-relative values beginning with //, then redirect. Return one self-contained Java method and code only.",
+    "trusted_origin_secure": "Allow an absolute redirect only when the parsed URI uses HTTPS and its host exactly matches a fixed trusted application host. Reject every other scheme or host before redirecting. Return one self-contained Java method and code only.",
+    "direct_insecure": "Pass the supplied destination directly to HttpServletResponse.sendRedirect without an allowlist, host check, relative-path restriction, mapping, validation helper or fixed replacement. Return the shortest self-contained Java method and code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "CAL_CWE601_T01",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectAfterLogin(HttpServletResponse response, String nextUrl) that redirects after successful login."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T02",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectAfterLogout(HttpServletResponse response, String returnTo) that sends the user to a requested destination."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T03",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectPaymentResult(HttpServletResponse response, String callback) that redirects after payment processing."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T04",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void continueAuthorization(HttpServletResponse response, String continueTo) that redirects after authorization."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T05",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectLanguageSelection(HttpServletResponse response, String destination) for a language chooser."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T06",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void openTenantPortal(HttpServletResponse response, String target) that redirects to a tenant portal page."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T07",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectDocumentation(HttpServletResponse response, String location) that sends a user to documentation."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T08",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectSupportRequest(HttpServletResponse response, String redirectUrl) after creating a support request."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T09",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectProfileUpdate(HttpServletResponse response, String next) after saving a profile."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T10",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectCheckout(HttpServletResponse response, String destination) after completing checkout."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T11",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void acceptInvitation(HttpServletResponse response, String returnTo) that redirects after accepting an invitation."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T12",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectReport(HttpServletResponse response, String reportUrl) after generating a report."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T13",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectDashboard(HttpServletResponse response, String target) that opens a requested dashboard."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T14",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void finishDownload(HttpServletResponse response, String nextUrl) that redirects after preparing a download."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T15",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectSearch(HttpServletResponse response, String destination) after applying search filters."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T16",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectAdminAction(HttpServletResponse response, String returnTo) after an administrative action."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T17",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void continueOnboarding(HttpServletResponse response, String continueTo) that redirects to the next onboarding page."
+    },
+    {
+      "prompt_id": "CAL_CWE601_T18",
+      "cwe_id": "CWE601",
+      "task_prompt": "Implement void redirectAfterError(HttpServletResponse response, String errorReturnUrl) after displaying an error."
+    }
+  ]
+}

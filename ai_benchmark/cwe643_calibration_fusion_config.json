@@ -1,0 +1,331 @@
+{
+  "version": 2,
+  "selection_source": "ai_calibration_set",
+  "objective": "maximize_f1_vulnerable_then_precision_then_recall",
+  "calibration_benchmark": "ai_benchmark/cwe643_calibration_samples.jsonl",
+  "calibration_sample_ids": [
+    "CAL_CWE643_T01_allowlist_secure_1",
+    "CAL_CWE643_T01_direct_insecure_1",
+    "CAL_CWE643_T01_neutral_1",
+    "CAL_CWE643_T01_variable_binding_secure_1",
+    "CAL_CWE643_T02_allowlist_secure_1",
+    "CAL_CWE643_T02_direct_insecure_1",
+    "CAL_CWE643_T02_neutral_1",
+    "CAL_CWE643_T02_variable_binding_secure_1",
+    "CAL_CWE643_T03_allowlist_secure_1",
+    "CAL_CWE643_T03_direct_insecure_1",
+    "CAL_CWE643_T03_neutral_1",
+    "CAL_CWE643_T03_variable_binding_secure_1",
+    "CAL_CWE643_T04_allowlist_secure_1",
+    "CAL_CWE643_T04_direct_insecure_1",
+    "CAL_CWE643_T04_neutral_1",
+    "CAL_CWE643_T04_variable_binding_secure_1",
+    "CAL_CWE643_T05_allowlist_secure_1",
+    "CAL_CWE643_T05_direct_insecure_1",
+    "CAL_CWE643_T05_neutral_1",
+    "CAL_CWE643_T05_variable_binding_secure_1",
+    "CAL_CWE643_T06_allowlist_secure_1",
+    "CAL_CWE643_T06_direct_insecure_1",
+    "CAL_CWE643_T06_neutral_1",
+    "CAL_CWE643_T06_variable_binding_secure_1",
+    "CAL_CWE643_T07_allowlist_secure_1",
+    "CAL_CWE643_T07_direct_insecure_1",
+    "CAL_CWE643_T07_neutral_1",
+    "CAL_CWE643_T07_variable_binding_secure_1",
+    "CAL_CWE643_T08_allowlist_secure_1",
+    "CAL_CWE643_T08_direct_insecure_1",
+    "CAL_CWE643_T08_neutral_1",
+    "CAL_CWE643_T08_variable_binding_secure_1",
+    "CAL_CWE643_T09_allowlist_secure_1",
+    "CAL_CWE643_T09_direct_insecure_1",
+    "CAL_CWE643_T09_neutral_1",
+    "CAL_CWE643_T09_variable_binding_secure_1",
+    "CAL_CWE643_T10_allowlist_secure_1",
+    "CAL_CWE643_T10_direct_insecure_1",
+    "CAL_CWE643_T10_neutral_1",
+    "CAL_CWE643_T10_variable_binding_secure_1",
+    "CAL_CWE643_T11_allowlist_secure_1",
+    "CAL_CWE643_T11_direct_insecure_1",
+    "CAL_CWE643_T11_neutral_1",
+    "CAL_CWE643_T11_variable_binding_secure_1",
+    "CAL_CWE643_T12_allowlist_secure_1",
+    "CAL_CWE643_T12_direct_insecure_1",
+    "CAL_CWE643_T12_neutral_1",
+    "CAL_CWE643_T12_variable_binding_secure_1",
+    "CAL_CWE643_T13_allowlist_secure_1",
+    "CAL_CWE643_T13_direct_insecure_1",
+    "CAL_CWE643_T13_neutral_1",
+    "CAL_CWE643_T13_variable_binding_secure_1",
+    "CAL_CWE643_T14_allowlist_secure_1",
+    "CAL_CWE643_T14_direct_insecure_1",
+    "CAL_CWE643_T14_neutral_1",
+    "CAL_CWE643_T14_variable_binding_secure_1",
+    "CAL_CWE643_T15_allowlist_secure_1",
+    "CAL_CWE643_T15_direct_insecure_1",
+    "CAL_CWE643_T15_neutral_1",
+    "CAL_CWE643_T15_variable_binding_secure_1",
+    "CAL_CWE643_T16_allowlist_secure_1",
+    "CAL_CWE643_T16_direct_insecure_1",
+    "CAL_CWE643_T16_neutral_1",
+    "CAL_CWE643_T16_variable_binding_secure_1",
+    "CAL_CWE643_T17_allowlist_secure_1",
+    "CAL_CWE643_T17_direct_insecure_1",
+    "CAL_CWE643_T17_neutral_1",
+    "CAL_CWE643_T17_variable_binding_secure_1",
+    "CAL_CWE643_T18_allowlist_secure_1",
+    "CAL_CWE643_T18_direct_insecure_1",
+    "CAL_CWE643_T18_neutral_1",
+    "CAL_CWE643_T18_variable_binding_secure_1"
+  ],
+  "calibration_prompt_ids": [
+    "CAL_CWE643_T01",
+    "CAL_CWE643_T02",
+    "CAL_CWE643_T03",
+    "CAL_CWE643_T04",
+    "CAL_CWE643_T05",
+    "CAL_CWE643_T06",
+    "CAL_CWE643_T07",
+    "CAL_CWE643_T08",
+    "CAL_CWE643_T09",
+    "CAL_CWE643_T10",
+    "CAL_CWE643_T11",
+    "CAL_CWE643_T12",
+    "CAL_CWE643_T13",
+    "CAL_CWE643_T14",
+    "CAL_CWE643_T15",
+    "CAL_CWE643_T16",
+    "CAL_CWE643_T17",
+    "CAL_CWE643_T18"
+  ],
+  "baseline_neural_threshold": 0.5,
+  "default": {
+    "threshold": 0.4,
+    "model_weight": 0.75,
+    "heuristic_weight": 0.55,
+    "safety_discount": 0.2,
+    "ambiguous_weight": 0.0,
+    "selection_source": "ai_calibration_set",
+    "baseline_neural_threshold": 0.5,
+    "informative_operating_points": {
+      "recall_oriented_fusion_reference": {
+        "threshold": 0.3,
+        "accuracy": 1.0,
+        "precision_vulnerable": 1.0,
+        "recall_vulnerable": 1.0,
+        "f1_vulnerable": 1.0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "confusion_matrix": [
+          [
+            54,
+            0
+          ],
+          [
+            0,
+            18
+          ]
+        ]
+      },
+      "precision_oriented_fusion_reference": {
+        "threshold": 0.3,
+        "accuracy": 1.0,
+        "precision_vulnerable": 1.0,
+        "recall_vulnerable": 1.0,
+        "f1_vulnerable": 1.0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "confusion_matrix": [
+          [
+            54,
+            0
+          ],
+          [
+            0,
+            18
+          ]
+        ]
+      }
+    },
+    "calibration_metrics": {
+      "accuracy": 1.0,
+      "precision_vulnerable": 1.0,
+      "recall_vulnerable": 1.0,
+      "f1_vulnerable": 1.0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "confusion_matrix": [
+        [
+          54,
+          0
+        ],
+        [
+          0,
+          18
+        ]
+      ]
+    }
+  },
+  "by_cwe": {
+    "CWE643": {
+      "threshold": 0.4,
+      "model_weight": 0.75,
+      "heuristic_weight": 0.55,
+      "safety_discount": 0.2,
+      "ambiguous_weight": 0.0,
+      "selection_source": "ai_calibration_set",
+      "baseline_neural_threshold": 0.5,
+      "informative_operating_points": {
+        "recall_oriented_fusion_reference": {
+          "threshold": 0.3,
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              54,
+              0
+            ],
+            [
+              0,
+              18
+            ]
+          ]
+        },
+        "precision_oriented_fusion_reference": {
+          "threshold": 0.3,
+          "accuracy": 1.0,
+          "precision_vulnerable": 1.0,
+          "recall_vulnerable": 1.0,
+          "f1_vulnerable": 1.0,
+          "false_positives": 0,
+          "false_negatives": 0,
+          "confusion_matrix": [
+            [
+              54,
+              0
+            ],
+            [
+              0,
+              18
+            ]
+          ]
+        }
+      },
+      "calibration_metrics": {
+        "accuracy": 1.0,
+        "precision_vulnerable": 1.0,
+        "recall_vulnerable": 1.0,
+        "f1_vulnerable": 1.0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "confusion_matrix": [
+          [
+            54,
+            0
+          ],
+          [
+            0,
+            18
+          ]
+        ]
+      },
+      "calibration_sample_ids": [
+        "CAL_CWE643_T01_allowlist_secure_1",
+        "CAL_CWE643_T01_direct_insecure_1",
+        "CAL_CWE643_T01_neutral_1",
+        "CAL_CWE643_T01_variable_binding_secure_1",
+        "CAL_CWE643_T02_allowlist_secure_1",
+        "CAL_CWE643_T02_direct_insecure_1",
+        "CAL_CWE643_T02_neutral_1",
+        "CAL_CWE643_T02_variable_binding_secure_1",
+        "CAL_CWE643_T03_allowlist_secure_1",
+        "CAL_CWE643_T03_direct_insecure_1",
+        "CAL_CWE643_T03_neutral_1",
+        "CAL_CWE643_T03_variable_binding_secure_1",
+        "CAL_CWE643_T04_allowlist_secure_1",
+        "CAL_CWE643_T04_direct_insecure_1",
+        "CAL_CWE643_T04_neutral_1",
+        "CAL_CWE643_T04_variable_binding_secure_1",
+        "CAL_CWE643_T05_allowlist_secure_1",
+        "CAL_CWE643_T05_direct_insecure_1",
+        "CAL_CWE643_T05_neutral_1",
+        "CAL_CWE643_T05_variable_binding_secure_1",
+        "CAL_CWE643_T06_allowlist_secure_1",
+        "CAL_CWE643_T06_direct_insecure_1",
+        "CAL_CWE643_T06_neutral_1",
+        "CAL_CWE643_T06_variable_binding_secure_1",
+        "CAL_CWE643_T07_allowlist_secure_1",
+        "CAL_CWE643_T07_direct_insecure_1",
+        "CAL_CWE643_T07_neutral_1",
+        "CAL_CWE643_T07_variable_binding_secure_1",
+        "CAL_CWE643_T08_allowlist_secure_1",
+        "CAL_CWE643_T08_direct_insecure_1",
+        "CAL_CWE643_T08_neutral_1",
+        "CAL_CWE643_T08_variable_binding_secure_1",
+        "CAL_CWE643_T09_allowlist_secure_1",
+        "CAL_CWE643_T09_direct_insecure_1",
+        "CAL_CWE643_T09_neutral_1",
+        "CAL_CWE643_T09_variable_binding_secure_1",
+        "CAL_CWE643_T10_allowlist_secure_1",
+        "CAL_CWE643_T10_direct_insecure_1",
+        "CAL_CWE643_T10_neutral_1",
+        "CAL_CWE643_T10_variable_binding_secure_1",
+        "CAL_CWE643_T11_allowlist_secure_1",
+        "CAL_CWE643_T11_direct_insecure_1",
+        "CAL_CWE643_T11_neutral_1",
+        "CAL_CWE643_T11_variable_binding_secure_1",
+        "CAL_CWE643_T12_allowlist_secure_1",
+        "CAL_CWE643_T12_direct_insecure_1",
+        "CAL_CWE643_T12_neutral_1",
+        "CAL_CWE643_T12_variable_binding_secure_1",
+        "CAL_CWE643_T13_allowlist_secure_1",
+        "CAL_CWE643_T13_direct_insecure_1",
+        "CAL_CWE643_T13_neutral_1",
+        "CAL_CWE643_T13_variable_binding_secure_1",
+        "CAL_CWE643_T14_allowlist_secure_1",
+        "CAL_CWE643_T14_direct_insecure_1",
+        "CAL_CWE643_T14_neutral_1",
+        "CAL_CWE643_T14_variable_binding_secure_1",
+        "CAL_CWE643_T15_allowlist_secure_1",
+        "CAL_CWE643_T15_direct_insecure_1",
+        "CAL_CWE643_T15_neutral_1",
+        "CAL_CWE643_T15_variable_binding_secure_1",
+        "CAL_CWE643_T16_allowlist_secure_1",
+        "CAL_CWE643_T16_direct_insecure_1",
+        "CAL_CWE643_T16_neutral_1",
+        "CAL_CWE643_T16_variable_binding_secure_1",
+        "CAL_CWE643_T17_allowlist_secure_1",
+        "CAL_CWE643_T17_direct_insecure_1",
+        "CAL_CWE643_T17_neutral_1",
+        "CAL_CWE643_T17_variable_binding_secure_1",
+        "CAL_CWE643_T18_allowlist_secure_1",
+        "CAL_CWE643_T18_direct_insecure_1",
+        "CAL_CWE643_T18_neutral_1",
+        "CAL_CWE643_T18_variable_binding_secure_1"
+      ],
+      "calibration_prompt_ids": [
+        "CAL_CWE643_T01",
+        "CAL_CWE643_T02",
+        "CAL_CWE643_T03",
+        "CAL_CWE643_T04",
+        "CAL_CWE643_T05",
+        "CAL_CWE643_T06",
+        "CAL_CWE643_T07",
+        "CAL_CWE643_T08",
+        "CAL_CWE643_T09",
+        "CAL_CWE643_T10",
+        "CAL_CWE643_T11",
+        "CAL_CWE643_T12",
+        "CAL_CWE643_T13",
+        "CAL_CWE643_T14",
+        "CAL_CWE643_T15",
+        "CAL_CWE643_T16",
+        "CAL_CWE643_T17",
+        "CAL_CWE643_T18"
+      ]
+    }
+  }
+}

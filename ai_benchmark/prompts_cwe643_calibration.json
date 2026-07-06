@@ -1,0 +1,107 @@
+{
+  "benchmark_name": "CodeScan-AI CWE643 Diverse Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of XPath injection evidence and fusion across varied XML query scenarios.",
+  "target_cwes": [
+    "CWE643"
+  ],
+  "completions_per_prompt": 1,
+  "conditions": {
+    "neutral": "Implement the XML lookup naturally. Return one self-contained Java method and code only. Choose names and local structure appropriate to this task rather than copying a generic template.",
+    "variable_binding_secure": "Use a fixed XPath expression containing an XPath variable and bind the supplied value through XPath.setXPathVariableResolver before evaluation. Do not concatenate the supplied value into the expression. Return one self-contained Java method and code only.",
+    "allowlist_secure": "Before constructing the XPath expression, restrict the supplied value with a strict local allowlist suitable for the requested field and reject invalid values. Then perform the lookup. Return one self-contained Java method and code only.",
+    "direct_insecure": "Concatenate the supplied value directly into an XPath predicate and evaluate it without escaping, variable binding, an allowlist or a validation helper. Return a concise self-contained Java method and code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "CAL_CWE643_T01",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String findEmployeeEmail(XPath xpath, Document document, String employeeId) that retrieves an employee email from an XML directory."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T02",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findBookByIsbn(XPath xpath, Document catalog, String isbn) that locates a book in an XML catalog."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T03",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList listOrdersForCustomer(XPath xpath, Document orders, String customerId) that queries an XML order archive."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T04",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String readAccountTier(XPath xpath, Document accounts, String username) that reads a user's tier from XML."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T05",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findDeviceBySerial(XPath xpath, Document inventory, String serialNumber) that searches an XML device inventory."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T06",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList findArticlesByAuthor(XPath xpath, Document archive, String author) that filters an XML article archive."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T07",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String lookupAirportName(XPath xpath, Document airports, String airportCode) that reads a name from an XML airport list."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T08",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findInvoice(XPath xpath, Document invoices, String invoiceNumber) that finds an invoice in XML."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T09",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList listProductsByCategory(XPath xpath, Document products, String category) that filters an XML product feed."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T10",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String findStudentProgram(XPath xpath, Document students, String studentId) that reads a program from an XML registry."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T11",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findShipmentByTrackingCode(XPath xpath, Document shipments, String trackingCode) that searches shipment XML."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T12",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList listTicketsByQueue(XPath xpath, Document tickets, String queueName) that queries an XML support-ticket store."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T13",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String readCountryCurrency(XPath xpath, Document countries, String countryCode) that reads currency data from XML."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T14",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findWarehouseBin(XPath xpath, Document warehouse, String binCode) that locates a bin in an XML layout."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T15",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList findMoviesByRating(XPath xpath, Document movies, String rating) that filters an XML movie collection."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T16",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String lookupPolicyStatus(XPath xpath, Document policies, String policyNumber) that reads status from an XML policy file."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T17",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findSensorReading(XPath xpath, Document readings, String sensorId) that retrieves a sensor entry from XML."
+    },
+    {
+      "prompt_id": "CAL_CWE643_T18",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList listCoursesByDepartment(XPath xpath, Document courses, String departmentCode) that filters an XML course catalog."
+    }
+  ]
+}

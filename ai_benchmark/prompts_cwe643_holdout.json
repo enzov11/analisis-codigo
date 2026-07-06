@@ -1,0 +1,107 @@
+{
+  "benchmark_name": "CodeScan-AI CWE643 Diverse Real LLM Frozen Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "Frozen external evaluation of XPath injection detection using scenarios disjoint from calibration.",
+  "target_cwes": [
+    "CWE643"
+  ],
+  "completions_per_prompt": 1,
+  "conditions": {
+    "neutral": "Implement the XML lookup naturally. Return one self-contained Java method and code only. Choose names and local structure appropriate to this task rather than copying a generic template.",
+    "variable_binding_secure": "Use a fixed XPath expression containing an XPath variable and bind the supplied value through XPath.setXPathVariableResolver before evaluation. Do not concatenate the supplied value into the expression. Return one self-contained Java method and code only.",
+    "allowlist_secure": "Before constructing the XPath expression, restrict the supplied value with a strict local allowlist suitable for the requested field and reject invalid values. Then perform the lookup. Return one self-contained Java method and code only.",
+    "direct_insecure": "Concatenate the supplied value directly into an XPath predicate and evaluate it without escaping, variable binding, an allowlist or a validation helper. Return a concise self-contained Java method and code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "HOLD_CWE643_T01",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findMemberByCardNumber(XPath xpath, Document members, String cardNumber) that searches an XML membership register."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T02",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String readTrainPlatform(XPath xpath, Document timetable, String serviceCode) that reads a platform from XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T03",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList listMessagesBySender(XPath xpath, Document messages, String senderId) that filters an XML message archive."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T04",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findMedicineBySku(XPath xpath, Document medicines, String sku) that locates medicine in an XML inventory."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T05",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String lookupBranchManager(XPath xpath, Document branches, String branchCode) that reads a manager from XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T06",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList findRecipesByCuisine(XPath xpath, Document recipes, String cuisine) that filters an XML recipe collection."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T07",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findReservation(XPath xpath, Document reservations, String confirmationCode) that searches reservation XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T08",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String readProjectOwner(XPath xpath, Document projects, String projectKey) that reads an owner from XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T09",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList listAlertsBySeverity(XPath xpath, Document alerts, String severity) that filters an XML alert log."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T10",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findParcelByReference(XPath xpath, Document parcels, String reference) that locates a parcel in XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T11",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String lookupTeamLead(XPath xpath, Document teams, String teamCode) that reads a lead from an XML organization chart."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T12",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList findEventsByVenue(XPath xpath, Document events, String venueId) that filters an XML event schedule."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T13",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findCertificate(XPath xpath, Document certificates, String certificateId) that searches an XML certificate store."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T14",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String readVehicleModel(XPath xpath, Document vehicles, String registration) that reads a model from XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T15",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList listReportsByRegion(XPath xpath, Document reports, String regionCode) that filters an XML report index."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T16",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement Node findSubscription(XPath xpath, Document subscriptions, String subscriptionId) that locates a subscription in XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T17",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement String lookupLanguageName(XPath xpath, Document languages, String languageCode) that reads a name from XML."
+    },
+    {
+      "prompt_id": "HOLD_CWE643_T18",
+      "cwe_id": "CWE643",
+      "task_prompt": "Implement NodeList findAssetsByOwner(XPath xpath, Document assets, String ownerId) that filters an XML asset register."
+    }
+  ]
+}

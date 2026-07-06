@@ -13,6 +13,8 @@ from format_string_analysis import analyze_format_string
 from integer_overflow_analysis import analyze_integer_overflow
 from resource_exhaustion_analysis import analyze_resource_exhaustion
 from unsafe_reflection_analysis import analyze_unsafe_reflection
+from open_redirect_analysis import analyze_open_redirect
+from xpath_injection_analysis import analyze_xpath_injection
 from config import Config
 from cwe_registry import CWE_REGISTRY
 from http_response_splitting_analysis import analyze_http_response_splitting
@@ -435,6 +437,8 @@ class VulnerabilityPredictor:
         self._scan_cleartext_transmission_evidence(code, evidence)
         self._scan_resource_exhaustion_evidence(code, evidence)
         self._scan_unsafe_reflection_evidence(code, evidence)
+        self._scan_open_redirect_evidence(code, evidence)
+        self._scan_xpath_injection_evidence(code, evidence)
         self._scan_sql_evidence(code, evidence)
         self._scan_ldap_evidence(code, evidence)
         evidence["vulnerable"].extend(self._scan_generic_patterns(code))
@@ -798,6 +802,62 @@ class VulnerabilityPredictor:
                 match,
                 pattern_name,
                 "CWE470",
+                confidence,
+                finding.rationale,
+                registration.mitigation if kind != "safety" else "",
+                kind,
+            )
+        )
+
+    def _scan_open_redirect_evidence(
+        self, code: str, evidence: Dict[str, List[Dict[str, object]]]
+    ):
+        registration = CWE_REGISTRY["CWE601"]
+        finding = analyze_open_redirect(code)
+        if not finding:
+            return
+        kind = "safety" if finding.verdict == "safe" else finding.verdict
+        confidence = {"vulnerable": 0.9, "safety": 0.9, "ambiguous": 0.4}[kind]
+        pattern_name = {
+            "vulnerable": "unrestricted_redirect_destination",
+            "safety": "restricted_redirect_destination",
+            "ambiguous": "redirect_destination_review",
+        }[kind]
+        match = re.compile(re.escape(finding.code), re.S).search(code, finding.start)
+        evidence[kind].append(
+            self._evidence_match(
+                code,
+                match,
+                pattern_name,
+                "CWE601",
+                confidence,
+                finding.rationale,
+                registration.mitigation if kind != "safety" else "",
+                kind,
+            )
+        )
+
+    def _scan_xpath_injection_evidence(
+        self, code: str, evidence: Dict[str, List[Dict[str, object]]]
+    ):
+        registration = CWE_REGISTRY["CWE643"]
+        finding = analyze_xpath_injection(code)
+        if not finding:
+            return
+        kind = "safety" if finding.verdict == "safe" else finding.verdict
+        confidence = {"vulnerable": 0.9, "safety": 0.9, "ambiguous": 0.4}[kind]
+        pattern_name = {
+            "vulnerable": "dynamic_xpath_expression",
+            "safety": "restricted_xpath_value",
+            "ambiguous": "xpath_expression_review",
+        }[kind]
+        match = re.compile(re.escape(finding.code), re.S).search(code, finding.start)
+        evidence[kind].append(
+            self._evidence_match(
+                code,
+                match,
+                pattern_name,
+                "CWE643",
                 confidence,
                 finding.rationale,
                 registration.mitigation if kind != "safety" else "",
