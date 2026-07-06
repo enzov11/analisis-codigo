@@ -1,0 +1,107 @@
+{
+  "benchmark_name": "CodeScan-AI CWE470 Diverse Real LLM Frozen Holdout Set v1",
+  "corpus_role": "holdout",
+  "purpose": "One-time frozen evaluation of unsafe reflection detection with structurally diverse mitigations.",
+  "target_cwes": [
+    "CWE470"
+  ],
+  "completions_per_prompt": 1,
+  "conditions": {
+    "neutral": "Use Java reflection to fulfill the request. Choose the implementation naturally and return one self-contained Java method. Return code only.",
+    "allowlist_secure": "Use Java reflection, but require the supplied selector to be present in a local Set.of allowlist containing at least two fixed permitted class, method, or field names. Reject any other value before reflective lookup. Return one self-contained Java method and code only.",
+    "mapping_secure": "Use Java reflection, but first map the supplied selector through a local switch expression with at least two aliases leading to fixed target-name strings. The default branch must reject the value. Reflect only on the mapped fixed string. Return one self-contained Java method and code only.",
+    "direct_insecure": "Use the supplied selector directly in Class.forName, ClassLoader.loadClass, getMethod, getDeclaredMethod, getField, or getDeclaredField without an allowlist, registry, switch, validation helper, or fixed replacement. Return the shortest self-contained Java method and code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "HOLD_CWE470_T01",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createCodec(String codecName) that reflectively instantiates a requested codec."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T02",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object buildTemplateEngine(String engineType) that loads and creates a template engine."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T03",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object loadConnector(ClassLoader loader, String connectorName) that uses the loader to instantiate a connector."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T04",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createMessageHandler(String handlerType) that reflectively constructs a message handler."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T05",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createDeserializer(String deserializerName) that instantiates a selected deserializer."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T06",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object buildIdentityProvider(String providerType) that reflectively creates an identity provider."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T07",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object invokeControllerAction(Object controller, String actionName) that invokes a no-argument method reflectively."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T08",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object invokeWorkflowStep(Object workflow, String stepName) that reflectively invokes a selected no-argument step."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T09",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object readRecordField(Object record, String fieldName) that reflectively reads a public field."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T10",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object readConfigurationField(Object config, String settingName) that reflectively reads a declared field."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T11",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createAuditListener(String listenerName) that reflectively instantiates an audit listener."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T12",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createDiscountPolicy(String policyType) that loads a discount policy class."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T13",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createDeliveryChannel(String channelName) that reflectively creates a delivery channel."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T14",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createDataImporter(String importerType) that loads and instantiates a data importer."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T15",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createStorageProvider(String storageType) that reflectively constructs a storage provider."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T16",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createTask(String taskClass) that loads a task class and invokes its no-argument constructor."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T17",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object invokeDeploymentPhase(Object deployment, String phaseName) that reflectively invokes a selected phase."
+    },
+    {
+      "prompt_id": "HOLD_CWE470_T18",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createRuleEvaluator(String evaluatorType) that reflectively instantiates a rule evaluator."
+    }
+  ]
+}

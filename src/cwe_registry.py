@@ -8,6 +8,7 @@ from format_string_analysis import analyze_format_string
 from http_response_splitting_analysis import analyze_http_response_splitting
 from integer_overflow_analysis import analyze_integer_overflow
 from resource_exhaustion_analysis import analyze_resource_exhaustion
+from unsafe_reflection_analysis import analyze_unsafe_reflection
 from sql_analysis import analyze_sql
 from path_traversal_analysis import analyze_path_traversal
 from xss_analysis import analyze_xss
@@ -168,6 +169,18 @@ def assess_cwe400(code: str) -> OracleAssessment:
         "ambiguous",
         [],
         "No conclusive resource exhaustion evidence was found; manual review is required.",
+    )
+
+
+def assess_cwe470(code: str) -> OracleAssessment:
+    finding = analyze_unsafe_reflection(code)
+    if finding:
+        return OracleAssessment("CWE470", finding.verdict, [finding.code], finding.rationale)
+    return OracleAssessment(
+        "CWE470",
+        "ambiguous",
+        [],
+        "No conclusive unsafe reflection evidence was found; manual review is required.",
     )
 
 
@@ -350,8 +363,7 @@ CWE_REGISTRY: Dict[str, CWERegistration] = {
         name="Unsafe Reflection",
         description="Untrusted input controls reflective class, method, constructor, or field resolution.",
         mitigation="Use an allowlist of permitted reflective targets and avoid resolving classes or members directly from user input.",
-        assessor=_pending_assessor("CWE470"),
-        heuristic_supported=False,
+        assessor=assess_cwe470,
     ),
     "CWE601": CWERegistration(
         cwe_id="CWE601",

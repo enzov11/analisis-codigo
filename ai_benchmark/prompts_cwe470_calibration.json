@@ -1,0 +1,107 @@
+{
+  "benchmark_name": "CodeScan-AI CWE470 Diverse Real LLM Calibration Set v1",
+  "corpus_role": "calibration",
+  "purpose": "Development-only calibration of unsafe reflection evidence and fusion with structurally diverse mitigations.",
+  "target_cwes": [
+    "CWE470"
+  ],
+  "completions_per_prompt": 1,
+  "conditions": {
+    "neutral": "Use Java reflection to fulfill the request. Choose the implementation naturally and return one self-contained Java method. Return code only.",
+    "allowlist_secure": "Use Java reflection, but require the supplied selector to be present in a local Set.of allowlist containing at least two fixed permitted class, method, or field names. Reject any other value before reflective lookup. Return one self-contained Java method and code only.",
+    "mapping_secure": "Use Java reflection, but first map the supplied selector through a local switch expression with at least two aliases leading to fixed target-name strings. The default branch must reject the value. Reflect only on the mapped fixed string. Return one self-contained Java method and code only.",
+    "direct_insecure": "Use the supplied selector directly in Class.forName, ClassLoader.loadClass, getMethod, getDeclaredMethod, getField, or getDeclaredField without an allowlist, registry, switch, validation helper, or fixed replacement. Return the shortest self-contained Java method and code only."
+  },
+  "tasks": [
+    {
+      "prompt_id": "CAL_CWE470_T01",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createPlugin(String pluginName) that reflectively creates the requested plugin class."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T02",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createFormatter(String formatterType) that loads and instantiates a formatter class by selector."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T03",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object loadRenderer(ClassLoader loader, String rendererName) that uses the class loader to instantiate a renderer."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T04",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object buildRequestHandler(String handlerName) that reflectively constructs a request handler."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T05",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createSerializer(String serializerName) that instantiates a serializer selected at runtime."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T06",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createAuthProvider(String providerName) that reflectively creates an authentication provider."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T07",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object invokeServiceAction(Object service, String methodName) that reflectively invokes a no-argument service method."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T08",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object invokeCommand(Object commandTarget, String commandName) that invokes a selected no-argument method through reflection."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T09",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object readModelField(Object model, String fieldName) that reflectively reads a public field."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T10",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object readPrivateProperty(Object bean, String propertyName) that reflectively reads a declared field."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T11",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createEventListener(String listenerType) that reflectively instantiates an event listener."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T12",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createPricingStrategy(String strategyName) that loads a pricing strategy class."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T13",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createNotificationChannel(String channelType) that reflectively creates a notification channel."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T14",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createDocumentParser(String parserName) that loads and instantiates a document parser."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T15",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createExportProvider(String providerType) that reflectively constructs an export provider."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T16",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createJob(String jobClass) that loads a job class and invokes its no-argument constructor."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T17",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object invokeMigrationStep(Object migration, String stepName) that reflectively invokes a selected migration method."
+    },
+    {
+      "prompt_id": "CAL_CWE470_T18",
+      "cwe_id": "CWE470",
+      "task_prompt": "Implement Object createValidator(String validatorType) that reflectively instantiates a validator."
+    }
+  ]
+}

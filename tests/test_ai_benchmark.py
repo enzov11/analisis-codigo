@@ -42,6 +42,16 @@ def included_sample(**overrides):
 
 
 class AIBenchmarkTests(unittest.TestCase):
+    def test_cwe470_prompt_conditions_are_validated_explicitly(self):
+        for condition in (
+            "allowlist_secure",
+            "mapping_secure",
+            "direct_insecure",
+        ):
+            ai_benchmark.validate_sample(
+                included_sample(prompt_condition=condition)
+            )
+
     def test_manifest_defines_144_expected_generations(self):
         manifest_path = REPO_ROOT / "ai_benchmark" / "prompts.json"
         with open(manifest_path, "r", encoding="utf-8") as handle:
@@ -416,10 +426,12 @@ class AIBenchmarkTests(unittest.TestCase):
             REPO_ROOT / "ai_benchmark" / "prompts_cwe319_holdout.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe400_calibration.json",
             REPO_ROOT / "ai_benchmark" / "prompts_cwe400_holdout.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe470_calibration.json",
+            REPO_ROOT / "ai_benchmark" / "prompts_cwe470_holdout.json",
         ]
 
         summary = ai_benchmark.validate_disjoint_manifests(manifest_paths)
-        for path in manifest_paths[-10:]:
+        for path in manifest_paths[-12:-2]:
             with open(path, "r", encoding="utf-8") as handle:
                 manifest = json.load(handle)
             expected_cwe = next(
@@ -437,7 +449,27 @@ class AIBenchmarkTests(unittest.TestCase):
                 72,
             )
 
-        self.assertEqual(summary["task_count"], 360)
+        for path in manifest_paths[-2:]:
+            with open(path, "r", encoding="utf-8") as handle:
+                manifest = json.load(handle)
+            self.assertEqual(manifest["target_cwes"], ["CWE470"])
+            self.assertEqual(len(manifest["tasks"]), 18)
+            self.assertEqual(
+                set(manifest["conditions"]),
+                {
+                    "neutral",
+                    "allowlist_secure",
+                    "mapping_secure",
+                    "direct_insecure",
+                },
+            )
+            self.assertEqual(manifest["completions_per_prompt"], 1)
+            self.assertEqual(
+                len(manifest["tasks"]) * len(manifest["conditions"]),
+                72,
+            )
+
+        self.assertEqual(summary["task_count"], 396)
         for name in (
             "cwe129_calibration_scaffold.jsonl",
             "cwe129_holdout_scaffold.jsonl",
@@ -449,6 +481,8 @@ class AIBenchmarkTests(unittest.TestCase):
             "cwe319_holdout_scaffold.jsonl",
             "cwe400_calibration_scaffold.jsonl",
             "cwe400_holdout_scaffold.jsonl",
+            "cwe470_calibration_scaffold.jsonl",
+            "cwe470_holdout_scaffold.jsonl",
         ):
             scaffold = ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / name)
             self.assertEqual(len(scaffold), 72)
@@ -767,7 +801,7 @@ class AIBenchmarkTests(unittest.TestCase):
             normalized, "CWE36"
         )
         fallback = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
-            normalized, "CWE470"
+            normalized, "CWE601"
         )
 
         self.assertEqual(config["version"], 2)
@@ -789,10 +823,11 @@ class AIBenchmarkTests(unittest.TestCase):
                 "CWE190",
                 "CWE319",
                 "CWE400",
+                "CWE470",
             },
         )
-        self.assertEqual(len(config["calibration_sample_ids"]), 997)
-        self.assertEqual(len(config["calibration_prompt_ids"]), 144)
+        self.assertEqual(len(config["calibration_sample_ids"]), 1069)
+        self.assertEqual(len(config["calibration_prompt_ids"]), 162)
         self.assertEqual(
             cwe89["calibration_source"],
             "ai_benchmark/cwe89_large_calibration_samples.jsonl",
@@ -877,6 +912,18 @@ class AIBenchmarkTests(unittest.TestCase):
             cwe400["holdout_source"],
             "ai_benchmark/cwe400_holdout_evaluation_summary.json",
         )
+        cwe470 = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE470"
+        )
+        self.assertEqual(cwe470["threshold"], 0.4)
+        self.assertEqual(
+            cwe470["calibration_source"],
+            "ai_benchmark/cwe470_calibration_samples.jsonl",
+        )
+        self.assertEqual(
+            cwe470["holdout_source"],
+            "ai_benchmark/cwe470_holdout_evaluation_summary.json",
+        )
 
         for holdout_name in (
             "holdout_samples.jsonl",
@@ -889,6 +936,7 @@ class AIBenchmarkTests(unittest.TestCase):
             "cwe190_holdout_samples.jsonl",
             "cwe319_holdout_samples.jsonl",
             "cwe400_holdout_samples.jsonl",
+            "cwe470_holdout_samples.jsonl",
         ):
             holdout = ai_benchmark.validate_samples(
                 ai_benchmark.load_samples(REPO_ROOT / "ai_benchmark" / holdout_name)
@@ -1294,6 +1342,32 @@ class AIBenchmarkTests(unittest.TestCase):
 
         self.assertEqual(vulnerable.verdict, "vulnerable")
         self.assertEqual(bounded.verdict, "safe")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+
+    def test_cwe470_oracle_distinguishes_dynamic_allowlisted_and_ambiguous(self):
+        vulnerable = ai_benchmark.assess_code(
+            "return Class.forName(className).getDeclaredConstructor().newInstance();",
+            "CWE470",
+        )
+        safe = ai_benchmark.assess_code(
+            """
+            if (!Set.of("com.example.A", "com.example.B").contains(className)) {
+                throw new IllegalArgumentException();
+            }
+            return Class.forName(className).getDeclaredConstructor().newInstance();
+            """,
+            "CWE470",
+        )
+        ambiguous = ai_benchmark.assess_code(
+            """
+            validateClassName(className);
+            return Class.forName(className).getDeclaredConstructor().newInstance();
+            """,
+            "CWE470",
+        )
+
+        self.assertEqual(vulnerable.verdict, "vulnerable")
+        self.assertEqual(safe.verdict, "safe")
         self.assertEqual(ambiguous.verdict, "ambiguous")
 
     def test_supported_cwes_are_defined_by_the_central_registry(self):

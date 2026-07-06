@@ -836,6 +836,225 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(evaluations["CWE190"]["is_vulnerable"])
         self.assertFalse(evaluations["CWE400"]["is_vulnerable"])
 
+    def test_unsafe_reflection_analysis_resolves_local_target_selection(self):
+        sys.path.insert(0, str(SRC_DIR))
+        analysis_module = importlib.import_module("unsafe_reflection_analysis")
+        importlib.reload(analysis_module)
+
+        dynamic_class = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String className) throws Exception {
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        fixed_class = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load() throws Exception {
+                String className = "com.example.SafePlugin";
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        allowlisted = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String className) throws Exception {
+                if (!Set.of("com.example.JsonPlugin", "com.example.XmlPlugin")
+                        .contains(className)) {
+                    throw new IllegalArgumentException();
+                }
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        stored_allowlist = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String className) throws Exception {
+                java.util.Set<String> allowed = java.util.Set.of(
+                    "com.example.JsonPlugin", "com.example.XmlPlugin");
+                if (className == null || !allowed.contains(className)) {
+                    throw new IllegalArgumentException();
+                }
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        boolean_allowlist = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String className) throws Exception {
+                Set<String> allowed = Set.of("com.example.A", "com.example.B");
+                boolean trusted = allowed.contains(className);
+                if (!trusted) throw new IllegalArgumentException();
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        positive_allowlist = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object call(Object target, String methodName) throws Exception {
+                Set<String> allowed = Set.of("start", "stop");
+                if (allowed.contains(methodName)) {
+                    return target.getClass().getMethod(methodName).invoke(target);
+                }
+                throw new IllegalArgumentException();
+            }
+            """
+        )
+        registry = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String name) throws Exception {
+                Map<String, Class<?>> types =
+                    Map.of("json", JsonPlugin.class, "xml", XmlPlugin.class);
+                Class<?> type = types.get(name);
+                if (type == null) throw new IllegalArgumentException();
+                return type.getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        mapped = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String alias) throws Exception {
+                String className = switch (alias) {
+                    case "json" -> "com.example.JsonPlugin";
+                    case "xml" -> "com.example.XmlPlugin";
+                    default -> throw new IllegalArgumentException();
+                };
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        classic_mapping = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String alias) throws Exception {
+                String className;
+                switch (alias) {
+                    case "json": className = "com.example.JsonPlugin"; break;
+                    case "xml": className = "com.example.XmlPlugin"; break;
+                    default: throw new IllegalArgumentException();
+                }
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        separately_assigned_mapping = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String alias) throws Exception {
+                final String className;
+                className = switch (alias) {
+                    case "a" -> "com.example.A";
+                    case "b" -> "com.example.B";
+                    default -> throw new IllegalArgumentException();
+                };
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+        method = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object call(Object target, String methodName) throws Exception {
+                return target.getClass().getMethod(methodName).invoke(target);
+            }
+            """
+        )
+        ambiguous = analysis_module.analyze_unsafe_reflection(
+            """
+            public Object load(String className) throws Exception {
+                validateClassName(className);
+                return Class.forName(className).getDeclaredConstructor().newInstance();
+            }
+            """
+        )
+
+        self.assertEqual(dynamic_class.verdict, "vulnerable")
+        self.assertEqual(fixed_class.verdict, "safe")
+        self.assertEqual(allowlisted.verdict, "safe")
+        self.assertEqual(stored_allowlist.verdict, "safe")
+        self.assertEqual(boolean_allowlist.verdict, "safe")
+        self.assertEqual(positive_allowlist.verdict, "safe")
+        self.assertEqual(registry.verdict, "safe")
+        self.assertEqual(mapped.verdict, "safe")
+        self.assertEqual(classic_mapping.verdict, "safe")
+        self.assertEqual(separately_assigned_mapping.verdict, "safe")
+        self.assertEqual(method.verdict, "vulnerable")
+        self.assertEqual(ambiguous.verdict, "ambiguous")
+        fixed_literal = analysis_module.analyze_unsafe_reflection(
+            'return Class.forName("com.example.Fixed");'
+        )
+        self.assertEqual(fixed_literal.verdict, "safe")
+
+    def test_predictor_identifies_unsafe_reflection(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor()
+        vulnerable = """
+        public Object load(String className) throws Exception {
+            return Class.forName(className).getDeclaredConstructor().newInstance();
+        }
+        """
+        safe = """
+        public Object load(String className) throws Exception {
+            if (!Set.of("com.example.JsonPlugin", "com.example.XmlPlugin")
+                    .contains(className)) {
+                throw new IllegalArgumentException();
+            }
+            return Class.forName(className).getDeclaredConstructor().newInstance();
+        }
+        """
+        ambiguous = """
+        public Object load(String className) throws Exception {
+            validateClassName(className);
+            return Class.forName(className).getDeclaredConstructor().newInstance();
+        }
+        """
+
+        vulnerable_result = predictor.analyze_code(vulnerable)
+        safe_result = predictor.analyze_code(safe)
+        ambiguous_result = predictor.analyze_code(ambiguous)
+
+        self.assertTrue(vulnerable_result["is_vulnerable"])
+        self.assertEqual(vulnerable_result["selected_cwe"], "CWE470")
+        self.assertTrue(
+            any(
+                match["pattern_name"] == "externally_controlled_reflection"
+                for match in vulnerable_result["heuristic_matches"]
+            )
+        )
+        self.assertFalse(safe_result["is_vulnerable"])
+        self.assertTrue(
+            any(item["cwe_id"] == "CWE470" for item in safe_result["safety_evidence"])
+        )
+        self.assertTrue(ambiguous_result["review_required"])
+
+    def test_reflection_allowlist_does_not_suppress_resource_exhaustion(self):
+        _, _, predictor_module = reload_modules()
+        predictor = predictor_module.VulnerabilityPredictor(
+            fusion_config={
+                "version": 2,
+                "default": {
+                    "threshold": 0.4,
+                    "model_weight": 0.75,
+                    "heuristic_weight": 0.55,
+                    "safety_discount": 0.2,
+                    "ambiguous_weight": 0.0,
+                },
+            }
+        )
+        code = """
+        public Object[] create(String className, int size) throws Exception {
+            if (!Set.of("com.example.A", "com.example.B").contains(className)) {
+                throw new IllegalArgumentException();
+            }
+            Object instance =
+                Class.forName(className).getDeclaredConstructor().newInstance();
+            return new Object[size];
+        }
+        """
+
+        result = predictor.analyze_code(code)
+        evaluations = {item["cwe_id"]: item for item in result["cwe_evaluations"]}
+
+        self.assertFalse(evaluations["CWE470"]["is_vulnerable"])
+        self.assertTrue(evaluations["CWE400"]["is_vulnerable"])
+
     def test_http_header_safety_does_not_suppress_xss_evidence(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor(

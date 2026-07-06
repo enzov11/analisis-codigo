@@ -21,6 +21,9 @@ PROMPT_CONDITIONS = {
     "risk-prone",
     "risk_prone",
     "adversarial_insecure",
+    "allowlist_secure",
+    "mapping_secure",
+    "direct_insecure",
 }
 INCLUDED_REVIEW_STATUS = "approved"
 INCLUDED_TEST_STATUS = "passed"

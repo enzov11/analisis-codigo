@@ -714,6 +714,72 @@ Artefactos preparados:
 - [`cwe400_holdout_samples.jsonl`](../ai_benchmark/cwe400_holdout_samples.jsonl)
 - [`cwe400_holdout_evaluation_summary.json`](../ai_benchmark/cwe400_holdout_evaluation_summary.json)
 
+### Etapa 11: Incorporacion De CWE470
+
+#### Alcance
+
+La undecima etapa incorpora CWE470, seleccion insegura de clases o codigo mediante
+reflexion. La categoria ya esta incluida en el baseline neuronal comun
+`cwe15-roadmap-v1`, por lo que se agregan heuristica, explicabilidad y evaluacion
+externa sin reentrenar el modelo.
+
+#### Analisis Heuristico
+
+El analizador local cubre resolucion de clases con `Class.forName` o
+`ClassLoader.loadClass` y seleccion de metodos o campos mediante las APIs de reflexion.
+Un parametro o fuente externa usado directamente como objetivo produce evidencia
+vulnerable. Nombres fijos, allowlists explicitas, registros locales de literales
+`.class` y switches cerrados a cadenas fijas producen evidencia segura. Los helpers
+cuyas garantias no pueden inspeccionarse quedan ambiguos.
+
+La evidencia se mantiene separada por categoria: una allowlist reflectiva no reduce el
+riesgo de una asignacion no acotada, una inyeccion u otra vulnerabilidad presente en el
+mismo fragmento.
+
+#### Estado Actual
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999932` y F1 vulnerable `0,9921` sobre
+`358` muestras de test, con `2` falsos positivos y ningun falso negativo. Estos
+resultados pertenecen al dataset sintetico y no demuestran transferencia a codigo
+generado por IA.
+
+Para reducir la repeticion observada en etapas anteriores, cada corpus externo se
+compone de `18` tareas, cuatro condiciones y una sola completion por combinacion. Las
+condiciones separan comportamiento neutral, allowlist segura, mapeo seguro por `switch`
+y reflexion directa insegura. Esto produce `72` solicitudes textualmente distintas por
+corpus.
+
+La calibracion se completo con `72` muestras revisadas: `42` seguras y `30`
+vulnerables. Las `72` implementaciones fueron distintas, por lo que la estrategia
+elimino los duplicados exactos observados en etapas anteriores. La red obtuvo F1
+vulnerable `0,0556`, con `5` falsos positivos y `29` falsos negativos. La heuristica y
+la fusion calibrada obtuvieron F1 vulnerable `1,000`, sin errores. La configuracion
+seleccionada usa umbral `0,4`.
+
+La configuracion se congelo a partir de calibracion antes de abrir el holdout.
+
+El holdout congelado se completo con `72` implementaciones distintas y balanceadas:
+`36` seguras y `36` vulnerables. La red obtuvo F1 vulnerable `0,1887`, con `12`
+falsos positivos y `31` falsos negativos. La heuristica y la fusion conservaron F1
+vulnerable `1,000`, sin errores. El override validado se incorporo a la configuracion
+global por CWE.
+
+La etapa queda cerrada. La estrategia de diversidad produjo `72` codigos unicos tanto
+en calibracion como en holdout, eliminando la repeticion exacta inducida por el
+protocolo anterior.
+
+Artefactos preparados:
+
+- [`prompts_cwe470_calibration.json`](../ai_benchmark/prompts_cwe470_calibration.json)
+- [`prompts_cwe470_holdout.json`](../ai_benchmark/prompts_cwe470_holdout.json)
+- [`cwe470_calibration_scaffold.jsonl`](../ai_benchmark/cwe470_calibration_scaffold.jsonl)
+- [`cwe470_holdout_scaffold.jsonl`](../ai_benchmark/cwe470_holdout_scaffold.jsonl)
+- [`cwe470_calibration_samples.jsonl`](../ai_benchmark/cwe470_calibration_samples.jsonl)
+- [`cwe470_calibration_fusion_config.json`](../ai_benchmark/cwe470_calibration_fusion_config.json)
+- [`cwe470_calibration_evaluation_summary.json`](../ai_benchmark/cwe470_calibration_evaluation_summary.json)
+- [`cwe470_holdout_samples.jsonl`](../ai_benchmark/cwe470_holdout_samples.jsonl)
+- [`cwe470_holdout_evaluation_summary.json`](../ai_benchmark/cwe470_holdout_evaluation_summary.json)
+
 ### Plantilla Para Futuras Etapas
 
 Cada nueva etapa debera registrar:

@@ -41,6 +41,8 @@ src/
                        resolucion local compartida de validacion de indices
   resource_exhaustion_analysis.py
                        resolucion local de limites de consumo de recursos
+  unsafe_reflection_analysis.py
+                       resolucion local de seleccion de objetivos reflectivos
   experiments.py       runner de experimentos del articulo
   ai_benchmark.py      utilidades para corpus de codigo generado por IA
   data_loader.py       carga y etiquetado de muestras Juliet
@@ -357,6 +359,7 @@ python src/experiments.py --experiment e7
 | 8 | Desbordamiento de enteros | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-8-incorporacion-de-cwe190); [Benchmark](ai_benchmark/README.md#etapa-8-cwe190) |
 | 9 | Transmision en texto claro de informacion sensible | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-9-incorporacion-de-cwe319); [Benchmark](ai_benchmark/README.md#etapa-9-cwe319) |
 | 10 | Agotamiento de recursos | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-10-incorporacion-de-cwe400); [Benchmark](ai_benchmark/README.md#etapa-10-cwe400) |
+| 11 | Reflexion insegura | [Arquitectura y evolucion](docs/ARQUITECTURA_Y_EVOLUCION.md#etapa-11-incorporacion-de-cwe470); [Benchmark](ai_benchmark/README.md#etapa-11-cwe470) |
 
 Cada etapa conserva sus metricas, cambios, hallazgos y limitaciones. El estado vigente
 de soporte y la hoja de ruta se mantienen en

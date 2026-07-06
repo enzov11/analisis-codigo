@@ -685,6 +685,62 @@ La etapa queda cerrada. Las `72` muestras del holdout contienen `26` implementac
 distintas, por lo que la repeticion entre completions y condiciones limita su diversidad
 efectiva.
 
+### Etapa 11: CWE470
+
+Esta etapa incorpora seleccion insegura de clases o miembros mediante reflexion. CWE470
+ya forma parte del baseline neuronal comun `cwe15-roadmap-v1`; no requiere un nuevo
+entrenamiento.
+
+El oraculo reconoce `Class.forName`, `ClassLoader.loadClass`, `getMethod`,
+`getDeclaredMethod`, `getField` y `getDeclaredField`. Considera vulnerable que un
+parametro o una fuente externa seleccione directamente el objetivo. Los nombres fijos,
+allowlists locales, registros de literales `.class` y switches cerrados hacia nombres
+fijos se consideran evidencia segura. Los helpers externos de validacion quedan
+ambiguos.
+
+En Juliet, el baseline comun obtuvo ROC-AUC `0,999932` y F1 vulnerable `0,9921` sobre
+`358` muestras de test, con `2` falsos positivos y ningun falso negativo. Estas metricas
+no sustituyen la evaluacion externa.
+
+#### Estrategia De Diversidad
+
+Cada corpus usa `18` tareas, `4` condiciones y una sola completion por combinacion:
+`72` muestras potenciales. Las condiciones son neutral, allowlist segura, mapeo seguro
+por `switch` y reflexion directa insegura. Por ello, los `72` valores `prompt_text` son
+distintos y no se repite deliberadamente una misma solicitud con temperatura cero.
+
+Esta estrategia redujo los duplicados inducidos por el protocolo: calibracion y holdout
+produjeron `72` implementaciones distintas cada uno.
+
+#### Artefactos Preparados
+
+- Manifiestos: `prompts_cwe470_calibration.json`, `prompts_cwe470_holdout.json`.
+- Scaffolds: `cwe470_calibration_scaffold.jsonl`, `cwe470_holdout_scaffold.jsonl`.
+- Corpus aprobado: `cwe470_calibration_samples.jsonl`, con `42` muestras seguras y `30`
+  vulnerables.
+- Configuracion congelada: `cwe470_calibration_fusion_config.json`.
+- Holdout aprobado: `cwe470_holdout_samples.jsonl`, con `36` muestras seguras y `36`
+  vulnerables.
+- Metricas: `cwe470_calibration_evaluation_summary.json` y
+  `cwe470_holdout_evaluation_summary.json`.
+
+La red obtuvo F1 vulnerable `0,0556`, con `5` falsos positivos y `29` falsos negativos.
+La heuristica y la fusion calibrada alcanzaron F1 vulnerable `1,000`, sin errores. La
+configuracion seleccionada usa umbral `0,4`, pesos `0,75` y `0,55`, descuento seguro
+`0,20` y peso ambiguo `0,0`.
+
+Las `72` muestras de calibracion contienen `72` implementaciones distintas. La
+estrategia de una completion por solicitud y cuatro condiciones estructuralmente
+diferentes elimino los duplicados exactos observados en etapas anteriores.
+
+En el holdout congelado, la red obtuvo F1 vulnerable `0,1887`, con `12` falsos
+positivos y `31` falsos negativos. La heuristica y la fusion mantuvieron F1 vulnerable
+`1,000`, sin errores. El override CWE470 validado se incorporo a
+`per_cwe_fusion_config.json`.
+
+La etapa queda cerrada. Las `72` muestras del holdout tambien contienen `72`
+implementaciones distintas y estan balanceadas entre `36` seguras y `36` vulnerables.
+
 ## Convencion Para Futuras Etapas
 
 Cada ampliacion debe agregar una subseccion cronologica que identifique sus categorias,
