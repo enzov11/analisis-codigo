@@ -28,6 +28,10 @@ dataset/
 # Articulo LNCS gestionado fuera del repositorio publico
 paper_lncs/
 
+#Trabajo de fin de grado
+final_paper/
+plantilla_tesis/
+
 # Sistema
 .DS_Store
 Thumbs.db
