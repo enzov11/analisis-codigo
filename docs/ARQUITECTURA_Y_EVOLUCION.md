@@ -393,31 +393,29 @@ ambigua para revision.
 #### Estado Actual
 
 La etapa cuenta con registro central de CWE, oraculo no destructivo, evidencia
-explicable en el predictor, manifiestos/scaffolds separados para calibracion y holdout,
-y entrenamiento Juliet con siete categorias.
+explicable en el predictor y entrenamiento dentro del baseline neuronal comun de 15
+categorias. La evaluacion externa utiliza manifiestos separados con `18` tareas por
+corpus, `4` condiciones y `1` respuesta por condicion. Esta estructura mantiene `72`
+muestras por corpus y reduce la repeticion inducida por pedir multiples respuestas del
+mismo prompt. Las condiciones cubren implementacion natural, rechazo de CRLF, allowlist
+local y escritura directa insegura.
 
-La calibracion externa contiene `72` muestras aprobadas: `12` seguras y `60`
-vulnerables. En este corpus, el modelo neuronal clasifico todas las muestras como
-vulnerables: F1 vulnerable `0,9091`, con `12` falsos positivos y `0` falsos negativos.
-Como hipotesis, esto sugiere una sensibilidad elevada del modelo ante sinks de cabeceras
-HTTP generados fuera del dominio Juliet. La capa heuristica y la fusion calibrada
-obtuvieron F1 vulnerable `1,000`, sin falsos positivos ni falsos negativos. La
-configuracion seleccionada desde calibracion usa umbral `0,5` para CWE113.
+La calibracion externa se completo con `72` muestras aprobadas y balanceadas:
+`36` seguras y `36` vulnerables. La red neuronal mostro una transferencia debil en este
+corpus, con F1 vulnerable `0,1667`, `30` falsos positivos y `30` falsos negativos. La
+heuristica obtuvo F1 vulnerable `1,000`, sin errores. La fusion calibrada tambien
+obtuvo F1 vulnerable `1,000`, con umbral `0,4`, pesos `0,75` y `0,55`, descuento seguro
+`0,20` y peso ambiguo `0,0`.
 
-El holdout congelado contiene `72` muestras aprobadas: `18` seguras y `54`
-vulnerables, sin solapamiento de `sample_id` ni `prompt_id` con calibracion. Con la
-configuracion seleccionada exclusivamente desde calibracion, el modelo neuronal obtuvo
-F1 vulnerable `0,8571`, con `18` falsos positivos y `0` falsos negativos. La heuristica
-obtuvo F1 vulnerable `1,000`, sin falsos positivos ni falsos negativos. La fusion
-congelada obtuvo F1 vulnerable `0,8710`, con `16` falsos positivos y `0` falsos
-negativos.
+El holdout congelado tambien contiene `72` muestras aprobadas y balanceadas: `36`
+seguras y `36` vulnerables. Con la configuracion seleccionada exclusivamente desde
+calibracion, la red neuronal obtuvo F1 vulnerable `0,1667`, con `30` falsos positivos y
+`30` falsos negativos. La heuristica y la fusion congelada obtuvieron F1 vulnerable
+`1,000`, sin falsos positivos ni falsos negativos.
 
-Este resultado deja una limitacion metodologica clara: aunque la heuristica identifica
-correctamente las mitigaciones locales del holdout, la fusion calibrada todavia concede
-demasiado peso a puntajes neuronales altos ante evidencia segura. Por ese motivo, la
-etapa se cierra sin activar un override global para CWE113 en la configuracion de fusion
-por CWE. Cualquier ajuste posterior queda como mejora futura y debera elegirse con nuevos
-datos de calibracion o con una regla predefinida antes de abrir otro holdout.
+Con estos resultados, la etapa queda cerrada y el override CWE113 con umbral `0,4` fue
+incorporado a la configuracion global de fusion por CWE. La principal limitacion sigue
+siendo que la evaluacion externa usa tareas controladas y una unica sesion/modelo.
 
 Artefactos preparados:
 
@@ -425,8 +423,10 @@ Artefactos preparados:
 - [`prompts_cwe113_holdout.json`](../ai_benchmark/prompts_cwe113_holdout.json)
 - [`cwe113_calibration_scaffold.jsonl`](../ai_benchmark/cwe113_calibration_scaffold.jsonl)
 - [`cwe113_holdout_scaffold.jsonl`](../ai_benchmark/cwe113_holdout_scaffold.jsonl)
+- [`cwe113_calibration_samples.jsonl`](../ai_benchmark/cwe113_calibration_samples.jsonl)
 - [`cwe113_calibration_evaluation_summary.json`](../ai_benchmark/cwe113_calibration_evaluation_summary.json)
 - [`cwe113_calibration_fusion_config.json`](../ai_benchmark/cwe113_calibration_fusion_config.json)
+- [`cwe113_holdout_samples.jsonl`](../ai_benchmark/cwe113_holdout_samples.jsonl)
 - [`cwe113_holdout_evaluation_summary.json`](../ai_benchmark/cwe113_holdout_evaluation_summary.json)
 
 ### Etapa 6: Incorporacion De CWE129

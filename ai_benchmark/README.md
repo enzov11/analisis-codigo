@@ -422,19 +422,23 @@ vulnerables. El modelo neuronal obtuvo F1 vulnerable `0,0`, con `36` falsos posi
 
 ### Etapa 5: CWE113
 
-Esta etapa prepara el benchmark externo para HTTP Response Splitting. Ya existen
-calibracion aprobada y holdout congelado ejecutado. No se actualiza la fusion global por
-CWE porque la configuracion calibrada no supero a la heuristica en holdout; la etapa se
-cierra con esa limitacion documentada.
+Esta etapa prepara el benchmark externo para HTTP Response Splitting sobre cabeceras,
+redirecciones, cookies y tipos de contenido HTTP.
 
 #### Artefactos Preparados
 
 - Manifiestos: `prompts_cwe113_calibration.json`, `prompts_cwe113_holdout.json`.
 - Scaffolds: `cwe113_calibration_scaffold.jsonl`, `cwe113_holdout_scaffold.jsonl`.
-- Calibracion: `cwe113_calibration_samples.jsonl`,
+- Calibracion completada: `cwe113_calibration_responses_raw.jsonl`,
+  `cwe113_calibration_samples_pending.jsonl`,
+  `cwe113_calibration_samples_for_review.jsonl`,
+  `cwe113_calibration_samples.jsonl`,
   `cwe113_calibration_evaluation_summary.json`,
   `cwe113_calibration_fusion_config.json`.
-- Holdout: `cwe113_holdout_samples.jsonl`,
+- Holdout completado: `cwe113_holdout_responses_raw.jsonl`,
+  `cwe113_holdout_samples_pending.jsonl`,
+  `cwe113_holdout_samples_for_review.jsonl`,
+  `cwe113_holdout_samples.jsonl`,
   `cwe113_holdout_evaluation_summary.json`.
 
 ```bash
@@ -462,18 +466,21 @@ python src/experiments.py --experiment e5 --ai-mode holdout \
   --fusion-config ai_benchmark/cwe113_calibration_fusion_config.json
 ```
 
-La calibracion contiene `72` muestras aprobadas: `12` seguras y `60` vulnerables. El
-modelo neuronal obtuvo F1 vulnerable `0,9091`, con `12` falsos positivos y `0` falsos
-negativos. Las heuristicas y la fusion calibrada obtuvieron F1 vulnerable `1,0`, sin
-falsos positivos ni falsos negativos. La configuracion seleccionada usa umbral `0,5`
-para CWE113.
+Los manifiestos tienen `18` tareas por corpus, `4` condiciones y `1` respuesta por
+condicion, para un total de `72` muestras por corpus. Las condiciones son `neutral`,
+`crlf_reject_secure`, `allowlist_secure` y `direct_insecure`.
 
-El holdout congelado contiene `72` muestras aprobadas: `18` seguras y `54` vulnerables.
-El modelo neuronal obtuvo F1 vulnerable `0,8571`, con `18` falsos positivos y `0` falsos
-negativos. Las heuristicas obtuvieron F1 vulnerable `1,0`, sin falsos positivos ni
-falsos negativos. El hibrido congelado obtuvo F1 vulnerable `0,8710`, con `16` falsos
-positivos y `0` falsos negativos. Por esto, CWE113 queda cerrada sin override global
-activo; una regla de fusion mas conservadora queda como mejora futura.
+La calibracion contiene `72` muestras aprobadas: `36` seguras y `36` vulnerables. El
+modelo neuronal obtuvo F1 vulnerable `0,1667`, con `30` falsos positivos y `30` falsos
+negativos. La heuristica y la fusion calibrada obtuvieron F1 vulnerable `1,0`, sin
+falsos positivos ni falsos negativos. La configuracion seleccionada desde calibracion
+usa umbral `0,4`, pesos `0,75` y `0,55`, descuento seguro `0,20` y peso ambiguo `0,0`.
+
+El holdout congelado contiene `72` muestras aprobadas: `36` seguras y `36`
+vulnerables. Con la configuracion congelada desde calibracion, el modelo neuronal obtuvo
+F1 vulnerable `0,1667`, con `30` falsos positivos y `30` falsos negativos. La
+heuristica y la fusion congelada obtuvieron F1 vulnerable `1,0`, sin falsos positivos
+ni falsos negativos. El override CWE113 fue incorporado a `per_cwe_fusion_config.json`.
 
 ### Etapa 6: CWE129
 

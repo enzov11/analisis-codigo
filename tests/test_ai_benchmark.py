@@ -347,8 +347,11 @@ class AIBenchmarkTests(unittest.TestCase):
             with open(path, "r", encoding="utf-8") as handle:
                 manifest = json.load(handle)
             self.assertEqual(manifest["target_cwes"], ["CWE113"])
-            self.assertEqual(len(manifest["tasks"]), 12)
-            self.assertEqual(set(manifest["conditions"]), {"neutral", "secure", "risk-prone"})
+            self.assertEqual(len(manifest["tasks"]), 18)
+            self.assertEqual(
+                set(manifest["conditions"]),
+                {"neutral", "crlf_reject_secure", "allowlist_secure", "direct_insecure"},
+            )
             self.assertEqual(
                 len(manifest["tasks"])
                 * len(manifest["conditions"])
@@ -356,7 +359,7 @@ class AIBenchmarkTests(unittest.TestCase):
                 72,
             )
 
-        self.assertEqual(summary["task_count"], 240)
+        self.assertEqual(summary["task_count"], 252)
         for name in (
             "cwe113_calibration_scaffold.jsonl",
             "cwe113_holdout_scaffold.jsonl",
@@ -492,7 +495,7 @@ class AIBenchmarkTests(unittest.TestCase):
                 72,
             )
 
-        self.assertEqual(summary["task_count"], 468)
+        self.assertEqual(summary["task_count"], 480)
         for name in (
             "cwe129_calibration_scaffold.jsonl",
             "cwe129_holdout_scaffold.jsonl",
@@ -828,10 +831,14 @@ class AIBenchmarkTests(unittest.TestCase):
             normalized, "CWE36"
         )
         fallback = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
+            normalized, "CWE999"
+        )
+        cwe113 = experiments.VulnerabilityPredictor.fusion_config_for_cwe(
             normalized, "CWE113"
         )
 
         self.assertEqual(config["version"], 2)
+        self.assertEqual(cwe113["threshold"], 0.4)
         self.assertEqual(cwe89["threshold"], 0.5)
         self.assertEqual(cwe23["threshold"], 0.5)
         self.assertEqual(cwe36["threshold"], 0.4)
@@ -845,6 +852,7 @@ class AIBenchmarkTests(unittest.TestCase):
                 "CWE80",
                 "CWE89",
                 "CWE90",
+                "CWE113",
                 "CWE129",
                 "CWE134",
                 "CWE190",
@@ -855,8 +863,16 @@ class AIBenchmarkTests(unittest.TestCase):
                 "CWE643",
             },
         )
-        self.assertEqual(len(config["calibration_sample_ids"]), 1213)
-        self.assertEqual(len(config["calibration_prompt_ids"]), 198)
+        self.assertEqual(len(config["calibration_sample_ids"]), 1285)
+        self.assertEqual(len(config["calibration_prompt_ids"]), 216)
+        self.assertEqual(
+            cwe113["calibration_source"],
+            "ai_benchmark/cwe113_calibration_samples.jsonl",
+        )
+        self.assertEqual(
+            cwe113["holdout_source"],
+            "ai_benchmark/cwe113_holdout_evaluation_summary.json",
+        )
         self.assertEqual(
             cwe89["calibration_source"],
             "ai_benchmark/cwe89_large_calibration_samples.jsonl",
@@ -1264,6 +1280,24 @@ class AIBenchmarkTests(unittest.TestCase):
             'response.sendRedirect("/next?url=" + URLEncoder.encode(nextUrl, "UTF-8"));',
             "CWE113",
         )
+        safe_allowlist = ai_benchmark.assess_code(
+            """
+            if (username == null || !username.matches("[A-Za-z0-9._ -]{1,64}")) {
+                throw new IllegalArgumentException("Invalid username");
+            }
+            response.setHeader("X-User", username);
+            """,
+            "CWE113",
+        )
+        safe_escaped_allowlist = ai_benchmark.assess_code(
+            """
+            if (warningText == null || !warningText.matches("[0-9]{3} [A-Za-z0-9.-]{1,64} \\"[A-Za-z0-9 .,:;_-]{1,128}\\"")) {
+                throw new IllegalArgumentException("Invalid warning text");
+            }
+            response.addHeader("Warning", warningText);
+            """,
+            "CWE113",
+        )
         qualified_cookie_vulnerable = ai_benchmark.assess_code(
             'response.addCookie(new javax.servlet.http.Cookie("displayName", displayName));',
             "CWE113",
@@ -1284,6 +1318,8 @@ class AIBenchmarkTests(unittest.TestCase):
         self.assertEqual(vulnerable.verdict, "vulnerable")
         self.assertEqual(safe_reject.verdict, "safe")
         self.assertEqual(safe_encode.verdict, "safe")
+        self.assertEqual(safe_allowlist.verdict, "safe")
+        self.assertEqual(safe_escaped_allowlist.verdict, "safe")
         self.assertEqual(qualified_cookie_vulnerable.verdict, "vulnerable")
         self.assertEqual(cookie_safe.verdict, "safe")
         self.assertEqual(ambiguous.verdict, "ambiguous")

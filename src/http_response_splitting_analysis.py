@@ -173,7 +173,9 @@ def _has_local_crlf_mitigation(code: str) -> bool:
         re.I,
     )
     allowlist = re.search(
-        r"\.matches\s*\(\s*\"(?:\^)?\[[A-Za-z0-9_\- .:/?=&%]+\][+*](?:\$)?\"\s*\)",
+        r"!\s*[\w.]+\s*\.\s*matches\s*\(\s*"
+        r"\"(?![^\"\\]*(?:\\r|\\n|\[\\r\\n\]))(?:\\.|[^\"\\])+\"\s*\)"
+        r"[\s\S]{0,180}(?:throw\s+new|return\b)",
         code,
         re.I,
     )

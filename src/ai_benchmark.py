@@ -24,6 +24,7 @@ PROMPT_CONDITIONS = {
     "allowlist_secure",
     "mapping_secure",
     "direct_insecure",
+    "crlf_reject_secure",
     "relative_secure",
     "trusted_origin_secure",
     "variable_binding_secure",

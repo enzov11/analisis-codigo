@@ -60,11 +60,12 @@ para uso global, su override se registra en `ai_benchmark/per_cwe_fusion_config.
 Para CWE80 ya existe entrenamiento Juliet, calibracion externa inicial, holdout
 congelado y override activo en la configuracion de fusion por CWE.
 
-Para CWE113 ya existe soporte en el registro central, oraculo heuristico, entrenamiento
-Juliet con siete categorias, calibracion externa aprobada y holdout congelado ejecutado.
-La etapa se cierra como implementada y evaluada, sin promover un override global nuevo:
-la heuristica supero a la fusion calibrada en holdout, y esa mejora de fusion queda como
-trabajo futuro opcional.
+Para CWE113 ya existe soporte en el registro central, oraculo heuristico, evidencia
+explicable y entrenamiento dentro del baseline neuronal comun `cwe15-roadmap-v1`. La
+calibracion externa y el holdout congelado fueron completados con ambas clases. La
+heuristica y la fusion obtuvieron F1 vulnerable `1,000` en holdout, y el override
+validado fue incorporado a `ai_benchmark/per_cwe_fusion_config.json`. La categoria
+queda implementada y evaluada.
 
 Para CWE129 ya existe soporte en el registro central, oraculo heuristico, evidencia
 explicable y entrenamiento dentro del baseline neuronal comun `cwe15-roadmap-v1`. La
