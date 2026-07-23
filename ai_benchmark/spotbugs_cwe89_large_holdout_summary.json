@@ -1,0 +1,2766 @@
+{
+  "tool": "SpotBugs",
+  "cwe_id": "CWE89",
+  "corpus": "cwe89_large_holdout_samples.jsonl",
+  "sql_bug_patterns": [
+    "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+    "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"
+  ],
+  "samples": 288,
+  "safe": 144,
+  "vulnerable": 144,
+  "confusion_matrix": {
+    "tp": 144,
+    "fp": 0,
+    "tn": 144,
+    "fn": 0
+  },
+  "metrics": {
+    "accuracy": 1.0,
+    "precision_vulnerable": 1.0,
+    "recall_vulnerable": 1.0,
+    "f1_vulnerable": 1.0
+  },
+  "per_sample": [
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T01_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T02_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T03_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T04_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T05_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T06_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T07_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T08_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T09_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T10_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T11_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T12_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T13_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T14_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T15_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T16_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T17_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "3",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T18_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T19_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T20_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T21_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T22_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T23_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_neutral_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_neutral_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_neutral_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_secure_1",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_secure_2",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_secure_3",
+      "label": 0,
+      "prediction": 0,
+      "findings": []
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_risk_prone_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_risk_prone_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_risk_prone_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_adversarial_insecure_1",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_adversarial_insecure_2",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    },
+    {
+      "sample_id": "HOLD_CWE89_LARGE_T24_adversarial_insecure_3",
+      "label": 1,
+      "prediction": 1,
+      "findings": [
+        {
+          "type": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+          "priority": "1",
+          "category": "SECURITY",
+          "line": "6"
+        }
+      ]
+    }
+  ],
+  "status": "ok",
+  "work_dir": "/tmp/spotbugs_cwe89_holdout",
+  "spotbugs_stdout": "",
+  "spotbugs_stderr": ""
+}
