@@ -105,6 +105,7 @@ class ModelTrainer:
             "training_profile": self.config.TRAINING_PROFILE,
             "max_code_length": self.config.MAX_CODE_LENGTH,
             "max_tokens": self.config.MAX_TOKENS,
+            "juliet_comment_marker_mode": self.config.JULIET_COMMENT_MARKER_MODE,
             "max_samples_per_cwe": self.config.MAX_SAMPLES_PER_CWE,
             "prediction_threshold": self.config.PREDICTION_THRESHOLD,
             "num_cwe_types": num_cwe_types,

@@ -25,18 +25,24 @@ class CodePreprocessor:
         }
 
     def preprocess_code(self, code: str) -> str:
-        code = re.sub(
-            r"/\*.*?POTENTIAL FLAW.*?\*/|//\s*POTENTIAL FLAW.*",
-            "<FLAW>",
-            code,
-            flags=re.DOTALL,
-        )
-        code = re.sub(
-            r"/\*.*?FIX.*?\*/|//\s*FIX.*",
-            "<SAFE>",
-            code,
-            flags=re.DOTALL,
-        )
+        flaw_comment_pattern = r"/\*.*?POTENTIAL FLAW.*?\*/|//\s*POTENTIAL FLAW.*"
+        safe_comment_pattern = r"/\*.*?FIX.*?\*/|//\s*FIX.*"
+        if self.config.JULIET_COMMENT_MARKER_MODE == "tokens":
+            code = re.sub(
+                flaw_comment_pattern,
+                "<FLAW>",
+                code,
+                flags=re.DOTALL,
+            )
+            code = re.sub(
+                safe_comment_pattern,
+                "<SAFE>",
+                code,
+                flags=re.DOTALL,
+            )
+        elif self.config.JULIET_COMMENT_MARKER_MODE == "strip":
+            code = re.sub(flaw_comment_pattern, " ", code, flags=re.DOTALL)
+            code = re.sub(safe_comment_pattern, " ", code, flags=re.DOTALL)
 
         code = re.sub(r"Runtime\.getRuntime\(\)\.exec\(", "<EXEC> ", code)
         code = re.sub(r"new\s+ProcessBuilder\(", "<PROCESS_BUILDER> ", code)

@@ -63,6 +63,13 @@ class Config:
     MAX_CODE_LENGTH = int(os.getenv("MAX_CODE_LENGTH", "500"))
     MAX_TOKENS = int(os.getenv("MAX_TOKENS", "20000"))
     TOKENIZER_OOV_TOKEN = os.getenv("TOKENIZER_OOV_TOKEN", "<OOV>")
+    JULIET_COMMENT_MARKER_MODE = os.getenv(
+        "JULIET_COMMENT_MARKER_MODE", "tokens"
+    ).strip().lower()
+    if JULIET_COMMENT_MARKER_MODE not in {"tokens", "strip", "keep"}:
+        raise ValueError(
+            "JULIET_COMMENT_MARKER_MODE must be one of: tokens, strip, keep."
+        )
 
     EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "256"))
     LSTM_UNITS = int(os.getenv("LSTM_UNITS", "128"))
