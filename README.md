@@ -88,6 +88,31 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
+Para instalar CodeScan-AI como comando local editable:
+
+```bash
+pip install -e .
+```
+
+En entornos sin acceso a internet, si las dependencias ya estan instaladas en el
+entorno virtual:
+
+```bash
+pip install -e . --no-build-isolation
+```
+
+Luego se puede ejecutar:
+
+```bash
+codescan-ai scan /ruta/al/proyecto-java
+```
+
+Desde otro proyecto, una vez publicada la release de artefactos, se puede instalar con:
+
+```bash
+pip install "codescan-ai @ git+https://github.com/enzov11/analisis-codigo.git"
+```
+
 Editar `.env` y configurar `DATASET_PATH` con la ruta local al dataset Juliet:
 
 ```env
@@ -239,6 +264,83 @@ Aplicar la configuracion version 2 con overrides por CWE:
 python src/main.py predict --code src/test/test_vulnerable.java --json \
   --fusion-config ai_benchmark/per_cwe_fusion_config.json
 ```
+
+## Escanear Como Herramienta SAST
+
+CodeScan-AI tambien puede ejecutarse como un linter SAST para analizar archivos o
+directorios Java de forma recursiva. Este modo reutiliza el mismo motor hibrido de
+prediccion y genera reportes estructurados para revision local o CI/CD.
+
+El modo `scan` busca automaticamente un archivo `.codescan.env` o `.env` cerca del
+objetivo escaneado. Esto permite configurar por proyecto el modelo, la fusion congelada,
+el formato de salida y la politica de fallo.
+
+Escanear un archivo:
+
+```bash
+python src/main.py scan src/test/test_vulnerable.java
+```
+
+Escanear un directorio y escribir un reporte JSON:
+
+```bash
+python src/main.py scan ./src --format json --output codescan-ai-report.json
+```
+
+Escanear un proyecto Java externo con configuracion local:
+
+```bash
+codescan-ai scan /ruta/al/proyecto-java
+```
+
+En ese proyecto se puede agregar un archivo `.codescan.env` para no repetir rutas ni
+politicas en cada ejecucion:
+
+```env
+MODEL_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/vuldeepecker.keras
+TOKENIZER_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/tokenizer.pkl
+CWE_ENCODER_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/cwe_encoder.pkl
+METADATA_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/metadata.json
+CODESCAN_FUSION_CONFIG=.codescan/config/per_cwe_fusion_config.json
+CODESCAN_FORMAT=sarif
+CODESCAN_FAIL_ON=vulnerable
+CODESCAN_QUIET_RUNTIME=true
+```
+
+Generar un reporte SARIF integrable con GitHub Code Scanning:
+
+```bash
+python src/main.py scan ./src \
+  --format sarif \
+  --output codescan-ai.sarif \
+  --fusion-config ai_benchmark/per_cwe_fusion_config.json
+```
+
+Politicas de salida para CI:
+
+- `--fail-on vulnerable`: devuelve codigo `1` si existen vulnerabilidades.
+- `--fail-on review_required`: devuelve codigo `1` si existen vulnerabilidades o casos
+  sujetos a revision.
+- `--fail-on never`: siempre devuelve `0` si el escaneo pudo completarse.
+
+Variables reconocidas por `.codescan.env`:
+
+- `ARTIFACT_VERSION`: version de artefactos en `src/models/`.
+- `CODESCAN_FUSION_CONFIG`: ruta de la configuracion de fusion.
+- `CODESCAN_FORMAT`: `json` o `sarif`.
+- `CODESCAN_FAIL_ON`: `vulnerable`, `review_required` o `never`.
+- `CODESCAN_QUIET_RUNTIME`: silencia mensajes de runtime durante el escaneo.
+
+Los codigos de salida son:
+
+- `0`: escaneo completado sin incumplir la politica configurada.
+- `1`: escaneo completado con hallazgos que incumplen la politica.
+- `2`: error de ejecucion o configuracion.
+
+Hay un ejemplo de workflow en
+[`docs/ci/github-action-codescan-ai.yml`](docs/ci/github-action-codescan-ai.yml). El
+workflow asume que los artefactos entrenados se restauran antes del escaneo, ya que
+`src/models/` no se versiona.
 
 La salida incluye:
 

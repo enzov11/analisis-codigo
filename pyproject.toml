@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codescan-ai"
+version = "0.1.0"
+description = "Hybrid SAST scanner for Java snippets and source files."
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "python-dotenv",
+    "tensorflow",
+]
+
+[project.scripts]
+codescan-ai = "codescan_cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = [
+    "ai_benchmark",
+    "array_index_analysis",
+    "cleartext_transmission_analysis",
+    "codescan_cli",
+    "config",
+    "cwe_registry",
+    "data_loader",
+    "experiments",
+    "format_string_analysis",
+    "http_response_splitting_analysis",
+    "integer_overflow_analysis",
+    "main",
+    "model",
+    "open_redirect_analysis",
+    "path_traversal_analysis",
+    "predictor",
+    "preprocessor",
+    "resource_exhaustion_analysis",
+    "sast_scanner",
+    "sql_analysis",
+    "trainer",
+    "unsafe_reflection_analysis",
+    "xpath_injection_analysis",
+    "xss_analysis",
+]

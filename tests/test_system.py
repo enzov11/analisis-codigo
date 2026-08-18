@@ -259,6 +259,146 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(unsafe_result["is_vulnerable"])
         self.assertTrue(unsafe_result["heuristic_evidence"])
 
+    def test_sast_scanner_reports_multi_file_findings_and_summary(self):
+        _, _, predictor_module = reload_modules()
+        scanner_module = importlib.import_module("sast_scanner")
+        importlib.reload(scanner_module)
+        project_dir = self.temp_dir / "demo"
+        source_dir = project_dir / "src" / "main" / "java" / "demo"
+        source_dir.mkdir(parents=True)
+        unsafe_file = source_dir / "UnsafeSqlExample.java"
+        safe_file = source_dir / "SafeSqlExample.java"
+        unsafe_file.write_text(
+            """
+            class UnsafeSqlExample {
+                void find(java.sql.Connection connection, String username) throws Exception {
+                    String query = "SELECT * FROM users WHERE name = '" + username + "'";
+                    connection.createStatement().executeQuery(query);
+                }
+            }
+            """,
+            encoding="utf-8",
+        )
+        safe_file.write_text(
+            """
+            class SafeSqlExample {
+                void find(java.sql.Connection connection, String username) throws Exception {
+                    java.sql.PreparedStatement stmt = connection.prepareStatement(
+                        "SELECT * FROM users WHERE name = ?"
+                    );
+                    stmt.setString(1, username);
+                    stmt.executeQuery();
+                }
+            }
+            """,
+            encoding="utf-8",
+        )
+
+        predictor = predictor_module.VulnerabilityPredictor()
+        report = scanner_module.scan_targets(
+            [project_dir],
+            predictor=predictor,
+            base_dir=project_dir,
+        )
+
+        self.assertEqual(report["summary"]["files_scanned"], 2)
+        self.assertEqual(report["summary"]["vulnerable"], 1)
+        self.assertEqual(report["summary"]["review_required"], 0)
+        self.assertEqual(len(report["findings"]), 1)
+        finding = report["findings"][0]
+        self.assertEqual(finding["file"], "src/main/java/demo/UnsafeSqlExample.java")
+        self.assertEqual(finding["cwe_id"], "CWE89")
+        self.assertEqual(finding["decision"], "vulnerable")
+        self.assertEqual(finding["severity"], "high")
+        self.assertTrue(scanner_module.should_fail(report, "vulnerable"))
+        self.assertFalse(scanner_module.should_fail(report, "never"))
+
+    def test_sast_scanner_renders_sarif(self):
+        _, _, predictor_module = reload_modules()
+        scanner_module = importlib.import_module("sast_scanner")
+        importlib.reload(scanner_module)
+        java_file = self.temp_dir / "UnsafeCommand.java"
+        java_file.write_text(
+            """
+            class UnsafeCommand {
+                void ping(String host) throws Exception {
+                    Runtime.getRuntime().exec("ping " + host);
+                }
+            }
+            """,
+            encoding="utf-8",
+        )
+
+        predictor = predictor_module.VulnerabilityPredictor()
+        report = scanner_module.scan_targets(
+            [java_file],
+            predictor=predictor,
+            base_dir=self.temp_dir,
+        )
+        sarif = scanner_module.to_sarif(report)
+
+        self.assertEqual(sarif["version"], "2.1.0")
+        run = sarif["runs"][0]
+        self.assertEqual(run["tool"]["driver"]["name"], "CodeScan-AI")
+        self.assertEqual(run["results"][0]["ruleId"], "CWE78")
+        self.assertEqual(
+            run["results"][0]["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "UnsafeCommand.java",
+        )
+
+    def test_codescan_cli_loads_project_environment(self):
+        cli_module = importlib.import_module("codescan_cli")
+        importlib.reload(cli_module)
+        project_dir = self.temp_dir / "project"
+        project_dir.mkdir()
+        env_file = project_dir / ".codescan.env"
+        env_file.write_text(
+            "CODESCAN_FORMAT=sarif\n"
+            "CODESCAN_FAIL_ON=review_required\n"
+            "CODESCAN_FUSION_CONFIG=relative/fusion.json\n",
+            encoding="utf-8",
+        )
+
+        loaded = cli_module._load_scan_environment([str(project_dir)], None)
+        resolved = cli_module._resolve_scan_config_path(
+            None,
+            os.environ["CODESCAN_FUSION_CONFIG"],
+            loaded,
+        )
+
+        self.assertEqual(loaded, env_file)
+        self.assertEqual(os.environ["CODESCAN_FORMAT"], "sarif")
+        self.assertEqual(os.environ["CODESCAN_FAIL_ON"], "review_required")
+        self.assertEqual(resolved, project_dir / "relative" / "fusion.json")
+
+    def test_codescan_cli_resolves_model_paths_relative_to_project_environment(self):
+        cli_module = importlib.import_module("codescan_cli")
+        importlib.reload(cli_module)
+        project_dir = self.temp_dir / "external-project"
+        project_dir.mkdir()
+        env_file = project_dir / ".codescan.env"
+        env_file.write_text(
+            "MODEL_SAVE_PATH=.codescan/models/model.keras\n"
+            "TOKENIZER_SAVE_PATH=.codescan/models/tokenizer.pkl\n"
+            "METADATA_SAVE_PATH=.codescan/models/metadata.json\n",
+            encoding="utf-8",
+        )
+
+        cli_module._load_scan_environment([str(project_dir)], None)
+
+        self.assertEqual(
+            os.environ["MODEL_SAVE_PATH"],
+            str(project_dir / ".codescan" / "models" / "model.keras"),
+        )
+        self.assertEqual(
+            os.environ["TOKENIZER_SAVE_PATH"],
+            str(project_dir / ".codescan" / "models" / "tokenizer.pkl"),
+        )
+        self.assertEqual(
+            os.environ["METADATA_SAVE_PATH"],
+            str(project_dir / ".codescan" / "models" / "metadata.json"),
+        )
+
     def test_predictor_identifies_relative_and_absolute_path_traversal(self):
         _, _, predictor_module = reload_modules()
         predictor = predictor_module.VulnerabilityPredictor()

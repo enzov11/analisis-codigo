@@ -1,0 +1,41 @@
+name: CodeScan-AI
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore trained artifacts
+        run: |
+          curl -L -o codescan-ai-artifacts-cwe15-roadmap-v1.tar.gz \
+            https://github.com/enzov11/analisis-codigo/releases/download/cwe15-roadmap-v1/codescan-ai-artifacts-cwe15-roadmap-v1.tar.gz
+          mkdir -p .codescan
+          tar -xzf codescan-ai-artifacts-cwe15-roadmap-v1.tar.gz -C .codescan
+
+      - name: Run CodeScan-AI
+        run: |
+          python src/main.py scan . \
+            --format sarif \
+            --output codescan-ai.sarif \
+            --fusion-config ai_benchmark/per_cwe_fusion_config.json \
+            --fail-on vulnerable
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: codescan-ai.sarif
