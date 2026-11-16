@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 REQUIRED_ARTIFACTS = [
-    "vuldeepecker.keras",
+    "codescan.keras",
     "tokenizer.pkl",
     "cwe_encoder.pkl",
     "metadata.json",

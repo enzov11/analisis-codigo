@@ -23,7 +23,7 @@ Contenido del paquete:
 
 ```text
 models/cwe15-roadmap-v1/
-  vuldeepecker.keras
+  codescan.keras
   tokenizer.pkl
   cwe_encoder.pkl
   metadata.json

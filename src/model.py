@@ -16,7 +16,7 @@ from tensorflow.keras.regularizers import l2
 from config import Config
 
 
-class VulDeePeckerModel:
+class CodeScanModel:
     def __init__(self, vocab_size: int, num_cwe_types: int = 1):
         self.config = Config()
         self.vocab_size = vocab_size

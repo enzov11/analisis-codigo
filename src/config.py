@@ -41,7 +41,7 @@ class Config:
     )
 
     MODEL_SAVE_PATH = os.getenv(
-        "MODEL_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "vuldeepecker.keras")
+        "MODEL_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "codescan.keras")
     )
     TOKENIZER_SAVE_PATH = os.getenv(
         "TOKENIZER_SAVE_PATH", str(DEFAULT_ARTIFACT_DIR / "tokenizer.pkl")

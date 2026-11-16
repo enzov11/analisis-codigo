@@ -126,7 +126,7 @@ DATASET_PATH=/ruta/al/dataset/Juliet
 Los valores por defecto estan en `.env.example`:
 
 ```env
-MODEL_SAVE_PATH=src/models/vuldeepecker.keras
+MODEL_SAVE_PATH=src/models/codescan.keras
 TOKENIZER_SAVE_PATH=src/models/tokenizer.pkl
 CWE_ENCODER_SAVE_PATH=src/models/cwe_encoder.pkl
 METADATA_SAVE_PATH=src/models/metadata.json
@@ -224,7 +224,7 @@ El entrenamiento realiza:
 Artefactos esperados:
 
 ```text
-src/models/vuldeepecker.keras
+src/models/codescan.keras
 src/models/tokenizer.pkl
 src/models/cwe_encoder.pkl
 src/models/metadata.json
@@ -297,7 +297,7 @@ En ese proyecto se puede agregar un archivo `.codescan.env` para no repetir ruta
 politicas en cada ejecucion:
 
 ```env
-MODEL_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/vuldeepecker.keras
+MODEL_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/codescan.keras
 TOKENIZER_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/tokenizer.pkl
 CWE_ENCODER_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/cwe_encoder.pkl
 METADATA_SAVE_PATH=.codescan/models/cwe15-roadmap-v1/metadata.json

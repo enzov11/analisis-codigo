@@ -10,7 +10,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoa
 
 from config import Config
 from data_loader import DataLoader
-from model import VulDeePeckerModel
+from model import CodeScanModel
 from preprocessor import CodePreprocessor
 
 
@@ -54,7 +54,7 @@ class ModelTrainer:
 
         vocab_size = len(self.preprocessor.tokenizer.word_index) + 1
         num_cwe_types = len(self.cwe_encoder.classes_)
-        model = VulDeePeckerModel(vocab_size, num_cwe_types)
+        model = CodeScanModel(vocab_size, num_cwe_types)
         model.summary()
 
         callbacks = self._build_callbacks(artifact_paths)
