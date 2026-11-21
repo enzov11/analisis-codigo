@@ -1,0 +1,69 @@
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-nodecimaldot,es-noquoting]{babel}
+\usepackage{lmodern}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{booktabs,array,tabularx}
+\usepackage{tikz,pgfplots,pgfplotstable}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds}
+\pgfplotsset{compat=1.18}
+\usepackage{listings}
+\usetheme{Madrid}
+\usefonttheme{professionalfonts}
+\definecolor{Navy}{HTML}{30388A}
+\definecolor{Teal}{HTML}{3E5A88}
+\definecolor{Ink}{HTML}{202020}
+\definecolor{Muted}{HTML}{59697B}
+\definecolor{Pale}{HTML}{F3F5F8}
+\definecolor{Grid}{HTML}{DCE4EB}
+\definecolor{Risk}{HTML}{AF3544}
+\definecolor{Safe}{HTML}{23795D}
+\definecolor{Amber}{HTML}{A75F16}
+\setbeamercolor{normal text}{fg=Ink,bg=white}
+\setbeamercolor{structure}{fg=Teal}
+\setbeamercolor{frametitle}{fg=white,bg=Navy}
+\setbeamercolor{title}{fg=Navy,bg=white}
+\setbeamercolor{block title}{fg=Navy,bg=Pale}
+\setbeamercolor{block body}{fg=Ink,bg=Pale}
+\setbeamercolor{footline}{fg=white,bg=Navy}
+\setbeamerfont{normal text}{size=\normalsize}
+\setbeamerfont{frametitle}{size=\fontsize{16}{19}\selectfont,series=\mdseries}
+\setbeamersize{text margin left=8mm,text margin right=8mm}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{blocks}[default]
+\setbeamertemplate{itemize item}{\small\raise0.2ex\hbox{\textbullet}}
+\setbeamertemplate{itemize subitem}{\textendash}
+\setbeamertemplate{enumerate items}[default]
+\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+\newif\ifinappendix
+\inappendixfalse
+\newcommand{\mainframenumber}{12}
+
+% Encabezado de sección y tema, inspirado en la referencia Beamer del tutor.
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,sep=0pt,leftskip=8mm,rightskip=8mm]{frametitle}
+    \hypersetup{linkcolor=white}
+    \vskip2.5mm
+    {\fontsize{17}{20}\selectfont\noindent\insertframetitle\strut\par}
+    \vskip2mm
+  \end{beamercolorbox}
+}
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2mm,dp=1.5mm,leftskip=8mm,rightskip=8mm]{footline}
+  \fontsize{7}{8}\selectfont
+  Enzo Vidallet (FP-UNA)\hfill IBERAMIA 2026\hfill
+  \ifinappendix Anexos opcionales\else\insertframenumber\,/\,\mainframenumber\fi
+  \end{beamercolorbox}
+}
+\newcommand{\labeltext}[1]{\par{\small\bfseries #1}\par}
+\newcommand{\smalltable}{\fontsize{10}{12}\selectfont\renewcommand{\arraystretch}{1.25}}
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\tightitems}{\setlength{\itemsep}{4mm}}
+\hypersetup{colorlinks=true,urlcolor=Teal,linkcolor=Navy,pdfauthor={Enzo Sebastián Vidallet Monges, Gustavo Sosa-Cabrera},pdftitle={Evaluador híbrido - IBERAMIA 2026}}
+\tikzset{box/.style={draw=Teal,line width=0.6pt,fill=Pale,align=center,font=\small,inner sep=2.5mm},plain/.style={align=center,font=\small},flow/.style={-{Latex[length=2mm]},line width=0.8pt,draw=Teal},riskbox/.style={box,draw=Risk,fill=Risk!5},safebox/.style={box,draw=Safe,fill=Safe!5}}
+\pgfplotsset{every axis/.append style={font=\footnotesize,axis line style={draw=Grid},tick style={draw=Grid},tick label style={font=\scriptsize,color=Muted},label style={font=\small,color=Ink},grid style={draw=Grid},legend style={draw=none,font=\scriptsize},scaled ticks=false},/pgf/number format/use comma,/pgf/number format/1000 sep={\,}}
+\lstdefinestyle{java}{language=Java,basicstyle=\ttfamily\fontsize{9}{11}\selectfont,keywordstyle=\color{Teal}\bfseries,stringstyle=\color{Amber},commentstyle=\color{Muted},showstringspaces=false,columns=fullflexible,keepspaces=true,breaklines=true,numbers=left,numberstyle=\tiny\color{Muted},numbersep=6pt,xleftmargin=4mm,frame=none,backgroundcolor=\color{Pale},aboveskip=2mm,belowskip=2mm,tabsize=2}
+\lstset{style=java}
